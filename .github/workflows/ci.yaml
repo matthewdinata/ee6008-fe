@@ -1,0 +1,32 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - '*'
+    pull_request:
+        branches:
+            - '*'
+
+jobs:
+    lint-and-typecheck:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Run linting
+              run: npm run lint
+
+            - name: Set lint success
+              run: echo "lint_success=true" >> $GITHUB_OUTPUT
+
+            - name: Run typechecking
+              run: npm run typecheck
+
+            - name: Set typechecking success
+              run: echo "typechecking_success=true" >> $GITHUB_OUTPUT
