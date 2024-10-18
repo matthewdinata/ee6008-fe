@@ -14,7 +14,7 @@ body {
 @layer base {
 	:root {
 		--gradient: linear-gradient(to top left, #1d2b64, #cb5774);
-		--background: 242 97.75% 98.5%;
+		--background: 242 40% 99.5%;
 		--foreground: 242 5.5% 1%;
 
 		--muted: 242 5.5% 92.5%;
@@ -45,11 +45,11 @@ body {
 
 		--radius: 0.5rem;
 
-		--chart-1: 12 76% 61%;
-		--chart-2: 173 58% 39%;
-		--chart-3: 197 37% 24%;
-		--chart-4: 43 74% 66%;
-		--chart-5: 27 87% 67%;
+		--chart-1: 242 55% 50%;
+		--chart-2: 262 55% 60%;
+		--chart-3: 282 55% 55%;
+		--chart-4: 302 55% 50%;
+		--chart-5: 322 55% 45%;
 	}
 
 	.dark {
@@ -83,11 +83,11 @@ body {
 
 		--ring: 242 55% 44%;
 
-		--chart-1: 220 70% 50%;
-		--chart-2: 160 60% 45%;
-		--chart-3: 30 80% 55%;
-		--chart-4: 280 65% 60%;
-		--chart-5: 340 75% 55%;
+		--chart-1: 242 70% 60%;
+		--chart-2: 262 70% 65%;
+		--chart-3: 282 70% 60%;
+		--chart-4: 302 70% 55%;
+		--chart-5: 322 70% 50%;
 	}
 }
 
@@ -102,4 +102,30 @@ body {
 
 .bg-gradient {
 	background: var(--gradient);
+}
+
+@layer components {
+	.gradient-background {
+		@apply bg-background opacity-50;
+		background-image: radial-gradient(
+				circle farthest-corner at top left,
+				hsl(var(--chart-1) / 40%) 0%,
+				hsl(var(--chart-1) / 0%) 45%
+			),
+			radial-gradient(
+				circle farthest-side at top right,
+				hsl(var(--muted) / 40%) 0%,
+				hsl(var(--muted) / 0%) 10%
+			),
+			radial-gradient(
+				circle farthest-corner at bottom right,
+				hsl(var(--chart-3) / 40%) 0%,
+				hsl(var(--chart-3) / 0%) 25%
+			),
+			radial-gradient(
+				ellipse at bottom center,
+				hsl(var(--chart-5) / 40%) 0%,
+				hsl(var(--chart-5) / 0%) 40%
+			);
+	}
 }

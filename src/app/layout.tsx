@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
+import Background from '@/components/background';
 import { ThemeProvider } from '@/components/theme-provider';
 
 import './globals.css';
@@ -28,16 +29,14 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-tl from-[#324baea1] to-[#c4506d78]`}
-			>
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="system"
 					enableSystem
 					disableTransitionOnChange
 				>
-					{children}
+					<Background>{children}</Background>
 				</ThemeProvider>
 			</body>
 		</html>
