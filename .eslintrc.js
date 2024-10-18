@@ -39,7 +39,14 @@ module.exports = {
 		'react/jsx-no-useless-fragment': 'off',
 		'react/no-array-index-key': 'off',
 		'no-unused-vars': 'off',
-		'@typescript-eslint/no-unused-vars': ['error'],
+		'@typescript-eslint/no-unused-vars': [
+			'error',
+			{
+				argsIgnorePattern: '^_',
+				varsIgnorePattern: '^_',
+				caughtErrorsIgnorePattern: '^_',
+			},
+		],
 	},
 	overrides: [
 		{

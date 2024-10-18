@@ -14,7 +14,7 @@ body {
 @layer base {
 	:root {
 		--gradient: linear-gradient(to top left, #1d2b64, #cb5774);
-		--background: 242 40% 99.5%;
+		--background: 242 20% 99.8%;
 		--foreground: 242 5.5% 1%;
 
 		--muted: 242 5.5% 92.5%;
@@ -106,10 +106,10 @@ body {
 
 @layer components {
 	.gradient-background {
-		@apply bg-background opacity-50;
+		@apply bg-background opacity-40;
 		background-image: radial-gradient(
 				circle farthest-corner at top left,
-				hsl(var(--chart-1) / 40%) 0%,
+				hsl(var(--chart-1) / 50%) 0%,
 				hsl(var(--chart-1) / 0%) 45%
 			),
 			radial-gradient(
@@ -125,7 +125,7 @@ body {
 			radial-gradient(
 				ellipse at bottom center,
 				hsl(var(--chart-5) / 40%) 0%,
-				hsl(var(--chart-5) / 0%) 40%
+				hsl(var(--chart-5) / 0%) 50%
 			);
 	}
 }

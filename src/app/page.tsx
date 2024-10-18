@@ -1,6 +1,24 @@
 import Image from 'next/image';
 
 import { ModeToggle } from '@/components/mode-toggle';
+import { Button } from '@/components/ui/button';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 
 export default function Home() {
 	return (
@@ -25,30 +43,45 @@ export default function Home() {
 					<li>Save and see your changes instantly.</li>
 				</ol>
 
-				<div className="flex gap-4 items-center flex-col sm:flex-row">
-					<a
-						className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-						href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Image
-							className="dark:invert"
-							src="https://nextjs.org/icons/vercel.svg"
-							alt="Vercel logomark"
-							width={20}
-							height={20}
-						/>
-						Deploy now
-					</a>
-					<a
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
+				<Card className="w-[350px] self-center">
+					<CardHeader>
+						<CardTitle>Create project</CardTitle>
+						<CardDescription>Deploy your new project in one-click.</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<form>
+							<div className="grid w-full items-center gap-4">
+								<div className="flex flex-col space-y-1.5">
+									<Label htmlFor="name">Name</Label>
+									<Input id="name" placeholder="Name of your project" />
+								</div>
+								<div className="flex flex-col space-y-1.5">
+									<Label htmlFor="framework">Framework</Label>
+									<Select>
+										<SelectTrigger id="framework">
+											<SelectValue placeholder="Select" />
+										</SelectTrigger>
+										<SelectContent position="popper">
+											<SelectItem value="next">Next.js</SelectItem>
+											<SelectItem value="sveltekit">SvelteKit</SelectItem>
+											<SelectItem value="astro">Astro</SelectItem>
+											<SelectItem value="nuxt">Nuxt.js</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+						</form>
+					</CardContent>
+					<CardFooter className="flex justify-between">
+						<Button variant="outline">Cancel</Button>
+						<Button>Deploy</Button>
+					</CardFooter>
+				</Card>
+				<div className="flex gap-4 items-center justify-center flex-col sm:flex-row w-full">
+					<Button className="w-40%">Deploy now</Button>
+					<Button variant="outline" className="w-40%">
 						Read our docs
-					</a>
+					</Button>
 				</div>
 			</main>
 			<footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
