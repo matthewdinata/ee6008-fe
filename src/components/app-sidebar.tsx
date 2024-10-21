@@ -3,8 +3,8 @@
 import { FolderRoot } from 'lucide-react';
 import * as React from 'react';
 
-import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
+import NavMain from '@/components/nav-main';
+import NavUser from '@/components/nav-user';
 import {
 	Sidebar,
 	SidebarContent,
@@ -18,9 +18,7 @@ import {
 
 import { navConfig, userConfig } from '@/app/config/nav';
 
-import { ModeToggle } from './mode-toggle';
-
-export function AppSidebar({
+export default function AppSidebar({
 	role,
 	...props
 }: React.ComponentProps<typeof Sidebar> & { role: string }) {
@@ -48,8 +46,7 @@ export function AppSidebar({
 			<SidebarContent>
 				<NavMain items={navConfig} role={role} />
 			</SidebarContent>
-			<SidebarFooter>
-				<ModeToggle />
+			<SidebarFooter className="flex flex-row justify-between">
 				{/* TODO: use dynamic user config */}
 				<NavUser user={userConfig} />
 			</SidebarFooter>

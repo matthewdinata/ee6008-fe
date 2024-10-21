@@ -1,6 +1,15 @@
 'use client';
 
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react';
+import {
+	BadgeCheck,
+	Bell,
+	ChevronsUpDown,
+	CreditCard,
+	LogOut,
+	MoonIcon,
+	SunIcon,
+} from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -19,7 +28,7 @@ import {
 	useSidebar,
 } from '@/components/ui/sidebar';
 
-export function NavUser({
+export default function NavUser({
 	user,
 }: {
 	user: {
@@ -29,6 +38,8 @@ export function NavUser({
 	};
 }) {
 	const { isMobile } = useSidebar();
+	const { systemTheme, theme, setTheme } = useTheme();
+	const currentTheme = theme === 'system' ? systemTheme : theme;
 
 	// TODO: update with real functionalities
 
@@ -72,9 +83,12 @@ export function NavUser({
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem>
-								<Sparkles />
-								Upgrade to Pro
+							<DropdownMenuItem
+								onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')}
+							>
+								<SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+								<MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+								Toggle theme
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />

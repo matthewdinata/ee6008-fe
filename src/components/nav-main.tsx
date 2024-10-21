@@ -14,20 +14,22 @@ import {
 	SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 
-type NavItem = {
+export type NavSubItem = {
+	title: string;
+	url: string;
+};
+
+export type NavItem = {
 	title: string;
 	icon: React.ComponentType;
-	items: {
-		title: string;
-		url: string;
-	}[];
+	items: NavSubItem[];
 };
 
 export type NavMainItemsConfig = {
 	[role: string]: NavItem[];
 };
 
-export function NavMain({ items, role }: { items: NavMainItemsConfig; role: string }) {
+export default function NavMain({ items, role }: { items: NavMainItemsConfig; role: string }) {
 	return (
 		<SidebarGroup>
 			<SidebarGroupLabel>

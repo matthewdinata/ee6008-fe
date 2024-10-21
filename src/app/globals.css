@@ -17,13 +17,13 @@ body {
 		--background: 242 20% 99.8%;
 		--foreground: 242 5.5% 1%;
 
-		--muted: 242 5.5% 92.5%;
+		--muted: 242 5.5% 85.5%;
 		--muted-foreground: 242 2.75% 42.5%;
 
-		--popover: 242 46% 93.25%;
+		--popover: 242 46% 98.25%;
 		--popover-foreground: 242 5.5% 1.25%;
 
-		--card: 242 46% 93.25%;
+		--card: 242 46% 98.25%;
 		--card-foreground: 242 5.5% 1.25%;
 
 		--border: 242 10.5% 90%;
@@ -35,7 +35,7 @@ body {
 		--secondary: 242 2.75% 96.25%;
 		--secondary-foreground: 242 4.300000000000001% 12.5%;
 
-		--accent: 242 2.75% 96.25%;
+		--accent: 242 2.75% 93.25%;
 		--accent-foreground: 242 4.300000000000001% 12.5%;
 
 		--destructive: 0 84.2% 60.2%;
@@ -51,11 +51,11 @@ body {
 		--chart-4: 302 55% 50%;
 		--chart-5: 322 55% 45%;
 
-		--sidebar-background: 0 0% 98% / 20%;
+		--sidebar-background: 242 46% 99.75%;
 		--sidebar-foreground: 240 5.3% 26.1%;
 		--sidebar-primary: 242 55% 25%;
 		--sidebar-primary-foreground: 0 0% 98%;
-		--sidebar-accent: 240 4.8% 95.9% / 75%;
+		--sidebar-accent: 242 2.75% 93.25% / 80%;
 		--sidebar-accent-foreground: 240 5.9% 10%;
 		--sidebar-border: 220 13% 91%;
 		--sidebar-ring: 217.2 91.2% 59.8%;
@@ -98,11 +98,11 @@ body {
 		--chart-4: 302 70% 55%;
 		--chart-5: 322 70% 50%;
 
-		--sidebar-background: 240 5.9% 10% / 20%;
+		--sidebar-background: 242 54% 5.92%;
 		--sidebar-foreground: 240 4.8% 95.9%;
 		--sidebar-primary: 242 55% 44%;
 		--sidebar-primary-foreground: 0 0% 100%;
-		--sidebar-accent: 240 3.7% 15.9% / 75%;
+		--sidebar-accent: 242 27.500000000000004% 18.92% / 60%;
 		--sidebar-accent-foreground: 240 4.8% 95.9%;
 		--sidebar-border: 240 3.7% 15.9%;
 		--sidebar-ring: 217.2 91.2% 59.8%;
@@ -126,24 +126,9 @@ body {
 	.gradient-background {
 		@apply bg-background opacity-40;
 		background-image: radial-gradient(
-				circle farthest-corner at top left,
-				hsl(var(--chart-1) / 50%) 0%,
-				hsl(var(--chart-1) / 0%) 45%
-			),
-			radial-gradient(
-				circle farthest-side at top right,
-				hsl(var(--muted) / 40%) 0%,
-				hsl(var(--muted) / 0%) 10%
-			),
-			radial-gradient(
-				circle farthest-corner at bottom right,
-				hsl(var(--chart-3) / 40%) 0%,
-				hsl(var(--chart-3) / 0%) 25%
-			),
-			radial-gradient(
-				ellipse at bottom center,
-				hsl(var(--chart-5) / 40%) 0%,
-				hsl(var(--chart-5) / 0%) 50%
-			);
+			ellipse at bottom center,
+			hsl(var(--chart-5) / 30%) 0%,
+			hsl(var(--chart-5) / 0%) 50%
+		);
 	}
 }
