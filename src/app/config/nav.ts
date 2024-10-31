@@ -1,4 +1,12 @@
-import { Bot, SquareTerminal } from 'lucide-react';
+import {
+	CalendarCog,
+	FileSliders,
+	FileUser,
+	FolderGit2,
+	FolderOpenDot,
+	SquareRadical,
+	UserRoundPen,
+} from 'lucide-react';
 
 import { NavMainItemsConfig } from '@/components/nav-main';
 
@@ -9,82 +17,165 @@ export const userConfig = {
 	avatar: '/avatars/shadcn.jpg',
 };
 
-// TODO: update real routes
 export const navConfig: NavMainItemsConfig = {
 	student: [
 		{
-			title: 'Playground',
-			icon: SquareTerminal,
+			title: 'Registration',
+			icon: FileUser,
 			items: [
 				{
-					title: 'History',
-					url: '/student/history',
+					title: 'Planner',
+					url: '/student/planner',
+					headerTitle: 'Registration Planner',
+					headerSubtitle: 'Plan your registration for the upcoming semester',
 				},
 				{
-					title: 'Starred',
-					url: '/student/starred',
-				},
-				{
-					title: 'Settings',
-					url: '/student/settings',
+					title: 'Registration',
+					url: '/student/registration',
+					headerTitle: 'Course Registration',
+					headerSubtitle: 'Register for your selected projects',
 				},
 			],
 		},
 		{
-			title: 'Models',
-			icon: Bot,
+			title: 'Project Management',
+			icon: FolderGit2,
 			items: [
 				{
-					title: 'Genesis',
-					url: '/student/genesis',
+					title: 'Allocated project',
+					url: '/student/allocated-project',
+					headerTitle: 'Your Allocated Project',
+					headerSubtitle: 'View and manage your assigned project',
 				},
 				{
-					title: 'Explorer',
-					url: '/student/explorer',
-				},
-				{
-					title: 'Mechanics',
-					url: '/student/mechanics',
+					title: 'Peer review',
+					url: '/student/peer-review',
+					headerTitle: 'Project Peer Review',
+					headerSubtitle: 'Review and provide feedback on peers',
 				},
 			],
 		},
 	],
 	faculty: [
 		{
-			title: 'Models',
-			icon: Bot,
+			title: 'Proposal',
+			icon: FileSliders,
 			items: [
 				{
-					title: 'Genesis',
-					url: '/faculty/genesis',
+					title: 'Add proposal',
+					url: '/faculty/proposal/add',
+					headerTitle: 'Create New Proposal',
+					headerSubtitle: 'Submit a new project proposal',
 				},
 				{
-					title: 'Explorer',
-					url: '/faculty/explorer',
+					title: 'My proposals',
+					url: '/faculty/proposal/view',
+					headerTitle: 'My Project Proposals',
+					headerSubtitle: 'View and manage your submitted proposals',
 				},
 				{
-					title: 'Quantum',
-					url: '/faculty/quantum',
+					title: 'All proposals',
+					url: '/faculty/proposal/all',
+					headerTitle: 'All Project Proposals',
+					headerSubtitle: 'Browse all submitted project proposals',
+				},
+			],
+		},
+		{
+			title: 'Project',
+			icon: FolderOpenDot,
+			items: [
+				{
+					title: 'My projects',
+					url: '/faculty/project/view',
+					headerTitle: 'My Active Projects',
+					headerSubtitle: 'View and manage your ongoing projects',
+				},
+				{
+					title: 'All projects',
+					url: '/faculty/project/all',
+					headerTitle: 'All Active Projects',
+					headerSubtitle: 'Overview of all ongoing projects',
+				},
+			],
+		},
+		{
+			title: 'Grade',
+			icon: SquareRadical,
+			items: [
+				{
+					title: 'Evaluation',
+					url: '/faculty/grade/evaluation',
+					headerTitle: 'Project Evaluation',
+					headerSubtitle: 'Grade and provide feedback on student projects',
+				},
+				{
+					title: 'Analytics',
+					url: '/faculty/grade/analytics',
+					headerTitle: 'Grade Analytics',
+					headerSubtitle: 'View statistical analysis of project grades',
 				},
 			],
 		},
 	],
 	admin: [
 		{
-			title: 'Playground',
-			icon: SquareTerminal,
+			title: 'User',
+			icon: UserRoundPen,
 			items: [
 				{
-					title: 'History',
-					url: '/admin/history',
+					title: 'Faculty',
+					url: '/admin/user/faculty',
+					headerTitle: 'Faculty Management',
+					headerSubtitle: 'Manage faculty accounts and permissions',
 				},
 				{
-					title: 'Starred',
-					url: '/admin/starred',
+					title: 'Student',
+					url: '/admin/user/student',
+					headerTitle: 'Student Management',
+					headerSubtitle: 'Manage student accounts and enrollments',
+				},
+			],
+		},
+		{
+			title: 'Semester',
+			icon: CalendarCog,
+			items: [
+				{
+					title: 'Manage',
+					url: '/admin/semester/manage',
+					headerTitle: 'Semester Management',
+					headerSubtitle: 'Configure semester settings and timelines',
 				},
 				{
-					title: 'Settings',
-					url: '/admin/settings',
+					title: 'Venue details',
+					url: '/admin/semester/venue',
+					headerTitle: 'Venue Configuration',
+					headerSubtitle: 'Manage venue details and availability',
+				},
+			],
+		},
+		{
+			title: 'Project',
+			icon: FolderOpenDot,
+			items: [
+				{
+					title: 'Approved projects',
+					url: '/admin/project/all',
+					headerTitle: 'Approved Projects List',
+					headerSubtitle: 'View all approved project proposals',
+				},
+				{
+					title: 'Student registrations',
+					url: '/admin/project/registration',
+					headerTitle: 'Project Registrations',
+					headerSubtitle: 'Manage active students',
+				},
+				{
+					title: 'Generate allocation',
+					url: '/admin/project/allocation',
+					headerTitle: 'Project Allocation',
+					headerSubtitle: 'Generate and manage project allocations',
 				},
 			],
 		},

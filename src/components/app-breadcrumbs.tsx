@@ -32,20 +32,51 @@ function findItemByUrl(items: NavItem[], url: string): NavSubItem | undefined {
 	return undefined;
 }
 
-export default function AppHeaderBreadcrumb() {
+function isValidPath(config: NavItem[], fullPath: string): boolean {
+	// Special case for role-level path (e.g., /student, /faculty)
+	if (fullPath.split('/').filter(Boolean).length === 1) {
+		return true;
+	}
+	return findItemByUrl(config, fullPath) !== undefined;
+}
+
+export default function AppBreadcrumbs() {
 	const pathname = usePathname();
 	const pathSegments = pathname.split('/').filter(Boolean);
 
 	const role = pathSegments[0];
 	const config = navConfig[role as keyof typeof navConfig];
-	const isValidRoute = config !== undefined;
+	const isValidRole = config !== undefined;
 
-	if (!isValidRoute) {
+	// Handle invalid role or root path
+	if (!isValidRole) {
 		return (
 			<Breadcrumb>
 				<BreadcrumbList>
 					<BreadcrumbItem>
 						<BreadcrumbPage>EE6008</BreadcrumbPage>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>
+		);
+	}
+
+	// Check if the full path is valid
+	const isPathValid = isValidPath(config, pathname);
+
+	// If path is invalid, show 404 or error breadcrumb
+	if (!isPathValid) {
+		return (
+			<Breadcrumb>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink href={`/${role}`}>
+							{role.charAt(0).toUpperCase() + role.slice(1)}
+						</BreadcrumbLink>
+					</BreadcrumbItem>
+					<BreadcrumbSeparator />
+					<BreadcrumbItem>
+						<BreadcrumbPage>Page Not Found</BreadcrumbPage>
 					</BreadcrumbItem>
 				</BreadcrumbList>
 			</Breadcrumb>
@@ -62,8 +93,6 @@ export default function AppHeaderBreadcrumb() {
 			const item = findItemByUrl(config, path);
 			if (item) {
 				acc.push({ path, title: item.title });
-			} else {
-				return acc;
 			}
 		}
 

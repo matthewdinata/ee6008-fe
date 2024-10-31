@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
-import AppHeaderBreadcrumb from '@/components/app-header-breadcrumb';
+import AppBreadcrumbs from '@/components/app-breadcrumbs';
+import AppHeader from '@/components/app-header';
 import AppSidebar from '@/components/app-sidebar';
 import Background from '@/components/background';
 import ThemeProvider from '@/components/theme-provider';
@@ -59,9 +60,10 @@ export default function RootLayout({
 											orientation="vertical"
 											className="mr-2 h-4 bg-secondary-foreground/30"
 										/>
-										<AppHeaderBreadcrumb />
+										<AppBreadcrumbs />
 									</div>
 								</header>
+								<AppHeader className="mt-16 px-4" />
 								{children}
 							</SidebarInset>
 						</SidebarProvider>
