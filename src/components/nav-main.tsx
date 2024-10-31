@@ -17,7 +17,7 @@ import {
 export type NavSubItem = {
 	title: string;
 	url: string;
-	headerTitle: string;
+	headerTitle?: string;
 	headerSubtitle?: string;
 };
 

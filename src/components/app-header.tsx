@@ -41,20 +41,14 @@ export default function AppHeader({ className }: { className?: string }) {
 	const currentPageInfo = React.useMemo(() => {
 		// Handle invalid role
 		if (!isValidRole) {
-			return {
-				title: 'EE6008',
-				subtitle: 'Project Management System',
-			};
+			return {};
 		}
 
 		// Check if the path is valid
 		const isPathValid = isValidPath(config, pathname);
 		if (!isPathValid) {
 			// TODO: update title and subtitle
-			return {
-				title: 'EE6008',
-				subtitle: 'Project Management System',
-			};
+			return {};
 		}
 
 		// Handle role-level pages (e.g., /student, /faculty)
@@ -72,7 +66,7 @@ export default function AppHeader({ className }: { className?: string }) {
 		};
 	}, [pathname, config, isValidRole, pathSegments.length]);
 
-	return (
+	return currentPageInfo.title ? (
 		<div className={cn('flex items-start justify-between gap-1', className)}>
 			<div className="flex min-w-0 flex-col">
 				<h1 className="text-2xl font-semibold md:text-3xl">{currentPageInfo.title}</h1>
@@ -81,5 +75,7 @@ export default function AppHeader({ className }: { className?: string }) {
 				)}
 			</div>
 		</div>
+	) : (
+		<></>
 	);
 }
