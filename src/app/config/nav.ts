@@ -26,10 +26,14 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Planner',
 					url: '/student/planner',
+					headerTitle: 'Registration Planner',
+					headerSubtitle: 'Plan your registration for the upcoming semester',
 				},
 				{
 					title: 'Registration',
 					url: '/student/registration',
+					headerTitle: 'Course Registration',
+					headerSubtitle: 'Register for your selected projects',
 				},
 			],
 		},
@@ -40,10 +44,14 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Allocated project',
 					url: '/student/allocated-project',
+					headerTitle: 'Your Allocated Project',
+					headerSubtitle: 'View and manage your assigned project',
 				},
 				{
 					title: 'Peer review',
 					url: '/student/peer-review',
+					headerTitle: 'Project Peer Review',
+					headerSubtitle: 'Review and provide feedback on peers',
 				},
 			],
 		},
@@ -56,14 +64,20 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Add proposal',
 					url: '/faculty/proposal/add',
+					headerTitle: 'Create New Proposal',
+					headerSubtitle: 'Submit a new project proposal',
 				},
 				{
 					title: 'My proposals',
 					url: '/faculty/proposal/view',
+					headerTitle: 'My Project Proposals',
+					headerSubtitle: 'View and manage your submitted proposals',
 				},
 				{
 					title: 'All proposals',
 					url: '/faculty/proposal/all',
+					headerTitle: 'All Project Proposals',
+					headerSubtitle: 'Browse all submitted project proposals',
 				},
 			],
 		},
@@ -74,11 +88,14 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'My projects',
 					url: '/faculty/project/view',
+					headerTitle: 'My Active Projects',
+					headerSubtitle: 'View and manage your ongoing projects',
 				},
-				// Show full data only to programme directors; otherwise show only project names
 				{
 					title: 'All projects',
 					url: '/faculty/project/all',
+					headerTitle: 'All Active Projects',
+					headerSubtitle: 'Overview of all ongoing projects',
 				},
 			],
 		},
@@ -89,10 +106,14 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Evaluation',
 					url: '/faculty/grade/evaluation',
+					headerTitle: 'Project Evaluation',
+					headerSubtitle: 'Grade and provide feedback on student projects',
 				},
 				{
 					title: 'Analytics',
 					url: '/faculty/grade/analytics',
+					headerTitle: 'Grade Analytics',
+					headerSubtitle: 'View statistical analysis of project grades',
 				},
 			],
 		},
@@ -105,10 +126,14 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Faculty',
 					url: '/admin/user/faculty',
+					headerTitle: 'Faculty Management',
+					headerSubtitle: 'Manage faculty accounts and permissions',
 				},
 				{
 					title: 'Student',
 					url: '/admin/user/student',
+					headerTitle: 'Student Management',
+					headerSubtitle: 'Manage student accounts and enrollments',
 				},
 			],
 		},
@@ -119,10 +144,14 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Manage',
 					url: '/admin/semester/manage',
+					headerTitle: 'Semester Management',
+					headerSubtitle: 'Configure semester settings and timelines',
 				},
 				{
 					title: 'Venue details',
 					url: '/admin/semester/venue',
+					headerTitle: 'Venue Configuration',
+					// Subtitle omitted intentionally
 				},
 			],
 		},
@@ -133,14 +162,20 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Approved projects',
 					url: '/admin/project/all',
+					headerTitle: 'Approved Projects List',
+					headerSubtitle: 'View all approved project proposals',
 				},
 				{
 					title: 'Student registrations',
 					url: '/admin/project/registration',
+					headerTitle: 'Project Registrations',
+					headerSubtitle: 'Manage student project registrations',
 				},
 				{
 					title: 'Generate allocation',
 					url: '/admin/project/allocation',
+					headerTitle: 'Project Allocation',
+					headerSubtitle: 'Generate and manage project assignments',
 				},
 			],
 		},
