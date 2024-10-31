@@ -60,8 +60,7 @@ export default function AppHeader({ className }: { className?: string }) {
 		// Handle role-level pages (e.g., /student, /faculty)
 		if (pathSegments.length === 1) {
 			return {
-				title: role.charAt(0).toUpperCase() + role.slice(1),
-				subtitle: 'Dashboard',
+				title: 'Dashboard',
 			};
 		}
 
@@ -71,7 +70,7 @@ export default function AppHeader({ className }: { className?: string }) {
 			title: navItem?.headerTitle || navItem?.title || 'Unknown Page',
 			subtitle: navItem?.headerSubtitle,
 		};
-	}, [pathname, config, isValidRole, role, pathSegments.length]);
+	}, [pathname, config, isValidRole, pathSegments.length]);
 
 	return (
 		<div className={cn('flex items-start justify-between gap-1', className)}>
