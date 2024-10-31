@@ -1,4 +1,12 @@
-import { Bot, SquareTerminal } from 'lucide-react';
+import {
+	CalendarCog,
+	FileSliders,
+	FileUser,
+	FolderGit2,
+	FolderOpenDot,
+	SquareRadical,
+	UserRoundPen,
+} from 'lucide-react';
 
 import { NavMainItemsConfig } from '@/components/nav-main';
 
@@ -9,82 +17,130 @@ export const userConfig = {
 	avatar: '/avatars/shadcn.jpg',
 };
 
-// TODO: update real routes
 export const navConfig: NavMainItemsConfig = {
 	student: [
 		{
-			title: 'Playground',
-			icon: SquareTerminal,
+			title: 'Registration',
+			icon: FileUser,
 			items: [
 				{
-					title: 'History',
-					url: '/student/history',
+					title: 'Planner',
+					url: '/student/planner',
 				},
 				{
-					title: 'Starred',
-					url: '/student/starred',
-				},
-				{
-					title: 'Settings',
-					url: '/student/settings',
+					title: 'Registration',
+					url: '/student/registration',
 				},
 			],
 		},
 		{
-			title: 'Models',
-			icon: Bot,
+			title: 'Project Management',
+			icon: FolderGit2,
 			items: [
 				{
-					title: 'Genesis',
-					url: '/student/genesis',
+					title: 'Allocated project',
+					url: '/student/allocated-project',
 				},
 				{
-					title: 'Explorer',
-					url: '/student/explorer',
-				},
-				{
-					title: 'Mechanics',
-					url: '/student/mechanics',
+					title: 'Peer review',
+					url: '/student/peer-review',
 				},
 			],
 		},
 	],
 	faculty: [
 		{
-			title: 'Models',
-			icon: Bot,
+			title: 'Proposal',
+			icon: FileSliders,
 			items: [
 				{
-					title: 'Genesis',
-					url: '/faculty/genesis',
+					title: 'Add proposal',
+					url: '/faculty/proposal/add',
 				},
 				{
-					title: 'Explorer',
-					url: '/faculty/explorer',
+					title: 'My proposals',
+					url: '/faculty/proposal/view',
 				},
 				{
-					title: 'Quantum',
-					url: '/faculty/quantum',
+					title: 'All proposals',
+					url: '/faculty/proposal/all',
+				},
+			],
+		},
+		{
+			title: 'Project',
+			icon: FolderOpenDot,
+			items: [
+				{
+					title: 'My projects',
+					url: '/faculty/project/view',
+				},
+				// Show full data only to programme directors; otherwise show only project names
+				{
+					title: 'All projects',
+					url: '/faculty/project/all',
+				},
+			],
+		},
+		{
+			title: 'Grade',
+			icon: SquareRadical,
+			items: [
+				{
+					title: 'Evaluation',
+					url: '/faculty/grade/evaluation',
+				},
+				{
+					title: 'Analytics',
+					url: '/faculty/grade/analytics',
 				},
 			],
 		},
 	],
 	admin: [
 		{
-			title: 'Playground',
-			icon: SquareTerminal,
+			title: 'User',
+			icon: UserRoundPen,
 			items: [
 				{
-					title: 'History',
-					url: '/admin/history',
+					title: 'Faculty',
+					url: '/admin/user/faculty',
 				},
 				{
-					title: 'Starred',
-					url: '/admin/starred',
+					title: 'Student',
+					url: '/admin/user/student',
+				},
+			],
+		},
+		{
+			title: 'Semester',
+			icon: CalendarCog,
+			items: [
+				{
+					title: 'Manage',
+					url: '/admin/semester/manage',
 				},
 				{
-					title: 'Settings',
-					url: '/admin/settings',
+					title: 'Venue details',
+					url: '/admin/semester/venue',
+				},
+			],
+		},
+		{
+			title: 'Project',
+			icon: FolderOpenDot,
+			items: [
+				{
+					title: 'Approved projects',
+					url: '/admin/project/all',
+				},
+				{
+					title: 'Student registrations',
+					url: '/admin/project/registration',
+				},
+				{
+					title: 'Generate allocation',
+					url: '/admin/project/allocation',
 				},
 			],
 		},
