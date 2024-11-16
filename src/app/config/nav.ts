@@ -8,7 +8,7 @@ import {
 	UserRoundPen,
 } from 'lucide-react';
 
-import { NavMainItemsConfig } from '@/components/nav-main';
+import { NavMainItemsConfig } from '@/components/layout/nav-main';
 
 // TODO: use dynamic user config
 export const userConfig = {

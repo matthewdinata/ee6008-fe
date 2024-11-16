@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
-import AppBreadcrumbs from '@/components/app-breadcrumbs';
-import AppHeader from '@/components/app-header';
-import AppSidebar from '@/components/app-sidebar';
-import Background from '@/components/background';
-import ThemeProvider from '@/components/theme-provider';
+import AppBreadcrumbs from '@/components/layout/app-breadcrumbs';
+import AppHeader from '@/components/layout/app-header';
+import AppSidebar from '@/components/layout/app-sidebar';
+import Background from '@/components/layout/background';
+import ThemeProvider from '@/components/layout/theme-provider';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 

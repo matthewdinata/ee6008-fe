@@ -5,7 +5,7 @@ import React from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { NavItem, NavSubItem } from '@/components/nav-main';
+import { NavItem, NavSubItem } from '@/components/layout/nav-main';
 
 import { navConfig } from '@/app/config/nav';
 

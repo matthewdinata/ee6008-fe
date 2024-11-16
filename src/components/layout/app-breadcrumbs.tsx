@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
-import { NavItem, NavSubItem } from '@/components/nav-main';
+import { NavItem, NavSubItem } from '@/components/layout/nav-main';
 import {
 	Breadcrumb,
 	BreadcrumbItem,
