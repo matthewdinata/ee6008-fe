@@ -34,7 +34,7 @@ export default function RootLayout({
 }>) {
 	// TODO: use dynamic roles (options: 'student', 'faculty', 'admin')
 
-	const role = 'student';
+	const role = 'faculty';
 
 	return (
 		<html lang="en">
@@ -63,8 +63,8 @@ export default function RootLayout({
 										<AppBreadcrumbs />
 									</div>
 								</header>
-								<AppHeader className="mt-16 px-4" />
-								{children}
+								<AppHeader className="mt-16 mb-4 px-4" />
+								<div className="px-4 h-full">{children}</div>
 							</SidebarInset>
 						</SidebarProvider>
 					</Background>
