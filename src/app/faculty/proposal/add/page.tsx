@@ -1,7 +1,13 @@
 import React from 'react';
 
+import AddProposalForm from './components/add-proposal-form';
+
 function AddProposal() {
-	return <div>AddProposal Page</div>;
+	return (
+		<div className="mb-8">
+			<AddProposalForm />
+		</div>
+	);
 }
 
 export default AddProposal;
