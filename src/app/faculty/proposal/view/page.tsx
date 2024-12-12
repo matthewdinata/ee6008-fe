@@ -2,7 +2,7 @@ import React from 'react';
 
 import ProposalTable from './components/proposal-table';
 
-function ViewProposal() {
+function ViewProposals() {
 	return (
 		<div className="mb-8">
 			<ProposalTable />
@@ -10,4 +10,4 @@ function ViewProposal() {
 	);
 }
 
-export default ViewProposal;
+export default ViewProposals;
