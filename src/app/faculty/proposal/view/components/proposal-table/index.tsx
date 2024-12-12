@@ -39,7 +39,7 @@ export default async function ProposalTable() {
 
 	return (
 		<div className="container mx-auto">
-			<DataTable columns={columns} data={data} />
+			<DataTable columns={columns} data={data} filterBy="title" />
 		</div>
 	);
 }
