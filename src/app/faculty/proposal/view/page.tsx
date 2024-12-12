@@ -1,11 +1,11 @@
 import React from 'react';
 
-import ProposalTable from './components/proposal-table';
+import MyProposalTable from './components/my-proposal-table';
 
 function ViewProposals() {
 	return (
 		<div className="mb-8">
-			<ProposalTable />
+			<MyProposalTable />
 		</div>
 	);
 }
