@@ -73,7 +73,6 @@ export function DataTable<TData, TValue>({
 	});
 
 	return (
-		// TODO: fix responsive mobile design
 		<div className="w-full">
 			<div className="flex items-center justify-end pb-4 gap-4">
 				{filterBy && (
@@ -114,7 +113,7 @@ export function DataTable<TData, TValue>({
 				</DropdownMenu>
 			</div>
 			<div className="rounded-md border">
-				<Table>
+				<Table className="bg-background/40">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
