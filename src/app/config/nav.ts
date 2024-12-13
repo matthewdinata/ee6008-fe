@@ -8,7 +8,7 @@ import {
 	UserRoundPen,
 } from 'lucide-react';
 
-import { NavMainItemsConfig } from '@/components/nav-main';
+import { NavMainItemsConfig } from '@/components/layout/nav-main';
 
 // TODO: use dynamic user config
 export const userConfig = {
@@ -75,7 +75,7 @@ export const navConfig: NavMainItemsConfig = {
 				},
 				{
 					title: 'All proposals',
-					url: '/faculty/proposal/all',
+					url: '/faculty/proposal',
 					headerTitle: 'All Project Proposals',
 					headerSubtitle: 'Browse all submitted project proposals',
 				},

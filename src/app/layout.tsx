@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
-import AppBreadcrumbs from '@/components/app-breadcrumbs';
-import AppHeader from '@/components/app-header';
-import AppSidebar from '@/components/app-sidebar';
-import Background from '@/components/background';
-import ThemeProvider from '@/components/theme-provider';
+import AppBreadcrumbs from '@/components/layout/app-breadcrumbs';
+import AppHeader from '@/components/layout/app-header';
+import AppSidebar from '@/components/layout/app-sidebar';
+import Background from '@/components/layout/background';
+import ThemeProvider from '@/components/layout/theme-provider';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
@@ -34,7 +34,7 @@ export default function RootLayout({
 }>) {
 	// TODO: use dynamic roles (options: 'student', 'faculty', 'admin')
 
-	const role = 'student';
+	const role = 'faculty';
 
 	return (
 		<html lang="en">
@@ -48,7 +48,7 @@ export default function RootLayout({
 					<Background>
 						<SidebarProvider>
 							<AppSidebar role={role} />
-							<SidebarInset>
+							<SidebarInset className="w-full">
 								<header
 									className="flex h-16 shrink-0 items-center gap-2 
                                 
@@ -63,8 +63,8 @@ export default function RootLayout({
 										<AppBreadcrumbs />
 									</div>
 								</header>
-								<AppHeader className="mt-16 px-4" />
-								{children}
+								<AppHeader className="mt-16 mb-4 px-4" />
+								<div className="px-4 h-full w-full">{children}</div>
 							</SidebarInset>
 						</SidebarProvider>
 					</Background>

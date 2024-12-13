@@ -15,6 +15,10 @@ const badgeVariants = cva(
 				destructive:
 					'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
 				outline: 'text-foreground',
+				outlineSuccess: 'border-[hsl(var(--chart-2)_/_0.5)] text-[hsl(var(--chart-2))]',
+				outlinePending: 'border-[hsl(var(--chart-1)_/_0.5)] text-[hsl(var(--chart-1))]',
+				outlineFail:
+					'border-[hsl(var(--destructive)_/_0.5)] text-[hsl(var(--destructive))]',
 			},
 		},
 		defaultVariants: {
