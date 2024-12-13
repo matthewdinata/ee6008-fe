@@ -32,7 +32,7 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Registration',
 					url: '/student/registration',
-					headerTitle: 'Course Registration',
+					headerTitle: 'Project Registration',
 					headerSubtitle: 'Register for your selected projects',
 				},
 			],
