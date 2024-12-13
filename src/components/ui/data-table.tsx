@@ -33,11 +33,24 @@ import {
 import { Button } from './button';
 import { Input } from './input';
 
+/**
+ * Props for the DataTable component.
+ *
+ * @template TData - The type of data being displayed in the table.
+ * @template TValue - The type of value for each column.
+ *
+ * @property {ColumnDef<TData, TValue>[]} columns - The definitions of the columns in the table.
+ * @property {TData[]} data - The data to be displayed in the table.
+ * @property {string} [filterBy] - The accessor key of the search filter used.
+ * @property {number} [pageSize] - The number of entries to display per page.
+ * @property {boolean} [showRowSelection] - Whether to display the text for the number of rows selected.
+ */
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	filterBy?: string;
 	pageSize?: number;
+	showRowSelection?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -45,10 +58,12 @@ export function DataTable<TData, TValue>({
 	data,
 	filterBy,
 	pageSize = 10,
+	showRowSelection,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [rowSelection, setRowSelection] = React.useState({});
 	const [pagination, setPagination] = React.useState({
 		pageIndex: 0,
 		pageSize,
@@ -64,11 +79,13 @@ export function DataTable<TData, TValue>({
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		onRowSelectionChange: setRowSelection,
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
 			pagination,
+			rowSelection,
 		},
 	});
 
@@ -162,22 +179,30 @@ export function DataTable<TData, TValue>({
 				</Table>
 			</div>
 			<div className="flex items-center justify-end space-x-2 py-4">
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => table.previousPage()}
-					disabled={!table.getCanPreviousPage()}
-				>
-					Previous
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => table.nextPage()}
-					disabled={!table.getCanNextPage()}
-				>
-					Next
-				</Button>
+				{showRowSelection && (
+					<div className="flex-1 text-sm text-muted-foreground">
+						{table.getFilteredSelectedRowModel().rows.length} of{' '}
+						{table.getFilteredRowModel().rows.length} row(s) selected.
+					</div>
+				)}
+				<div className="space-x-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => table.previousPage()}
+						disabled={!table.getCanPreviousPage()}
+					>
+						Previous
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => table.nextPage()}
+						disabled={!table.getCanNextPage()}
+					>
+						Next
+					</Button>
+				</div>
 			</div>
 		</div>
 	);

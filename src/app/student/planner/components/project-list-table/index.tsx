@@ -84,7 +84,13 @@ export default async function ProjectListTable() {
 
 	return (
 		<div className="container mx-auto">
-			<DataTable columns={columns} data={data} filterBy="title" pageSize={6} />
+			<DataTable
+				columns={columns}
+				data={data}
+				filterBy="title"
+				pageSize={6}
+				showRowSelection
+			/>
 		</div>
 	);
 }
