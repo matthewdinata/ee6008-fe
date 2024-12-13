@@ -79,7 +79,7 @@ async function getData(): Promise<Project[]> {
 	]);
 }
 
-export default async function MyProposalTable() {
+export default async function ProjectListTable() {
 	const data = await getData();
 
 	return (
