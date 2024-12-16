@@ -1,6 +1,4 @@
-import { DataTable } from '@/components/ui/data-table';
-
-import { columns } from './columns';
+import { ProjectListDataTable } from './project-list-data-table';
 import { Project } from './types';
 
 async function getData(): Promise<Project[]> {
@@ -84,13 +82,7 @@ export default async function ProjectListTable() {
 
 	return (
 		<div className="container mx-auto">
-			<DataTable
-				columns={columns}
-				data={data}
-				filterBy="title"
-				pageSize={6}
-				showRowSelection
-			/>
+			<ProjectListDataTable data={data} />
 		</div>
 	);
 }

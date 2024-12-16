@@ -12,7 +12,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
 import {
@@ -44,6 +44,8 @@ import { Input } from './input';
  * @property {string} [filterBy] - The accessor key of the search filter used.
  * @property {number} [pageSize] - The number of entries to display per page.
  * @property {boolean} [showRowSelection] - Whether to display the text for the number of rows selected.
+ * @property {string} [selectionButtonText] - The text to display on the selection button.
+ * @property {(selectedRows: TData[]) => void} [onSelectionButtonClick] - The callback function to handle selection button click.
  */
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -51,6 +53,8 @@ interface DataTableProps<TData, TValue> {
 	filterBy?: string;
 	pageSize?: number;
 	showRowSelection?: boolean;
+	selectionButtonText?: string;
+	onSelectionButtonClick?: (selectedRows: TData[]) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -59,6 +63,8 @@ export function DataTable<TData, TValue>({
 	filterBy,
 	pageSize = 10,
 	showRowSelection,
+	selectionButtonText,
+	onSelectionButtonClick,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -91,7 +97,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="w-full">
-			<div className="flex items-center justify-end pb-4 gap-4">
+			<div className="sm:flex-row sm:items-center justify-end pb-4 gap-4 flex flex-col-reverse items-end">
 				{filterBy && (
 					<Input
 						placeholder={`Search ${filterBy}...`}
@@ -99,35 +105,53 @@ export function DataTable<TData, TValue>({
 						onChange={(event) =>
 							table.getColumn(filterBy)?.setFilterValue(event.target.value)
 						}
-						className="max-w-xs"
+						className="sm:max-w-xs"
 					/>
 				)}
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline">
-							Columns <ChevronDown />
+				<div className="flex gap-4">
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="outline">
+								Columns <ChevronDown />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							{table
+								.getAllColumns()
+								.filter((column) => column.getCanHide())
+								.map((column) => {
+									return (
+										<DropdownMenuCheckboxItem
+											key={column.id}
+											className="capitalize"
+											checked={column.getIsVisible()}
+											onCheckedChange={(value) =>
+												column.toggleVisibility(!!value)
+											}
+										>
+											{column.id}
+										</DropdownMenuCheckboxItem>
+									);
+								})}
+						</DropdownMenuContent>
+					</DropdownMenu>
+					{showRowSelection && selectionButtonText && onSelectionButtonClick && (
+						<Button
+							disabled={
+								table.getFilteredSelectedRowModel().rows.length === 0 ? true : false
+							}
+							onClick={() =>
+								onSelectionButtonClick(
+									table
+										.getFilteredSelectedRowModel()
+										.rows.map((row) => row.original)
+								)
+							}
+						>
+							{selectionButtonText}
 						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						{table
-							.getAllColumns()
-							.filter((column) => column.getCanHide())
-							.map((column) => {
-								return (
-									<DropdownMenuCheckboxItem
-										key={column.id}
-										className="capitalize"
-										checked={column.getIsVisible()}
-										onCheckedChange={(value) =>
-											column.toggleVisibility(!!value)
-										}
-									>
-										{column.id}
-									</DropdownMenuCheckboxItem>
-								);
-							})}
-					</DropdownMenuContent>
-				</DropdownMenu>
+					)}
+				</div>
 			</div>
 			<div className="rounded-md border">
 				<Table className="bg-background/40">
@@ -192,7 +216,7 @@ export function DataTable<TData, TValue>({
 						onClick={() => table.previousPage()}
 						disabled={!table.getCanPreviousPage()}
 					>
-						Previous
+						<ChevronLeft />
 					</Button>
 					<Button
 						variant="outline"
@@ -200,7 +224,7 @@ export function DataTable<TData, TValue>({
 						onClick={() => table.nextPage()}
 						disabled={!table.getCanNextPage()}
 					>
-						Next
+						<ChevronRight />
 					</Button>
 				</div>
 			</div>
