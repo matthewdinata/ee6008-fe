@@ -34,7 +34,7 @@ export default function RootLayout({
 }>) {
 	// TODO: use dynamic roles (options: 'student', 'faculty', 'admin')
 
-	const role = 'faculty';
+	const role = 'student';
 
 	return (
 		<html lang="en">
