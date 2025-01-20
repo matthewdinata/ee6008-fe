@@ -10,14 +10,16 @@ function AllocatedProject() {
 		<div>
 			<Card>
 				<CardHeader className="space-y-1">
-					<div className="flex items-center justify-between">
+					<div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
 						<div>
 							<h2 className="text-xl font-bold">Blockchain for Supply Chain</h2>
 							<p className="text-sm text-muted-foreground">
 								Supervised by William Parker
 							</p>
 						</div>
-						<Badge>Technology</Badge>
+						<div className="sm:flex-shrink-0">
+							<Badge>Technology</Badge>
+						</div>
 					</div>
 				</CardHeader>
 
