@@ -32,7 +32,7 @@ export const navConfig: NavMainItemsConfig = {
 				{
 					title: 'Registration',
 					url: '/student/registration',
-					headerTitle: 'Course Registration',
+					headerTitle: 'Project Registration',
 					headerSubtitle: 'Register for your selected projects',
 				},
 			],
@@ -124,13 +124,13 @@ export const navConfig: NavMainItemsConfig = {
 			icon: UserRoundPen,
 			items: [
 				{
-					title: 'Faculty',
+					title: 'Manage faculty',
 					url: '/admin/user/faculty',
 					headerTitle: 'Faculty Management',
 					headerSubtitle: 'Manage faculty accounts and permissions',
 				},
 				{
-					title: 'Student',
+					title: 'Manage students',
 					url: '/admin/user/student',
 					headerTitle: 'Student Management',
 					headerSubtitle: 'Manage student accounts and enrollments',
@@ -142,7 +142,7 @@ export const navConfig: NavMainItemsConfig = {
 			icon: CalendarCog,
 			items: [
 				{
-					title: 'Manage',
+					title: 'Manage semester',
 					url: '/admin/semester/manage',
 					headerTitle: 'Semester Management',
 					headerSubtitle: 'Configure semester settings and timelines',
