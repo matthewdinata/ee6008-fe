@@ -118,7 +118,7 @@ export default async function AllProposalTable() {
 	const data = await getData();
 
 	return (
-		<div className="container mx-auto">
+		<div className="mx-auto">
 			<DataTable columns={columns} data={data} filterBy="title" pageSize={6} />
 		</div>
 	);

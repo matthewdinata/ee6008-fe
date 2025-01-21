@@ -81,7 +81,7 @@ export default async function ProjectListTable() {
 	const data = await getData();
 
 	return (
-		<div className="container mx-auto">
+		<div className="mx-auto">
 			<ProjectListDataTable data={data} />
 		</div>
 	);
