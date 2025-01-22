@@ -2,7 +2,8 @@ import { GripVertical } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 
-import { INACTIVE_OPACITY, NO_OF_ACTIVE_PROJECTS, Project } from './project-sortable-priority';
+import { INACTIVE_OPACITY, NO_OF_ACTIVE_PROJECTS } from './project-sortable-priority';
+import { Project } from './types';
 
 type DragHandleProps = {
 	[key: string]: unknown;
