@@ -24,16 +24,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 import ProjectCard from './project-card';
+import { Project } from './types';
 
 export const NO_OF_ACTIVE_PROJECTS = 5;
 export const INACTIVE_OPACITY = 0.4;
-
-export type Project = {
-	id: string;
-	title: string;
-	faculty: string;
-	programme: string;
-};
 
 type SortableItemProps = {
 	project: Project;

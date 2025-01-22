@@ -34,7 +34,7 @@ export default function RootLayout({
 }>) {
 	// TODO: use dynamic roles (options: 'student', 'faculty', 'admin')
 
-	const role = 'student';
+	const role = 'admin';
 
 	return (
 		<html lang="en">
@@ -48,7 +48,7 @@ export default function RootLayout({
 					<Background>
 						<SidebarProvider>
 							<AppSidebar role={role} />
-							<SidebarInset className="w-full">
+							<SidebarInset className="w-full overflow-x-hidden">
 								<header
 									className="flex h-16 shrink-0 items-center gap-2 
                                 
