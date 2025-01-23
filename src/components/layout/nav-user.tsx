@@ -1,5 +1,6 @@
 'use client';
 
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
 	BadgeCheck,
 	Bell,
@@ -10,6 +11,7 @@ import {
 	SunIcon,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -35,13 +37,39 @@ export default function NavUser({
 		name: string;
 		email: string;
 		avatar: string;
+		role: string;
 	};
 }) {
 	const { isMobile } = useSidebar();
 	const { systemTheme, theme, setTheme } = useTheme();
 	const currentTheme = theme === 'system' ? systemTheme : theme;
+	const router = useRouter();
+	const supabase = createClientComponentClient();
+	console.log('🔄 User:', user);
 
-	// TODO: update with real functionalities
+	const handleNavigateToAccount = () => {
+		console.log('🔄 Navigating to:', `/${user.role}/dashboard`);
+		const roleBasedPath = `/${user.role}/dashboard`;
+		console.log('🔄 Navigating to:', roleBasedPath);
+		router.push(roleBasedPath);
+	};
+
+	const handleLogout = async () => {
+		try {
+			console.log('🔄 Signing out...');
+			await supabase.auth.signOut();
+			console.log('✅ Sign out successful');
+
+			// Clear any local storage/state
+			localStorage.clear();
+			sessionStorage.clear();
+
+			// Force a full page refresh while redirecting
+			window.location.href = '/signin';
+		} catch (error) {
+			console.error('❌ Sign out error:', error);
+		}
+	};
 
 	return (
 		<SidebarMenu>
@@ -93,22 +121,25 @@ export default function NavUser({
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem>
-								<BadgeCheck />
+							<DropdownMenuItem onClick={handleNavigateToAccount}>
+								<BadgeCheck className="mr-2 h-4 w-4" />
 								Account
 							</DropdownMenuItem>
 							<DropdownMenuItem>
-								<CreditCard />
+								<CreditCard className="mr-2 h-4 w-4" />
 								Billing
 							</DropdownMenuItem>
 							<DropdownMenuItem>
-								<Bell />
+								<Bell className="mr-2 h-4 w-4" />
 								Notifications
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>
-							<LogOut />
+						<DropdownMenuItem
+							onClick={handleLogout}
+							className="text-red-600 hover:text-red-700"
+						>
+							<LogOut className="mr-2 h-4 w-4" />
 							Log out
 						</DropdownMenuItem>
 					</DropdownMenuContent>
