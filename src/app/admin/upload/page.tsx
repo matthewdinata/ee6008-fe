@@ -1,3 +1,5 @@
+'use client';
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Download, Loader2, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -32,7 +34,6 @@ export function BulkUserUpload() {
 	const downloadTemplate = () => {
 		addDebugMessage('Initiating template download...');
 
-		// Create CSV content
 		const headers = ['Email', 'Name', 'Role', 'Additional Info'];
 		const exampleRows = [
 			// Student examples
