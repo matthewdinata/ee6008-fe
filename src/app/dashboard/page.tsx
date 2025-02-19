@@ -1,9 +1,19 @@
+/* eslint-disable prettier/prettier */
+
+/* eslint-disable no-useless-catch */
 'use client';
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Clock, LogOut, RefreshCw, Shield, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+/* eslint-disable prettier/prettier */
+/* eslint-disable no-useless-catch */
+
+/* eslint-disable no-useless-catch */
+
+/* eslint-disable no-useless-catch */
 
 interface User {
 	id: number;
@@ -36,7 +46,6 @@ export default function Dashboard() {
 
 	const checkAndRefreshToken = async () => {
 		try {
-			console.log('🔄 Checking token status...');
 			const {
 				data: { session },
 			} = await supabase.auth.getSession();
@@ -56,7 +65,6 @@ export default function Dashboard() {
 			});
 
 			if (shouldRefresh) {
-				console.log('🔄 Token needs refresh, refreshing...');
 				const {
 					data: { session: newSession },
 					error: refreshError,
@@ -65,7 +73,6 @@ export default function Dashboard() {
 				if (refreshError) throw refreshError;
 
 				if (newSession) {
-					console.log('✅ Token refreshed successfully');
 					setLastRefresh(new Date().toLocaleString());
 					return newSession;
 				}
@@ -73,14 +80,12 @@ export default function Dashboard() {
 
 			return session;
 		} catch (error) {
-			console.error('❌ Token refresh error:', error);
 			throw error;
 		}
 	};
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const verifyWithBackend = async (session: any) => {
-		console.log('🔄 Verifying with backend...');
 		const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
 			method: 'POST',
 			headers: {
@@ -99,7 +104,6 @@ export default function Dashboard() {
 		}
 
 		const data = await response.json();
-		console.log('✅ Backend verification successful');
 		return data;
 	};
 
@@ -139,9 +143,8 @@ export default function Dashboard() {
 
 		const {
 			data: { subscription },
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		} = supabase.auth.onAuthStateChange(async (event, session) => {
-			console.log('🔄 Auth state changed:', { event, email: session?.user?.email });
-
 			if (event === 'SIGNED_OUT') {
 				if (mounted) {
 					setUser(null);

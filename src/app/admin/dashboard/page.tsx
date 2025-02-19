@@ -28,7 +28,6 @@ export default function Dashboard() {
 	const router = useRouter();
 	const supabase = createClientComponentClient();
 
-	// Function to format time until expiry
 	const formatTimeUntilExpiry = (minutes: number) => {
 		if (minutes < 60) return `${Math.round(minutes)} minutes`;
 		const hours = Math.floor(minutes / 60);
@@ -36,10 +35,8 @@ export default function Dashboard() {
 		return `${hours} hours ${remainingMinutes} minutes`;
 	};
 
-	// Function to check and refresh token if needed
 	const checkAndRefreshToken = async () => {
 		try {
-			console.log('🔄 Checking token status...');
 			const {
 				data: { session },
 			} = await supabase.auth.getSession();
@@ -48,7 +45,6 @@ export default function Dashboard() {
 				throw new Error('No session found');
 			}
 
-			// Calculate token expiration info
 			const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
 			const timeUntilExpire = expiresAt - Date.now();
 			const shouldRefresh = timeUntilExpire < 1000 * 60 * 5; // Refresh if less than 1 hour left
@@ -60,7 +56,6 @@ export default function Dashboard() {
 			});
 
 			if (shouldRefresh) {
-				console.log('🔄 Token needs refresh, refreshing...');
 				const {
 					data: { session: newSession },
 					error: refreshError,
@@ -69,7 +64,6 @@ export default function Dashboard() {
 				if (refreshError) throw refreshError;
 
 				if (newSession) {
-					console.log('✅ Token refreshed successfully');
 					setLastRefresh(new Date().toLocaleString());
 					return newSession;
 				}
@@ -85,7 +79,6 @@ export default function Dashboard() {
 	// Function to verify with backend
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const verifyWithBackend = async (session: any) => {
-		console.log('🔄 Verifying with backend...');
 		const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
 			method: 'POST',
 			headers: {
@@ -104,7 +97,6 @@ export default function Dashboard() {
 		}
 
 		const data = await response.json();
-		console.log('✅ Backend verification successful');
 		return data;
 	};
 
@@ -133,7 +125,6 @@ export default function Dashboard() {
 						try {
 							await checkAndRefreshToken();
 						} catch (error) {
-							console.error('Periodic token refresh failed:', error);
 							router.push('/signin');
 						}
 					},
@@ -148,9 +139,7 @@ export default function Dashboard() {
 		// Set up auth state listener
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange(async (event, session) => {
-			console.log('🔄 Auth state changed:', { event, email: session?.user?.email });
-
+		} = supabase.auth.onAuthStateChange(async (event) => {
 			if (event === 'SIGNED_OUT') {
 				if (mounted) {
 					setUser(null);
