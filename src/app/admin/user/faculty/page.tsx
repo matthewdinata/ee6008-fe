@@ -1,9 +1,9 @@
 'use client';
 
-import UserTable from '@/app/admin/upload2/table';
 import { BulkUserUpload } from '@/app/admin/upload/page';
+import UserTable from '@/app/admin/user/student/table';
 
-import { SingleUserAdd } from '../../upload2/user';
+import { SingleUserAdd } from '../student/user';
 
 export default function DashboardLoading() {
 	return (

@@ -1,9 +1,11 @@
+/* eslint-disable prettier/prettier */
 'use client';
 
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { supabase } from '@/lib/supabase';
+import { login } from './action';
+
+/* eslint-disable prettier/prettier */
 
 type MessageType = {
 	text: string;
@@ -11,61 +13,14 @@ type MessageType = {
 };
 
 const AuthPage = () => {
-	const router = useRouter();
 	const [email, setEmail] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState<MessageType>({ text: '', type: 'info' });
 	const [debugLog, setDebugLog] = useState<string[]>([]);
 
-	useEffect(() => {
-		const checkSession = async () => {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (session) {
-				router.push('/dashboard');
-			}
-		};
-
-		checkSession();
-
-		const {
-			data: { subscription },
-		} = supabase.auth.onAuthStateChange((_event, session) => {
-			if (session) {
-				router.push('/dashboard');
-			}
-		});
-
-		return () => subscription.unsubscribe();
-	}, [router]);
-
 	const addDebugMessage = (msg: string) => {
 		const timestamp = new Date().toLocaleTimeString();
 		setDebugLog((prev) => [...prev, `${timestamp}: ${msg}`]);
-	};
-
-	const checkEligibility = async (email: string): Promise<boolean> => {
-		try {
-			addDebugMessage('Checking eligibility...');
-			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/check`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ email }),
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to check eligibility');
-			}
-
-			const data = await response.json();
-			return data.isEligible;
-		} catch (error) {
-			console.error('Eligibility check error:', error);
-			return false;
-		}
 	};
 
 	const handleAuth = async (e: React.FormEvent) => {
@@ -75,33 +30,19 @@ const AuthPage = () => {
 		setDebugLog([]);
 
 		try {
-			const isEligible = await checkEligibility(email);
-
-			if (!isEligible) {
-				setMessage({
-					text: "You're not registered in EE6008. Please contact the course administrator.",
-					type: 'error',
-				});
-				return;
-			}
-
 			addDebugMessage('Starting authentication process');
 
-			const { error } = await supabase.auth.signInWithOtp({
-				email,
-				options: {
-					emailRedirectTo: `${window.location.origin}/auth/callback`,
-					shouldCreateUser: true,
-				},
-			});
+			const formData = new FormData();
+			formData.append('email', email);
 
-			if (error) throw error;
+			const result = await login(formData);
+
+			if (result.error) {
+				throw new Error(result.error);
+			}
 
 			addDebugMessage('Magic link sent successfully');
-			setMessage({
-				text: `✓Link sent! Check your email ${email} to sign in. The link will expire in 1 hour.`,
-				type: 'success',
-			});
+			setMessage({ text: result.success || 'Success', type: 'success' });
 			setEmail('');
 		} catch (error) {
 			console.error('Authentication error:', error);
@@ -160,35 +101,6 @@ const AuthPage = () => {
 							}`}
 						>
 							<div className="flex">
-								<div className="flex-shrink-0">
-									{message.type === 'success' ? (
-										<svg
-											className="h-5 w-5 text-green-400"
-											viewBox="0 0 20 20"
-											fill="currentColor"
-										>
-											<path
-												fillRule="evenodd"
-												d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-												clipRule="evenodd"
-											/>
-										</svg>
-									) : (
-										message.type === 'error' && (
-											<svg
-												className="h-5 w-5 text-red-400"
-												viewBox="0 0 20 20"
-												fill="currentColor"
-											>
-												<path
-													fillRule="evenodd"
-													d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-													clipRule="evenodd"
-												/>
-											</svg>
-										)
-									)}
-								</div>
 								<div className="ml-3">
 									<p
 										className={`text-sm ${

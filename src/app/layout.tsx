@@ -2,8 +2,9 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
+import { AuthProvider } from '@/components/AuthProvider';
 import AppBreadcrumbs from '@/components/layout/app-breadcrumbs';
 import AppHeader from '@/components/layout/app-header';
 import AppSidebar from '@/components/layout/app-sidebar';
@@ -16,6 +17,9 @@ import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 import Provider from './provider';
 
+// --------------------
+// 1) Font Definitions
+// --------------------
 const geistSans = localFont({
 	src: './fonts/GeistVF.woff',
 	variable: '--font-geist-sans',
@@ -28,45 +32,64 @@ const geistMono = localFont({
 	weight: '100 900',
 });
 
+// ---------------------
+// 2) Export Page Metadata
+// ---------------------
 export const metadata: Metadata = {
 	title: 'EE6008',
 	description: 'EE6008 Application',
 };
 
-export default async function RootLayout({
-	children,
-}: Readonly<{
-	children: React.ReactNode;
-}>) {
-	// Initialize Supabase client
-	const supabase = createServerComponentClient({ cookies });
+// ----------------------------------------
+// 3) Basic Layout (for unauthenticated or errors)
+// ----------------------------------------
+function BasicLayout({ children }: { children: React.ReactNode }) {
+	return (
+		<html lang="en">
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<AuthProvider>{children}</AuthProvider>
+				</ThemeProvider>
+			</body>
+		</html>
+	);
+}
 
-	// Get authenticated user data
+// -----------------------------
+// 4) Root Layout (entry point)
+// -----------------------------
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+	// Get current path to check for auth pages
+	const headersList = headers();
+	const pathname = headersList.get('x-pathname') || headersList.get('x-url') || '';
+
+	// Define auth-related pages that should always use BasicLayout
+	const isAuthPage = pathname.includes('/signin') || pathname.includes('/unauthorized');
+
+	// For auth pages, always use BasicLayout
+	if (isAuthPage) {
+		return <BasicLayout>{children}</BasicLayout>;
+	}
+
+	// For non-auth pages, continue with normal authentication flow
+	const supabase = createServerComponentClient({ cookies });
 	const {
 		data: { user },
 		error: userError,
 	} = await supabase.auth.getUser();
 
-	// If no authenticated user or error, render basic layout
+	// If no user or error occurs, render the basic layout
 	if (!user || userError) {
-		return (
-			<html lang="en">
-				<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
-						{children}
-					</ThemeProvider>
-				</body>
-			</html>
-		);
+		return <BasicLayout>{children}</BasicLayout>;
 	}
 
-	// Verify user with backend
 	try {
+		// Verify user with backend
 		const {
 			data: { session },
 		} = await supabase.auth.getSession();
@@ -92,25 +115,7 @@ export default async function RootLayout({
 		const data = await response.json();
 		const role = data.user.role;
 
-		// If user is pending, show basic layout
-		if (role === 'pending') {
-			return (
-				<html lang="en">
-					<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-						<ThemeProvider
-							attribute="class"
-							defaultTheme="system"
-							enableSystem
-							disableTransitionOnChange
-						>
-							{children}
-						</ThemeProvider>
-					</body>
-				</html>
-			);
-		}
-
-		// Full layout for verified users
+		// Return the full layout if the user is verified
 		return (
 			<html lang="en">
 				<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -122,27 +127,31 @@ export default async function RootLayout({
 							disableTransitionOnChange
 						>
 							<Background>
-								<SidebarProvider>
-									<AppSidebar role={role} />
-									<SidebarInset className="w-full overflow-x-hidden">
-										<header
-											className="flex h-16 shrink-0 items-center gap-2 
+								<AuthProvider>
+									<SidebarProvider>
+										<AppSidebar role={role} />
+										<SidebarInset className="w-full overflow-x-hidden">
+											<header
+												className="flex h-16 shrink-0 items-center gap-2 
                                 
                                 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 fixed top-0 w-full backdrop-blur-sm justify-bet"
-										>
-											<div className="flex items-center gap-2 px-4">
-												<SidebarTrigger className="-ml-1" />
-												<Separator
-													orientation="vertical"
-													className="mr-2 h-4 bg-secondary-foreground/30"
-												/>
-												<AppBreadcrumbs />
+											>
+												<div className="flex items-center gap-2 px-4">
+													<SidebarTrigger className="-ml-1" />
+													<Separator
+														orientation="vertical"
+														className="mr-2 h-4 bg-secondary-foreground/30"
+													/>
+													<AppBreadcrumbs />
+												</div>
+											</header>
+											<AppHeader className="mt-16 mb-4 px-4" />
+											<div className="px-4 pb-6 h-full w-full">
+												{children}
 											</div>
-										</header>
-										<AppHeader className="mt-16 mb-4 px-4" />
-										<div className="px-4 pb-6 h-full w-full">{children}</div>
-									</SidebarInset>
-								</SidebarProvider>
+										</SidebarInset>
+									</SidebarProvider>
+								</AuthProvider>
 							</Background>
 						</ThemeProvider>
 						<Toaster />
@@ -151,21 +160,12 @@ export default async function RootLayout({
 			</html>
 		);
 	} catch (error) {
-		// On any error, show basic layout
 		console.error('Layout error:', error);
+		// On error, fall back to the basic layout
 		return (
-			<html lang="en">
-				<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
-						{children}
-					</ThemeProvider>
-				</body>
-			</html>
+			<AuthProvider>
+				<BasicLayout>{children}</BasicLayout>
+			</AuthProvider>
 		);
 	}
 }

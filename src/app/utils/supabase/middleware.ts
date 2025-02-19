@@ -1,110 +1,66 @@
-// middleware.ts
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import { type NextRequest, NextResponse } from 'next/server';
 
-export async function middleware(request: NextRequest) {
-	try {
-		console.log('\n🔵 ===== Middleware Check =====');
-		console.log('📍 Path:', request.nextUrl.pathname);
+export async function updateSession(request: NextRequest) {
+	let supabaseResponse = NextResponse.next({
+		request,
+	});
 
-		const res = NextResponse.next();
-		const supabase = createMiddlewareClient({ req: request, res });
-
-		// Get the authenticated user
-		const {
-			data: { user },
-			error,
-		} = await supabase.auth.getUser();
-
-		if (error) {
-			console.error('❌ Error retrieving user:', error);
-			return NextResponse.redirect(new URL('/signin', request.url));
-		}
-
-		if (user) {
-			console.log('✅ User authenticated:', { userId: user.id, email: user.email });
-
-			// Calculate token expiry if access token is available
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			const expiresAt = session?.expires_at ? session.expires_at * 1000 : 0;
-			const timeUntilExpire = expiresAt - Date.now();
-			const shouldRefresh = timeUntilExpire < 1000 * 60 * 5; // Refresh if less than 5 minutes left
-
-			console.log('🔑 Token Status:', {
-				expiresAt: new Date(expiresAt).toLocaleString(),
-				timeUntilExpire: Math.round(timeUntilExpire / 1000 / 60) + ' minutes',
-				shouldRefresh,
-			});
-
-			if (shouldRefresh) {
-				console.log('🔄 Refreshing token...');
-				const {
-					data: { session: newSession },
-					error: refreshError,
-				} = await supabase.auth.refreshSession();
-
-				if (refreshError) {
-					console.error('❌ Token refresh failed:', refreshError);
-					return NextResponse.redirect(new URL('/signin', request.url));
-				}
-
-				if (newSession) {
-					console.log('✅ Token refreshed successfully');
-					console.log(
-						'📅 New expiry:',
-						new Date(newSession.expires_at! * 1000).toLocaleString()
+	const supabase = createServerClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+		{
+			cookies: {
+				getAll() {
+					return request.cookies.getAll();
+				},
+				setAll(cookiesToSet) {
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					cookiesToSet.forEach(({ name, value, options }) =>
+						request.cookies.set(name, value)
 					);
-
-					// Verify the new session token with the backend
-					try {
-						const backendResponse = await fetch(
-							`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`,
-							{
-								method: 'POST',
-								headers: {
-									Authorization: `Bearer ${newSession.access_token}`,
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({
-									email: newSession.user.email,
-									name: newSession.user.email?.split('@')[0],
-									userId: newSession.user.id,
-								}),
-							}
-						);
-
-						if (!backendResponse.ok) {
-							throw new Error('Backend verification failed');
-						}
-
-						const data = await backendResponse.json();
-						console.log('✅ Backend verification successful with new token:', {
-							role: data.user.role,
-							userId: data.user.id,
-						});
-					} catch (error) {
-						console.error('❌ Backend verification failed with new token:', error);
-						return NextResponse.redirect(new URL('/signin', request.url));
-					}
-				}
-			}
-		} else {
-			console.log('❌ User is not authenticated');
-			return NextResponse.redirect(new URL('/signin', request.url));
+					supabaseResponse = NextResponse.next({
+						request,
+					});
+					cookiesToSet.forEach(({ name, value, options }) =>
+						supabaseResponse.cookies.set(name, value, options)
+					);
+				},
+			},
 		}
+	);
 
-		return res;
-	} catch (error) {
-		console.error('❌ Middleware error:', error);
-		return NextResponse.redirect(new URL('/signin', request.url));
+	// IMPORTANT: Avoid writing any logic between createServerClient and
+	// supabase.auth.getUser(). A simple mistake could make it very hard to debug
+	// issues with users being randomly logged out.
+
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+
+	if (
+		!user &&
+		!request.nextUrl.pathname.startsWith('/login') &&
+		!request.nextUrl.pathname.startsWith('/auth')
+	) {
+		// no user, potentially respond by redirecting the user to the login page
+		const url = request.nextUrl.clone();
+		url.pathname = '/login';
+		return NextResponse.redirect(url);
 	}
-}
 
-export const config = {
-	matcher: [
-		'/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-	],
-};
+	// IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
+	// creating a new response object with NextResponse.next() make sure to:
+	// 1. Pass the request in it, like so:
+	//    const myNewResponse = NextResponse.next({ request })
+	// 2. Copy over the cookies, like so:
+	//    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+	// 3. Change the myNewResponse object to fit your needs, but avoid changing
+	//    the cookies!
+	// 4. Finally:
+	//    return myNewResponse
+	// If this is not done, you may be causing the browser and server to go out
+	// of sync and terminate the user's session prematurely!
+
+	return { supabaseResponse, user };
+}

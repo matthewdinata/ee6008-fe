@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/table';
 
 interface User {
+	id: number;
 	user_id: number;
 	email: string;
 	name: string;
@@ -99,7 +100,6 @@ export default function UserTable() {
 				user_id: user.user_id,
 				email: user.email,
 				name: user.name,
-
 				is_course_coordinator: Boolean(user.is_course_coordinator),
 			}));
 
@@ -269,7 +269,7 @@ export default function UserTable() {
 														size="sm"
 														disabled={deleteLoading === user.id}
 													>
-														{deleteLoading === user.email ? (
+														{deleteLoading === user.id ? (
 															<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
 														) : (
 															<Trash2 className="h-4 w-4" />
