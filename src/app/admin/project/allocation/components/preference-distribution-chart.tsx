@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/chart';
 
 type PreferenceDistributionChartProps = {
-	data: Array<{ preference: string; count: number }>;
+	data: { [key: string]: number };
 };
 
 export function PreferenceDistributionChart({ data }: PreferenceDistributionChartProps) {
@@ -23,6 +23,11 @@ export function PreferenceDistributionChart({ data }: PreferenceDistributionChar
 		},
 	} satisfies ChartConfig;
 
+	const chartData = Object.entries(data).map(([preference, count]) => ({
+		preference,
+		count,
+	}));
+
 	return (
 		<Card>
 			<CardHeader>
@@ -30,7 +35,7 @@ export function PreferenceDistributionChart({ data }: PreferenceDistributionChar
 			</CardHeader>
 			<CardContent>
 				<ChartContainer config={chartConfig}>
-					<BarChart accessibilityLayer data={data} margin={{ top: 20 }}>
+					<BarChart accessibilityLayer data={chartData} margin={{ top: 20 }}>
 						<CartesianGrid vertical={false} />
 						<XAxis
 							dataKey="preference"

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { AllocationData } from '../types';
+import { PreferenceDistributionChart } from './preference-distribution-chart';
 
 type StatisticsCardsProps = {
 	data: AllocationData | null;
@@ -29,11 +30,19 @@ export function StatisticsCards({ data }: StatisticsCardsProps) {
 								{data.averagePreference.toFixed(2)}
 							</p>
 						</div>
+						<div>
+							<p className="text-sm text-muted-foreground">
+								Force Allocated Students
+							</p>
+							<p className="text-2xl font-bold">
+								{data.forceAllocatedStudents.length}
+							</p>
+						</div>
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* <PreferenceDistributionChart data={data.preferenceDistribution} /> */}
+			<PreferenceDistributionChart data={data.preferenceDistribution} />
 		</div>
 	);
 }

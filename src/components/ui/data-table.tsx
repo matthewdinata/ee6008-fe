@@ -100,6 +100,7 @@ export function DataTable<TData, TValue>({
 			<div className="sm:flex-row sm:items-center justify-end pb-4 gap-4 flex flex-col-reverse items-end">
 				{filterBy && (
 					<Input
+						// TODO: fix placeholder formatting + logic (check allocation table for reference)
 						placeholder={`Search ${filterBy}...`}
 						value={(table.getColumn(filterBy)?.getFilterValue() as string) ?? ''}
 						onChange={(event) =>

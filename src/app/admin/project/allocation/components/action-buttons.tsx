@@ -1,5 +1,3 @@
-'use client';
-
 import { History, Play, Save, Settings } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
