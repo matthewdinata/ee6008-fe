@@ -1,0 +1,1454 @@
+{
+	"allocations": [
+		{
+			"student_id": 1294,
+			"project_id": 94,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 235,
+			"project_id": 37,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1182,
+			"project_id": 409,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1319,
+			"project_id": 243,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1827,
+			"project_id": 132,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2199,
+			"project_id": 399,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 287,
+			"project_id": 31,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 768,
+			"project_id": 475,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 778,
+			"project_id": 236,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 923,
+			"project_id": 345,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1983,
+			"project_id": 482,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2234,
+			"project_id": 484,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2251,
+			"project_id": 314,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2294,
+			"project_id": 113,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 350,
+			"project_id": 12,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 673,
+			"project_id": 355,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 859,
+			"project_id": 401,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1275,
+			"project_id": 208,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1650,
+			"project_id": 275,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1679,
+			"project_id": 360,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1754,
+			"project_id": 265,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1898,
+			"project_id": 377,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2079,
+			"project_id": 63,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 417,
+			"project_id": 84,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1739,
+			"project_id": 245,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1785,
+			"project_id": 160,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1909,
+			"project_id": 175,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2630,
+			"project_id": 236,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1570,
+			"project_id": 13,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 558,
+			"project_id": 17,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 716,
+			"project_id": 304,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1160,
+			"project_id": 223,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1681,
+			"project_id": 398,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2102,
+			"project_id": 470,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2196,
+			"project_id": 108,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2298,
+			"project_id": 247,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 836,
+			"project_id": 199,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1386,
+			"project_id": 163,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1551,
+			"project_id": 102,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2319,
+			"project_id": 256,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1795,
+			"project_id": 467,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2270,
+			"project_id": 277,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2676,
+			"project_id": 359,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1464,
+			"project_id": 51,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 343,
+			"project_id": 17,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1143,
+			"project_id": 451,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1158,
+			"project_id": 190,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1460,
+			"project_id": 420,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1466,
+			"project_id": 360,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1844,
+			"project_id": 293,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2044,
+			"project_id": 226,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 420,
+			"project_id": 30,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 525,
+			"project_id": 53,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 688,
+			"project_id": 494,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 730,
+			"project_id": 215,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 943,
+			"project_id": 493,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 977,
+			"project_id": 207,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2081,
+			"project_id": 416,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2312,
+			"project_id": 135,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 397,
+			"project_id": 33,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 658,
+			"project_id": 163,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 689,
+			"project_id": 213,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1392,
+			"project_id": 410,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2273,
+			"project_id": 369,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2514,
+			"project_id": 292,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 336,
+			"project_id": 64,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1004,
+			"project_id": 134,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1087,
+			"project_id": 101,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1149,
+			"project_id": 182,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1172,
+			"project_id": 472,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1530,
+			"project_id": 380,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1836,
+			"project_id": 258,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2403,
+			"project_id": 491,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2283,
+			"project_id": 76,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 565,
+			"project_id": 16,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 367,
+			"project_id": 88,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 590,
+			"project_id": 33,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2124,
+			"project_id": 283,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2560,
+			"project_id": 139,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2662,
+			"project_id": 356,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1387,
+			"project_id": 408,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1666,
+			"project_id": 476,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2230,
+			"project_id": 224,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2257,
+			"project_id": 214,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2345,
+			"project_id": 195,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 690,
+			"project_id": 231,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 937,
+			"project_id": 434,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1473,
+			"project_id": 117,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2073,
+			"project_id": 464,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2245,
+			"project_id": 484,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 415,
+			"project_id": 60,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2426,
+			"project_id": 238,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 253,
+			"project_id": 20,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 379,
+			"project_id": 64,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1049,
+			"project_id": 325,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1177,
+			"project_id": 378,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1355,
+			"project_id": 390,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1989,
+			"project_id": 416,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1677,
+			"project_id": 413,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1694,
+			"project_id": 428,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2327,
+			"project_id": 213,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 913,
+			"project_id": 301,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1849,
+			"project_id": 191,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2156,
+			"project_id": 326,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 489,
+			"project_id": 52,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 653,
+			"project_id": 351,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1724,
+			"project_id": 304,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1976,
+			"project_id": 260,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2616,
+			"project_id": 188,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 578,
+			"project_id": 75,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 847,
+			"project_id": 199,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 926,
+			"project_id": 378,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 932,
+			"project_id": 223,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2041,
+			"project_id": 342,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2585,
+			"project_id": 441,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1487,
+			"project_id": 254,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2000,
+			"project_id": 325,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2318,
+			"project_id": 352,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 349,
+			"project_id": 65,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 819,
+			"project_id": 396,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1201,
+			"project_id": 242,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1657,
+			"project_id": 468,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1992,
+			"project_id": 197,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2331,
+			"project_id": 469,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 575,
+			"project_id": 55,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 706,
+			"project_id": 337,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 936,
+			"project_id": 369,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1822,
+			"project_id": 167,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2217,
+			"project_id": 177,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 796,
+			"project_id": 276,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1200,
+			"project_id": 423,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1267,
+			"project_id": 230,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2512,
+			"project_id": 341,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 340,
+			"project_id": 84,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 568,
+			"project_id": 48,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2568,
+			"project_id": 408,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2689,
+			"project_id": 347,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 344,
+			"project_id": 41,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 601,
+			"project_id": 286,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 767,
+			"project_id": 287,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 973,
+			"project_id": 327,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1047,
+			"project_id": 389,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1733,
+			"project_id": 475,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2527,
+			"project_id": 263,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1064,
+			"project_id": 51,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1821,
+			"project_id": 35,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 219,
+			"project_id": 50,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 347,
+			"project_id": 69,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1048,
+			"project_id": 377,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1299,
+			"project_id": 384,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 555,
+			"project_id": 65,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 649,
+			"project_id": 199,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 881,
+			"project_id": 230,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1308,
+			"project_id": 393,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1970,
+			"project_id": 357,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2018,
+			"project_id": 495,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2262,
+			"project_id": 488,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 598,
+			"project_id": 51,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2380,
+			"project_id": 214,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 492,
+			"project_id": 40,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 503,
+			"project_id": 68,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1479,
+			"project_id": 149,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1698,
+			"project_id": 113,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2100,
+			"project_id": 295,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2374,
+			"project_id": 229,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2593,
+			"project_id": 194,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 461,
+			"project_id": 96,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 526,
+			"project_id": 95,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 593,
+			"project_id": 3,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 989,
+			"project_id": 149,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2366,
+			"project_id": 358,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 569,
+			"project_id": 71,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1135,
+			"project_id": 245,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1225,
+			"project_id": 427,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1244,
+			"project_id": 355,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1301,
+			"project_id": 500,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1359,
+			"project_id": 289,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1532,
+			"project_id": 340,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1606,
+			"project_id": 460,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 642,
+			"project_id": 197,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1958,
+			"project_id": 141,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2608,
+			"project_id": 404,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2637,
+			"project_id": 352,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 559,
+			"project_id": 43,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1942,
+			"project_id": 186,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2443,
+			"project_id": 223,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 402,
+			"project_id": 95,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 609,
+			"project_id": 368,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1523,
+			"project_id": 394,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1876,
+			"project_id": 221,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 314,
+			"project_id": 26,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 368,
+			"project_id": 3,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 409,
+			"project_id": 65,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 848,
+			"project_id": 200,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1682,
+			"project_id": 472,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2402,
+			"project_id": 437,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2566,
+			"project_id": 498,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 256,
+			"project_id": 62,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1151,
+			"project_id": 300,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1896,
+			"project_id": 428,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1972,
+			"project_id": 334,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2424,
+			"project_id": 437,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2474,
+			"project_id": 223,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1774,
+			"project_id": 236,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 282,
+			"project_id": 23,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 813,
+			"project_id": 161,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 900,
+			"project_id": 385,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 918,
+			"project_id": 201,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1249,
+			"project_id": 115,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2278,
+			"project_id": 401,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2649,
+			"project_id": 264,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 304,
+			"project_id": 4,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 424,
+			"project_id": 80,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1719,
+			"project_id": 255,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2011,
+			"project_id": 363,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2545,
+			"project_id": 249,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2372,
+			"project_id": 142,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2423,
+			"project_id": 427,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1161,
+			"project_id": 21,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 447,
+			"project_id": 61,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 612,
+			"project_id": 395,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 781,
+			"project_id": 329,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1106,
+			"project_id": 294,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1222,
+			"project_id": 426,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1528,
+			"project_id": 255,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1644,
+			"project_id": 123,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 280,
+			"project_id": 31,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1323,
+			"project_id": 187,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1337,
+			"project_id": 439,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1477,
+			"project_id": 257,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1759,
+			"project_id": 196,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1858,
+			"project_id": 189,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2352,
+			"project_id": 289,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 2392,
+			"project_id": 297,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1753,
+			"project_id": 83,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 335,
+			"project_id": 94,
+			"priority": 1,
+			"status": "allocated"
+		},
+		{
+			"student_id": 1288,
+			"project_id": 479,
+			"priority": 5,
+			"status": "allocated_min_cap"
+		},
+		{
+			"student_id": 1763,
+			"project_id": 479,
+			"priority": 5,
+			"status": "allocated_min_cap"
+		},
+		{
+			"student_id": 2038,
+			"project_id": 486,
+			"priority": 5,
+			"status": "allocated_min_cap"
+		}
+	],
+	"allocation_rate": 96.24150339864055,
+	"average_preference": 1.3685085168259243,
+	"preference_distribution": {
+		"1": 1888,
+		"2": 298,
+		"3": 122,
+		"4": 51,
+		"5": 48
+	},
+	"unallocated_students": [
+		1367, 975, 1721, 2682, 777, 2458, 1973, 2531, 2471, 1310, 1365, 2060, 664, 2105, 687, 691,
+		1357, 2482, 1544, 2347, 2587, 1494, 2491, 712, 2436, 2160, 2266, 2085, 1372, 2157, 2633,
+		676, 2621, 872, 800, 2057, 2147, 1038, 1539, 2175, 1012, 1573, 613, 741, 1701, 1947, 1099,
+		1502, 1978, 723, 2457, 473, 211, 2456, 1851, 1054, 1877, 776, 1582
+	],
+	"force_allocated_students": [1649, 2378, 1215, 640, 1994, 1193, 2271, 1260, 1288, 1763, 2038]
+}

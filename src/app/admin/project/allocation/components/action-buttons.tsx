@@ -15,7 +15,7 @@ export function ActionButtons({ onGenerate, onSave, isGenerating, hasData }: Act
 	return (
 		<div className="flex flex-wrap justify-between items-center">
 			<div className="flex flex-wrap gap-3 mr-auto">
-				{/* TODO: add button functionalities */}
+				{/* TODO: add button functionalities and fix loading state */}
 				<Button variant="default" onClick={onGenerate} disabled={isGenerating}>
 					<Play className="w-4 h-4" />
 					{isGenerating ? 'Generating...' : 'Generate Allocation'}

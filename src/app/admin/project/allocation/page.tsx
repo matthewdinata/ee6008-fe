@@ -1,25 +1,27 @@
 import React, { Suspense } from 'react';
 
 import AllocationContainer from './components/allocation-container';
+import rawMockData from './mock-data.json';
 
 async function GenerateAllocationPage() {
 	// TODO: replace with actual data
-	const savedDraft = {
-		allocationRate: 98,
-		averagePreference: 2.3,
-
-		preferenceDistribution: [
-			{ preference: '1st', count: 45 },
-			{ preference: '2nd', count: 60 },
-			{ preference: '3rd', count: 50 },
-			{ preference: '4th', count: 30 },
-			{ preference: '5th', count: 11 },
-		],
+	const mockData = {
+		allocations: rawMockData.allocations.map((item) => ({
+			studentId: item.student_id,
+			projectId: item.project_id,
+			priority: item.priority,
+			status: item.status,
+		})),
+		allocationRate: rawMockData.allocation_rate,
+		averagePreference: rawMockData.average_preference,
+		preferenceDistribution: rawMockData.preference_distribution,
+		unallocatedStudents: rawMockData.unallocated_students,
+		forceAllocatedStudents: rawMockData.force_allocated_students,
 	};
 
 	return (
 		<Suspense fallback={<div>Loading...</div>}>
-			<AllocationContainer initialData={savedDraft} />
+			<AllocationContainer initialData={mockData} />
 		</Suspense>
 	);
 }
