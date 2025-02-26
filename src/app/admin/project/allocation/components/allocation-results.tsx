@@ -10,6 +10,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { Allocation, AllocationData } from '../types';
 
@@ -86,9 +87,10 @@ const columns: ColumnDef<Allocation>[] = [
 
 type AllocationResultsProps = {
 	data: AllocationData | null;
+	isGenerating: boolean;
 };
 
-export function AllocationResults({ data }: AllocationResultsProps) {
+export function AllocationResults({ data, isGenerating }: AllocationResultsProps) {
 	return (
 		<Card>
 			<CardHeader>
@@ -96,14 +98,18 @@ export function AllocationResults({ data }: AllocationResultsProps) {
 			</CardHeader>
 			{/* TODO: Implement the allocation results */}
 			<CardContent>
-				{data && (
-					<DataTable
-						columns={columns}
-						data={data.allocations}
-						filterBy="studentId"
-						pageSize={6}
-						// TODO: handle dynamic data
-					/>
+				{isGenerating ? (
+					<Skeleton className="w-full h-96" />
+				) : (
+					data && (
+						<DataTable
+							columns={columns}
+							data={data.allocations}
+							filterBy="studentId"
+							pageSize={6}
+							// TODO: handle dynamic data
+						/>
+					)
 				)}
 			</CardContent>
 		</Card>

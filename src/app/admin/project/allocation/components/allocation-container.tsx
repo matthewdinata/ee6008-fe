@@ -40,7 +40,6 @@ function AllocationContainer({ initialData }: AllocationContainerProps) {
 			);
 		} catch (error) {
 			console.error('Failed to generate allocation:', error);
-		} finally {
 			setIsGenerating(false);
 		}
 	};
@@ -65,9 +64,9 @@ function AllocationContainer({ initialData }: AllocationContainerProps) {
 				hasData={!!allocationData}
 			/>
 
-			<StatisticsCards data={allocationData} />
+			<StatisticsCards data={allocationData} isGenerating={isGenerating} />
 
-			<AllocationResults data={allocationData} />
+			<AllocationResults data={allocationData} isGenerating={isGenerating} />
 		</div>
 	);
 }
