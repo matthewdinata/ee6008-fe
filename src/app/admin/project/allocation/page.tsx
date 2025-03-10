@@ -16,7 +16,7 @@ async function GenerateAllocationPage() {
 		averagePreference: rawMockData.average_preference,
 		preferenceDistribution: rawMockData.preference_distribution,
 		unallocatedStudents: rawMockData.unallocated_students,
-		forceAllocatedStudents: rawMockData.force_allocated_students,
+		droppedProjects: rawMockData.dropped_projects,
 	};
 
 	return (

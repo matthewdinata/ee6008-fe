@@ -18,7 +18,7 @@ export type GenerateAllocationsResponseData = {
 	averagePreference: number;
 	preferenceDistribution: { [key: string]: number };
 	unallocatedStudents: Array<number>;
-	forceAllocatedStudents: Array<number>;
+	droppedProjects: Array<number>;
 } | null;
 
 export async function generateAllocations(
@@ -34,8 +34,6 @@ export async function generateAllocations(
 			}
 		);
 
-		console.log('result', result);
-
 		// TODO: Revalidate
 		// if (result) {
 		// 	// Revalidate the 'get-allocations' cache tag
@@ -48,7 +46,7 @@ export async function generateAllocations(
 			averagePreference: result?.averagePreference ?? 0,
 			preferenceDistribution: result?.preferenceDistribution ?? {},
 			unallocatedStudents: result?.unallocatedStudents ?? [],
-			forceAllocatedStudents: result?.forceAllocatedStudents ?? [],
+			droppedProjects: result?.droppedProjects ?? [],
 		};
 	} catch (error) {
 		console.error('Error in generateAllocations:', error);

@@ -34,11 +34,9 @@ export function StatisticsCards({ data, isGenerating }: StatisticsCardsProps) {
 							</p>
 						</div>
 						<div>
-							<p className="text-sm text-muted-foreground">
-								Force Allocated Students
-							</p>
+							<p className="text-sm text-muted-foreground">Dropped Projects</p>
 							<p className="text-2xl font-bold">
-								{isGenerating ? '...' : data.forceAllocatedStudents.length}
+								{isGenerating ? '...' : data.droppedProjects.length}
 							</p>
 						</div>
 					</div>
