@@ -5,9 +5,10 @@ import { PreferenceDistributionChart } from './preference-distribution-chart';
 
 type StatisticsCardsProps = {
 	data: AllocationData | null;
+	isGenerating: boolean;
 };
 
-export function StatisticsCards({ data }: StatisticsCardsProps) {
+export function StatisticsCards({ data, isGenerating }: StatisticsCardsProps) {
 	if (!data) return null;
 
 	return (
@@ -20,19 +21,32 @@ export function StatisticsCards({ data }: StatisticsCardsProps) {
 					<div className="space-y-4">
 						<div>
 							<p className="text-sm text-muted-foreground">Student Allocation Rate</p>
-							<p className="text-2xl font-bold">{data.allocationRate}%</p>
+							<p className="text-2xl font-bold">
+								{isGenerating ? '...' : `${data.allocationRate.toFixed(2)}%`}
+							</p>
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">
 								Average Preference Score
 							</p>
-							<p className="text-2xl font-bold">{data.averagePreference}</p>
+							<p className="text-2xl font-bold">
+								{isGenerating ? '...' : data.averagePreference.toFixed(2)}
+							</p>
+						</div>
+						<div>
+							<p className="text-sm text-muted-foreground">Dropped Projects</p>
+							<p className="text-2xl font-bold">
+								{isGenerating ? '...' : data.droppedProjects.length}
+							</p>
 						</div>
 					</div>
 				</CardContent>
 			</Card>
 
-			<PreferenceDistributionChart data={data.preferenceDistribution} />
+			<PreferenceDistributionChart
+				data={data.preferenceDistribution}
+				isGenerating={isGenerating}
+			/>
 		</div>
 	);
 }

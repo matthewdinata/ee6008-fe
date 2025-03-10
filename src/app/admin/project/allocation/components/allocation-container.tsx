@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { useGenerateAllocations } from '@/utils/hooks/use-generate-allocations';
+
 import { AllocationData } from '../types';
 import { ActionButtons } from './action-buttons';
 import { AllocationResults } from './allocation-results';
@@ -17,15 +19,27 @@ function AllocationContainer({ initialData }: AllocationContainerProps) {
 	);
 	const [isGenerating, setIsGenerating] = useState(false);
 
+	const { mutate: generateAllocations } = useGenerateAllocations();
+
 	const handleGenerateAllocation = async () => {
 		setIsGenerating(true);
 		try {
-			// TODO: Replace with actual data fetching logic
-			const data = {};
-			setAllocationData(data as AllocationData);
+			generateAllocations(
+				{ semesterId: 5 }, // TODO: replace with actual data
+				{
+					onSuccess: (data) => {
+						setAllocationData(data as AllocationData);
+					},
+					onError: (error) => {
+						console.error('Failed to generate allocation:', error);
+					},
+					onSettled: () => {
+						setIsGenerating(false);
+					},
+				}
+			);
 		} catch (error) {
 			console.error('Failed to generate allocation:', error);
-		} finally {
 			setIsGenerating(false);
 		}
 	};
@@ -50,9 +64,9 @@ function AllocationContainer({ initialData }: AllocationContainerProps) {
 				hasData={!!allocationData}
 			/>
 
-			<StatisticsCards data={allocationData} />
+			<StatisticsCards data={allocationData} isGenerating={isGenerating} />
 
-			<AllocationResults data={allocationData} />
+			<AllocationResults data={allocationData} isGenerating={isGenerating} />
 		</div>
 	);
 }

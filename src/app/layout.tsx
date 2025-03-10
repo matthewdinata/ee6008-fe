@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 import './globals.css';
+import Provider from './provider';
 
 const geistSans = localFont({
 	src: './fonts/GeistVF.woff',
@@ -39,36 +40,38 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					disableTransitionOnChange
-				>
-					<Background>
-						<SidebarProvider>
-							<AppSidebar role={role} />
-							<SidebarInset className="w-full overflow-x-hidden">
-								<header
-									className="flex h-16 shrink-0 items-center gap-2 
+				<Provider>
+					<ThemeProvider
+						attribute="class"
+						defaultTheme="system"
+						enableSystem
+						disableTransitionOnChange
+					>
+						<Background>
+							<SidebarProvider>
+								<AppSidebar role={role} />
+								<SidebarInset className="w-full overflow-x-hidden">
+									<header
+										className="flex h-16 shrink-0 items-center gap-2 
                                 
                                 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 fixed top-0 w-full backdrop-blur-sm justify-bet"
-								>
-									<div className="flex items-center gap-2 px-4">
-										<SidebarTrigger className="-ml-1" />
-										<Separator
-											orientation="vertical"
-											className="mr-2 h-4 bg-secondary-foreground/30"
-										/>
-										<AppBreadcrumbs />
-									</div>
-								</header>
-								<AppHeader className="mt-16 mb-4 px-4" />
-								<div className="px-4 h-full w-full">{children}</div>
-							</SidebarInset>
-						</SidebarProvider>
-					</Background>
-				</ThemeProvider>
+									>
+										<div className="flex items-center gap-2 px-4">
+											<SidebarTrigger className="-ml-1" />
+											<Separator
+												orientation="vertical"
+												className="mr-2 h-4 bg-secondary-foreground/30"
+											/>
+											<AppBreadcrumbs />
+										</div>
+									</header>
+									<AppHeader className="mt-16 mb-4 px-4" />
+									<div className="px-4 h-full w-full">{children}</div>
+								</SidebarInset>
+							</SidebarProvider>
+						</Background>
+					</ThemeProvider>
+				</Provider>
 			</body>
 		</html>
 	);
