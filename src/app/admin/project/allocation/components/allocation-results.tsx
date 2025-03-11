@@ -17,6 +17,7 @@ import { Allocation, AllocationData } from '../types';
 const columns: ColumnDef<Allocation>[] = [
 	{
 		accessorKey: 'studentId',
+		id: 'studentId',
 		header: ({ column }) => {
 			return (
 				<Button
@@ -29,9 +30,16 @@ const columns: ColumnDef<Allocation>[] = [
 				</Button>
 			);
 		},
+		meta: {
+			header: 'Student ID',
+		},
 	},
 	{
 		accessorKey: 'projectId',
+		id: 'projectId',
+		meta: {
+			header: 'Project ID',
+		},
 		header: ({ column }) => {
 			return (
 				<Button
@@ -106,7 +114,7 @@ export function AllocationResults({ data, isGenerating }: AllocationResultsProps
 							columns={columns}
 							data={data.allocations}
 							filterBy="studentId"
-							filterPlaceholder="student ID"
+							filterName="student ID"
 							pageSize={6}
 							// TODO: handle dynamic data
 						/>
