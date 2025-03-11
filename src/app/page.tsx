@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import React from 'react';
 
 export default function Page() {
@@ -8,5 +8,3 @@ export default function Page() {
 		</div>
 	);
 }
-=======
->>>>>>> 1fc8812 (authentication feature done)

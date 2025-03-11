@@ -139,7 +139,7 @@ export function AdminDashboard() {
 			// Fallback to client-side cleanup and redirect
 			router.push('/signin');
 		}
-	};
+	}, [supabase, checkAndRefreshToken]);
 
 	const fetchUserData = useCallback(async () => {
 		try {

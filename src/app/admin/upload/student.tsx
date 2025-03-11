@@ -62,6 +62,9 @@ export default function BulkStudentUpload() {
 			setLoadingSemesters(false);
 		}
 	};
+	useEffect(() => {
+		fetchSemesters();
+	}, [fetchSemesters]);
 
 	useEffect(() => {
 		fetchSemestersData();
