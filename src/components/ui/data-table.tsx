@@ -39,32 +39,39 @@ import { Input } from './input';
  * @template TData - The type of data being displayed in the table.
  * @template TValue - The type of value for each column.
  *
- * @property {ColumnDef<TData, TValue>[]} columns - The definitions of the columns in the table.
+ * @property {ColumnDef<TData, TValue>[]} columns - The column definitions for the table.
  * @property {TData[]} data - The data to be displayed in the table.
  * @property {string} [filterBy] - The accessor key of the search filter used.
+ * @property {string} [filterName] - The name placeholder text for the search filter input.
  * @property {number} [pageSize] - The number of entries to display per page.
  * @property {boolean} [showRowSelection] - Whether to display the text for the number of rows selected.
  * @property {string} [selectionButtonText] - The text to display on the selection button.
  * @property {(selectedRows: TData[]) => void} [onSelectionButtonClick] - The callback function to handle selection button click.
+ * @property {Record<string, string>} [columnDisplayNames] - Optional mapping of column IDs to display names.
  */
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	filterBy?: string;
+	filterName?: string;
 	pageSize?: number;
 	showRowSelection?: boolean;
 	selectionButtonText?: string;
 	onSelectionButtonClick?: (selectedRows: TData[]) => void;
+	columnDisplayNames?: Record<string, string>;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
 	filterBy,
+	filterName = filterBy,
 	pageSize = 10,
 	showRowSelection,
 	selectionButtonText,
 	onSelectionButtonClick,
+	columnDisplayNames = {},
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -95,13 +102,36 @@ export function DataTable<TData, TValue>({
 		},
 	});
 
+	// Function to get display name for a column
+	const getColumnDisplayName = (columnId: string) => {
+		// First check the explicit mapping if provided
+		if (columnDisplayNames[columnId]) {
+			return columnDisplayNames[columnId];
+		}
+
+		// Look for a matching column definition
+		const columnDef = columns.find((col) => col.id === columnId);
+
+		// Use the meta property if it exists and has a header property
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		if (columnDef?.meta && typeof (columnDef.meta as any).header === 'string') {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return (columnDef.meta as any).header;
+		}
+
+		// Format the columnId with spaces before capital letters as a fallback
+		return columnId
+			.replace(/([A-Z])/g, ' $1')
+			.replace(/^./, (str) => str.toUpperCase())
+			.trim();
+	};
+
 	return (
 		<div className="w-full">
 			<div className="sm:flex-row sm:items-center justify-end pb-4 gap-4 flex flex-col-reverse items-end">
 				{filterBy && (
 					<Input
-						// TODO: fix placeholder formatting + logic (check allocation table for reference)
-						placeholder={`Search ${filterBy}...`}
+						placeholder={`Search ${filterName}...`}
 						value={(table.getColumn(filterBy)?.getFilterValue() as string) ?? ''}
 						onChange={(event) =>
 							table.getColumn(filterBy)?.setFilterValue(event.target.value)
@@ -130,7 +160,7 @@ export function DataTable<TData, TValue>({
 												column.toggleVisibility(!!value)
 											}
 										>
-											{column.id}
+											{getColumnDisplayName(column.id)}
 										</DropdownMenuCheckboxItem>
 									);
 								})}

@@ -169,7 +169,7 @@ export const navConfig: NavMainItemsConfig = {
 					title: 'Student registrations',
 					url: '/admin/project/registration',
 					headerTitle: 'Project Registrations',
-					headerSubtitle: 'Manage active students',
+					headerSubtitle: 'View and manage student project registrations',
 				},
 				{
 					title: 'Generate allocation',

@@ -1,6 +1,5 @@
 export type Registration = {
-	id: string;
-	projectId: string;
+	projectId: number;
 	title: string;
 	totalSignUps: number;
 };
