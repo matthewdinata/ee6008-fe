@@ -16,6 +16,8 @@ export async function getRegistrationsGroupByProjects(): Promise<GetRegistration
 			'admin/registrations/group-by-projects',
 			{
 				method: 'GET',
+			},
+			{
 				next: { tags: ['registrations-group-by-projects'] },
 			}
 		);

@@ -3,7 +3,7 @@
 'use server';
 
 type FetcherOptions = {
-	method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 	headers?: Record<string, string>;
 	cache?: RequestCache;
 	next?: NextFetchRequestConfig;
@@ -16,8 +16,8 @@ type NextFetchRequestConfig = {
 
 export async function fetcherFn<T = any>(
 	path: string,
-	data?: any,
-	options: FetcherOptions = {}
+	options: FetcherOptions,
+	data?: any
 ): Promise<T> {
 	const apiUrl = process.env.BACKEND_API_URL;
 	if (!apiUrl) {
@@ -27,6 +27,7 @@ export async function fetcherFn<T = any>(
 	const { headers = {} } = options;
 
 	const fetchOptions: RequestInit & { next?: NextFetchRequestConfig } = {
+		method: options.method,
 		headers: {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${process.env.BACKEND_API_KEY}`,
@@ -34,7 +35,7 @@ export async function fetcherFn<T = any>(
 		},
 	};
 
-	if (data && data.method !== 'GET') {
+	if (data && options.method !== 'GET') {
 		const snakeCaseData = transformToSnakeCase(data);
 		fetchOptions.body = JSON.stringify(snakeCaseData);
 	}

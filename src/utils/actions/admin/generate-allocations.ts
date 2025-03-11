@@ -27,18 +27,12 @@ export async function generateAllocations(
 	try {
 		const result = await fetcherFn<GenerateAllocationsResponseData>(
 			'admin/allocations/generate',
-			data,
 			{
 				method: 'POST',
 				next: { tags: ['allocations'] },
-			}
+			},
+			data
 		);
-
-		// TODO: Revalidate
-		// if (result) {
-		// 	// Revalidate the 'get-allocations' cache tag
-		// 	revalidateTag('get-allocations');
-		// }
 
 		return {
 			allocations: result?.allocations ?? [],
