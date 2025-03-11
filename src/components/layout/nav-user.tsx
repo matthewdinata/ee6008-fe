@@ -207,8 +207,37 @@ export default function NavUser({ user }: { user: UserInfo }) {
 						<DropdownMenuItem
 							onClick={async () => {
 								try {
+									// First sign out from Supabase auth
 									await supabase.auth.signOut();
-									router.push('/signin');
+
+									// Manually clear all cookies we set in middleware
+									document.cookie =
+										'session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+									document.cookie =
+										'user-role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+									document.cookie =
+										'user-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+									document.cookie =
+										'user-name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+									document.cookie =
+										'user-email=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
+									// Clear session storage
+									if (typeof window !== 'undefined') {
+										sessionStorage.removeItem('ee6008_user_session_data');
+										sessionStorage.removeItem('ee6008_prev_user_name');
+										sessionStorage.removeItem('ee6008_prev_user_email');
+										sessionStorage.removeItem('hasRenderedSidebar');
+
+										// Also clear local storage items
+										localStorage.removeItem('ee6008_user_data');
+									}
+
+									console.log(
+										'🔐 Sign out successful - redirecting to signin page'
+									);
+									// Force reload to clear any cached state
+									window.location.href = '/signin';
 								} catch (error) {
 									console.error('Error signing out:', error);
 								}
