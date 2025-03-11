@@ -24,10 +24,9 @@ export async function fetcherFn<T = any>(
 		throw new Error('Backend API URL is not defined');
 	}
 
-	const { method = 'POST', headers = {} } = options;
+	const { headers = {} } = options;
 
 	const fetchOptions: RequestInit & { next?: NextFetchRequestConfig } = {
-		method,
 		headers: {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${process.env.BACKEND_API_KEY}`,
@@ -35,7 +34,7 @@ export async function fetcherFn<T = any>(
 		},
 	};
 
-	if (data) {
+	if (data && data.method !== 'GET') {
 		const snakeCaseData = transformToSnakeCase(data);
 		fetchOptions.body = JSON.stringify(snakeCaseData);
 	}

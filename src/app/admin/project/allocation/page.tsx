@@ -1,5 +1,7 @@
 import React, { Suspense } from 'react';
 
+import { Skeleton } from '@/components/ui/skeleton';
+
 import AllocationContainer from './components/allocation-container';
 import rawMockData from './mock-data.json';
 
@@ -20,7 +22,7 @@ async function GenerateAllocationPage() {
 	};
 
 	return (
-		<Suspense fallback={<div>Loading...</div>}>
+		<Suspense fallback={<Skeleton className="h-96 w-full" />}>
 			<AllocationContainer initialData={mockData} />
 		</Suspense>
 	);
