@@ -43,11 +43,6 @@ export default function BulkStudentUpload() {
 
 	const supabase = createClientComponentClient();
 	const router = useRouter();
-
-	useEffect(() => {
-		fetchSemesters();
-	}, [fetchSemesters]);
-
 	const addDebugMessage = (msg: string) => {
 		const timestamp = new Date().toLocaleTimeString();
 		setDebugLog((prev) => [...prev, `${timestamp}: ${msg}`]);
@@ -82,6 +77,9 @@ export default function BulkStudentUpload() {
 			setLoadingSemesters(false);
 		}
 	};
+	useEffect(() => {
+		fetchSemesters();
+	}, [fetchSemesters]);
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files.length > 0) {

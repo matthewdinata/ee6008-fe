@@ -44,11 +44,15 @@ function getCookieValue(name: string): string {
 	return '';
 }
 
-export default function NavUser({
-	user,
-}: {
-	user: { name: string; email: string; avatar: string; role: string };
-}) {
+// Define interface for the user object
+interface UserInfo {
+	name: string;
+	email: string;
+	avatar: string;
+	role: string;
+}
+
+export default function NavUser({ user }: { user: UserInfo }) {
 	const { isMobile } = useSidebar();
 	const { systemTheme, theme, setTheme } = useTheme();
 	const currentTheme = theme === 'system' ? systemTheme : theme;

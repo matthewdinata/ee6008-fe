@@ -3,7 +3,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Clock, LogOut, RefreshCw, Shield, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface User {
 	id: number;
@@ -35,7 +35,7 @@ export function AdminDashboard() {
 		return `${hours} hours ${remainingMinutes} minutes`;
 	};
 
-	const checkAndRefreshToken = async () => {
+	const checkAndRefreshToken = useCallback(async () => {
 		try {
 			const {
 				data: { session },
@@ -62,9 +62,9 @@ export function AdminDashboard() {
 			console.error('Error checking token:', error);
 			return { session: null, shouldRefresh: false };
 		}
-	};
+	}, [supabase]);
 
-	const refreshToken = async () => {
+	const refreshToken = useCallback(async () => {
 		try {
 			const { data } = await supabase.auth.refreshSession();
 			if (data.session) {
@@ -74,14 +74,14 @@ export function AdminDashboard() {
 		} catch (error) {
 			console.error('Error refreshing token:', error);
 		}
-	};
+	}, [supabase, checkAndRefreshToken]);
 
 	const handleLogout = async () => {
 		await supabase.auth.signOut();
 		router.push('/signin');
 	};
 
-	const fetchUserData = async () => {
+	const fetchUserData = useCallback(async () => {
 		try {
 			const { session } = await checkAndRefreshToken();
 			if (!session) {
@@ -105,7 +105,7 @@ export function AdminDashboard() {
 			console.error('Error fetching user data:', error);
 			router.push('/signin');
 		}
-	};
+	}, [checkAndRefreshToken, router]);
 
 	useEffect(() => {
 		fetchUserData();
@@ -118,7 +118,7 @@ export function AdminDashboard() {
 		}, 60000); // Check every minute
 
 		return () => clearInterval(timerInterval);
-	}, []);
+	}, [checkAndRefreshToken, fetchUserData, refreshToken]);
 
 	if (loading) {
 		return (
