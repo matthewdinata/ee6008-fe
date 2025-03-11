@@ -9,6 +9,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 /* eslint-disable prettier/prettier */
+
+/* eslint-disable no-useless-catch */
+
+/* eslint-disable prettier/prettier */
 /* eslint-disable no-useless-catch */
 
 /* eslint-disable no-useless-catch */
@@ -86,7 +90,7 @@ export default function Dashboard() {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const verifyWithBackend = async (session: any) => {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
+		const response = await fetch(`${process.env.BACKEND_API_URL}/auth/verify`, {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${session.access_token}`,

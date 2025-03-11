@@ -82,15 +82,12 @@ export default function UserTable() {
 				throw new Error('No session found');
 			}
 
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users-student`,
-				{
-					headers: {
-						Authorization: `Bearer ${session.access_token}`,
-						'Content-Type': 'application/json',
-					},
-				}
-			);
+			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users-student`, {
+				headers: {
+					Authorization: `Bearer ${session.access_token}`,
+					'Content-Type': 'application/json',
+				},
+			});
 
 			if (!response.ok) {
 				throw new Error('Failed to fetch users');
@@ -128,7 +125,7 @@ export default function UserTable() {
 			}
 
 			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${userId}`,
+				`${process.env.BACKEND_API_URL}/api/admin/users/${userId}`,
 				{
 					method: 'DELETE',
 					headers: {
