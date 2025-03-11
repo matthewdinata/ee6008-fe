@@ -1,3 +1,5 @@
+'use client';
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Download, Loader2, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -23,14 +25,6 @@ interface Semester {
 	status: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface UploadResponse {
-	Success?: { email: string }[];
-	Failed?: { email: string; error: string }[];
-	message?: string;
-	error?: string;
-}
-
 export default function BulkStudentUpload() {
 	const [file, setFile] = useState<File | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
@@ -46,14 +40,14 @@ export default function BulkStudentUpload() {
 
 	useEffect(() => {
 		fetchSemesters();
-	}, [fetchSemesters]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const addDebugMessage = (msg: string) => {
 		const timestamp = new Date().toLocaleTimeString();
 		setDebugLog((prev) => [...prev, `${timestamp}: ${msg}`]);
 	};
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const fetchSemesters = async () => {
 		try {
 			const {
@@ -156,7 +150,7 @@ export default function BulkStudentUpload() {
 
 			// Construct URL with query parameter
 			const url = new URL(
-				`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/bulk-upload-student`
+				`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/bulk-upload-faculty`
 			);
 			url.searchParams.append('semester_id', selectedSemester);
 

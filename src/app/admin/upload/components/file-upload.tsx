@@ -17,12 +17,6 @@ export function FileUpload() {
 	const [errorMessage, setErrorMessage] = useState('');
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (event.target.files && event.target.files.length > 0) {
-			const selectedFile = event.target.files[0];
-			setFile(selectedFile);
-		}
-	};
-
 	const handleUpload = async () => {
 		if (!file) {
 			setErrorMessage('Please select a file before uploading.');
@@ -108,4 +102,4 @@ export function FileUpload() {
 			</div>
 		</div>
 	);
-}
+	}}
