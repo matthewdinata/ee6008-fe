@@ -92,7 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 		} = await supabase.auth.getSession();
 		if (!session?.access_token) throw new Error('No access token');
 
-		const response = await fetch(`${process.env.BACKEND_API_URL}/auth/verify`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${session.access_token}`,

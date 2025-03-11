@@ -64,7 +64,7 @@ export function SingleUserAdd() {
 			if (!session) return;
 
 			setLoadingSemesters(true);
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/semesters`, {
+			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/semesters`, {
 				headers: {
 					Authorization: `Bearer ${session.access_token}`,
 				},
@@ -218,7 +218,7 @@ export function SingleUserAdd() {
 			};
 
 			addDebugMessage('Sending API request to create user...');
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users`, {
+			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users`, {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${session.access_token}`,

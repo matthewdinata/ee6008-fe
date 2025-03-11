@@ -3,13 +3,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Initialize Supabase client with token
 const createSupabaseClient = (token: string) => {
-	return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
-		global: {
-			headers: {
-				Authorization: `Bearer ${token}`,
+	return createClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+		{
+			global: {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
 			},
-		},
-	});
+		}
+	);
 };
 
 export async function middleware(request: NextRequest) {

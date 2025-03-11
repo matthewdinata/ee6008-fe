@@ -50,7 +50,7 @@ export function FileUpload() {
 			formData.append('file', file);
 
 			// Example upload endpoint - update with your actual API endpoint
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/upload`, {
+			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/upload`, {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${session.access_token}`,

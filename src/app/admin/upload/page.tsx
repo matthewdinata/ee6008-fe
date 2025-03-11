@@ -96,7 +96,7 @@ export default function BulkUserUpload() {
 
 			addDebugMessage('Sending file to server...');
 			const response = await fetch(
-				`${process.env.BACKEND_API_URL}/api/admin/users/bulk-upload`,
+				`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/bulk-upload`,
 				{
 					method: 'POST',
 					headers: {

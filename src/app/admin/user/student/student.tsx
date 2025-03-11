@@ -61,7 +61,7 @@ export default function BulkStudentUpload() {
 			setLoadingSemesters(true);
 			addDebugMessage('Fetching semesters...');
 
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/semesters`, {
+			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/semesters`, {
 				headers: {
 					Authorization: `Bearer ${session.access_token}`,
 				},
@@ -150,7 +150,7 @@ export default function BulkStudentUpload() {
 
 			// Construct URL with query parameter
 			const url = new URL(
-				`${process.env.BACKEND_API_URL}/api/admin/users/bulk-upload-faculty`
+				`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/bulk-upload-faculty`
 			);
 			url.searchParams.append('semester_id', selectedSemester);
 

@@ -228,18 +228,21 @@ export default function AppSidebar({
 							return;
 						}
 
-						const response = await fetch(`${process.env.BACKEND_API_URL}/auth/verify`, {
-							method: 'POST',
-							headers: {
-								Authorization: `Bearer ${sessionToken}`,
-								'Content-Type': 'application/json',
-							},
-							body: JSON.stringify({
-								email: authUser.email,
-								name: authUser.email?.split('@')[0],
-								userId: authUser.id,
-							}),
-						});
+						const response = await fetch(
+							`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`,
+							{
+								method: 'POST',
+								headers: {
+									Authorization: `Bearer ${sessionToken}`,
+									'Content-Type': 'application/json',
+								},
+								body: JSON.stringify({
+									email: authUser.email,
+									name: authUser.email?.split('@')[0],
+									userId: authUser.id,
+								}),
+							}
+						);
 
 						if (!response.ok) {
 							throw new Error('Failed to fetch user data');

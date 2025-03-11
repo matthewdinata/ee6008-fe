@@ -4,7 +4,7 @@ import { createClient } from '@/app/utils/supabase/server';
 
 export async function checkEligibility(email: string): Promise<boolean> {
 	try {
-		const response = await fetch(`${process.env.BACKEND_API_URL}/auth/check`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/check`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export async function login(formData: FormData) {
 	const { error } = await supabase.auth.signInWithOtp({
 		email,
 		options: {
-			emailRedirectTo: `${process.env.SITE_URL}/auth/callback`,
+			emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
 			shouldCreateUser: true,
 		},
 	});
