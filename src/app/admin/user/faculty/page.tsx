@@ -1,4 +1,4 @@
-import { BulkUserUpload } from '@/app/admin/upload/page';
+import BulkUserUpload from '@/app/admin/upload/page';
 import UserTable from '@/app/admin/user/student/table';
 
 import { SingleUserAdd } from '../student/user';

@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export function BulkUserUpload() {
+export default function BulkUserUpload() {
 	const [file, setFile] = useState<File | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
 	const [debugLog, setDebugLog] = useState<string[]>([]);
@@ -225,5 +225,5 @@ export function BulkUserUpload() {
 		</div>
 	);
 }
-// hi
-// export default BulkUserUpload;
+
+//  export default BulkUserUpload;
