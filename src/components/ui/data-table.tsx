@@ -51,6 +51,7 @@ interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	filterBy?: string;
+	filterPlaceholder?: string;
 	pageSize?: number;
 	showRowSelection?: boolean;
 	selectionButtonText?: string;
@@ -61,6 +62,7 @@ export function DataTable<TData, TValue>({
 	columns,
 	data,
 	filterBy,
+	filterPlaceholder = filterBy,
 	pageSize = 10,
 	showRowSelection,
 	selectionButtonText,
@@ -101,7 +103,7 @@ export function DataTable<TData, TValue>({
 				{filterBy && (
 					<Input
 						// TODO: fix placeholder formatting + logic (check allocation table for reference)
-						placeholder={`Search ${filterBy}...`}
+						placeholder={`Search ${filterPlaceholder}...`}
 						value={(table.getColumn(filterBy)?.getFilterValue() as string) ?? ''}
 						onChange={(event) =>
 							table.getColumn(filterBy)?.setFilterValue(event.target.value)

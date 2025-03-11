@@ -106,6 +106,7 @@ export function AllocationResults({ data, isGenerating }: AllocationResultsProps
 							columns={columns}
 							data={data.allocations}
 							filterBy="studentId"
+							filterPlaceholder="student ID"
 							pageSize={6}
 							// TODO: handle dynamic data
 						/>
