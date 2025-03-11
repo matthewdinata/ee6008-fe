@@ -18,6 +18,7 @@ const columns: ColumnDef<Allocation>[] = [
 	{
 		accessorKey: 'studentId',
 		id: 'studentId',
+		accessorFn: (row) => `${row.studentId.toString()}`,
 		header: ({ column }) => {
 			return (
 				<Button

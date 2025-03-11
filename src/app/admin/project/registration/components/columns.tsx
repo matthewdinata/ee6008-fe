@@ -16,7 +16,11 @@ import { Registration } from './types';
 export const columns: ColumnDef<Registration>[] = [
 	{
 		accessorKey: 'projectId',
+		id: 'projectId',
 		header: 'Project ID',
+		meta: {
+			header: 'Project ID',
+		},
 	},
 	{
 		accessorKey: 'title',
