@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -30,117 +31,187 @@ import {
 	useSidebar,
 } from '@/components/ui/sidebar';
 
+// Helper function for direct cookie access - prevent duplication
+function getCookieValue(name: string): string {
+	if (typeof document === 'undefined') return '';
+
+	const value = `; ${document.cookie}`;
+	const parts = value.split(`; ${name}=`);
+	if (parts.length === 2) {
+		const cookieValue = parts.pop()?.split(';').shift();
+		return cookieValue ? decodeURIComponent(cookieValue) : '';
+	}
+	return '';
+}
+
 export default function NavUser({
 	user,
 }: {
-	user: {
-		name: string;
-		email: string;
-		avatar: string;
-		role: string;
-	};
+	user: { name: string; email: string; avatar: string; role: string };
 }) {
 	const { isMobile } = useSidebar();
 	const { systemTheme, theme, setTheme } = useTheme();
 	const currentTheme = theme === 'system' ? systemTheme : theme;
 	const router = useRouter();
 	const supabase = createClientComponentClient();
-	console.log('🔄 User:', user);
+	const [mounted, setMounted] = useState(false);
+	const [directUser, setDirectUser] = useState<{
+		name: string;
+		email: string;
+		avatar: string;
+		role: string;
+	} | null>(null);
 
-	const handleNavigateToAccount = () => {
-		console.log('🔄 Navigating to:', `/${user.role}/dashboard`);
-		const roleBasedPath = `/${user.role}/dashboard`;
-		console.log('🔄 Navigating to:', roleBasedPath);
-		router.push(roleBasedPath);
-	};
+	// Set mounted flag to prevent hydration errors
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
-	const handleLogout = async () => {
+	// Direct cookie access as a fallback
+	useEffect(() => {
+		if (!mounted) return; // Skip during SSR
+
 		try {
-			console.log('🔄 Signing out...');
-			await supabase.auth.signOut();
-			console.log('✅ Sign out successful');
+			// Get cookies directly
+			const cookieName = getCookieValue('user-name');
+			const cookieEmail = getCookieValue('user-email');
+			const cookieRole = getCookieValue('user-role');
 
-			// Clear any local storage/state
-			localStorage.clear();
-			sessionStorage.clear();
-
-			// Force a full page refresh while redirecting
-			window.location.href = '/signin';
-		} catch (error) {
-			console.error('❌ Sign out error:', error);
+			if (cookieName || cookieEmail) {
+				setDirectUser({
+					name: cookieName || user.name,
+					email: cookieEmail || user.email,
+					role: cookieRole || user.role,
+					avatar: user.avatar,
+				});
+				console.log('📱 NavUser direct cookie check:', {
+					cookieName,
+					cookieEmail,
+					cookieRole,
+				});
+			}
+		} catch (e) {
+			console.error('Error in NavUser cookie check:', e);
 		}
-	};
+	}, [mounted, user]);
+
+	// Skip rendering proper content during SSR to prevent hydration errors
+	if (!mounted) {
+		return (
+			<SidebarMenu>
+				<SidebarMenuItem className={isMobile ? 'w-full' : ''}>
+					<SidebarMenuButton size="lg" className="justify-between w-full">
+						<div className="flex items-center gap-2 truncate">
+							<Avatar className="h-5 w-5">
+								<AvatarFallback className="text-xs">U</AvatarFallback>
+							</Avatar>
+							<div className="grid flex-1 gap-px truncate text-left text-xs leading-none">
+								<span className="truncate font-semibold">User</span>
+								<span className="truncate opacity-60"></span>
+							</div>
+						</div>
+						<ChevronsUpDown className="size-3 shrink-0 opacity-50" />
+					</SidebarMenuButton>
+				</SidebarMenuItem>
+			</SidebarMenu>
+		);
+	}
+
+	// Use direct cookie values if available, or fall back to passed props
+	const displayUser = directUser || user;
+
+	console.log('🔄 User:', displayUser);
+	console.log('🔄 Theme:', currentTheme);
 
 	return (
 		<SidebarMenu>
-			<SidebarMenuItem>
+			<SidebarMenuItem className={isMobile ? 'w-full' : ''}>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<SidebarMenuButton
-							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-						>
-							<Avatar className="h-8 w-8 rounded-lg">
-								<AvatarImage src={user.avatar} alt={user.name} />
-								<AvatarFallback className="rounded-lg">CN</AvatarFallback>
-							</Avatar>
-							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-semibold">{user.name}</span>
-								<span className="truncate text-xs">{user.email}</span>
-							</div>
-							<ChevronsUpDown className="ml-auto size-4" />
-						</SidebarMenuButton>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-						side={isMobile ? 'bottom' : 'right'}
-						align="end"
-						sideOffset={4}
-					>
-						<DropdownMenuLabel className="p-0 font-normal">
-							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage src={user.avatar} alt={user.name} />
-									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+						<SidebarMenuButton size="lg" className="justify-between w-full">
+							<div className="flex items-center gap-2 truncate">
+								<Avatar className="h-5 w-5">
+									<AvatarImage src={displayUser.avatar} />
+									<AvatarFallback className="text-xs">
+										{displayUser.name?.charAt(0) || 'U'}
+									</AvatarFallback>
 								</Avatar>
-								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-semibold">{user.name}</span>
-									<span className="truncate text-xs">{user.email}</span>
+								<div className="grid flex-1 gap-px truncate text-left text-xs leading-none">
+									<span className="truncate font-semibold">
+										{displayUser.name || 'User'}
+									</span>
+									<span className="truncate opacity-60">{displayUser.email}</span>
 								</div>
 							</div>
-						</DropdownMenuLabel>
+							<ChevronsUpDown className="size-3 shrink-0 opacity-50" />
+						</SidebarMenuButton>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent side="top" sideOffset={20} className="w-56">
+						<DropdownMenuLabel>My Account</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem
-								onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')}
-							>
-								<SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-								<MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-								Toggle theme
+							<DropdownMenuItem>
+								<BadgeCheck className="mr-2 h-4 w-4 text-blue-500" />
+								<span>Verified</span>
+								{displayUser.role === 'admin' && (
+									<span className="ml-auto rounded bg-red-500 px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										Admin
+									</span>
+								)}
+								{displayUser.role === 'faculty' && (
+									<span className="ml-auto rounded bg-orange-500 px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										Faculty
+									</span>
+								)}
+								{displayUser.role === 'student' && (
+									<span className="ml-auto rounded bg-green-500 px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										Student
+									</span>
+								)}
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => router.push('/settings')}>
+								<CreditCard className="mr-2 h-4 w-4" />
+								<span>Account settings</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => router.push('/notifications')}>
+								<Bell className="mr-2 h-4 w-4" />
+								<span>Notifications</span>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem onClick={handleNavigateToAccount}>
-								<BadgeCheck className="mr-2 h-4 w-4" />
-								Account
+							<DropdownMenuItem onClick={() => setTheme('light')}>
+								<SunIcon className="mr-2 h-4 w-4" />
+								<span>Light</span>
+								{currentTheme === 'light' && (
+									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										ON
+									</span>
+								)}
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<CreditCard className="mr-2 h-4 w-4" />
-								Billing
-							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<Bell className="mr-2 h-4 w-4" />
-								Notifications
+							<DropdownMenuItem onClick={() => setTheme('dark')}>
+								<MoonIcon className="mr-2 h-4 w-4" />
+								<span>Dark</span>
+								{currentTheme === 'dark' && (
+									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										ON
+									</span>
+								)}
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
-							onClick={handleLogout}
-							className="text-red-600 hover:text-red-700"
+							onClick={async () => {
+								try {
+									await supabase.auth.signOut();
+									router.push('/signin');
+								} catch (error) {
+									console.error('Error signing out:', error);
+								}
+							}}
 						>
 							<LogOut className="mr-2 h-4 w-4" />
-							Log out
+							<span>Sign out</span>
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

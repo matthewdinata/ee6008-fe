@@ -1,11 +1,10 @@
-/* eslint-disable prettier/prettier */
 'use client';
 
-import { useState } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { login } from './action';
-
-/* eslint-disable prettier/prettier */
 
 type MessageType = {
 	text: string;
@@ -17,6 +16,27 @@ const AuthPage = () => {
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState<MessageType>({ text: '', type: 'info' });
 	const [debugLog, setDebugLog] = useState<string[]>([]);
+	const router = useRouter();
+	const supabase = createClientComponentClient();
+
+	// Check if user is already logged in and redirect if they are
+	useEffect(() => {
+		const checkSession = async () => {
+			setLoading(true);
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+
+			if (session) {
+				// User is already logged in, redirect to dashboard
+				console.log('User already logged in, redirecting to dashboard');
+				router.push('/dashboard');
+			} else {
+				setLoading(false);
+			}
+		};
+		checkSession();
+	}, [router, supabase.auth]);
 
 	const addDebugMessage = (msg: string) => {
 		const timestamp = new Date().toLocaleTimeString();
@@ -59,20 +79,23 @@ const AuthPage = () => {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-			<div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+		<div className="min-h-screen flex items-center justify-center bg-background p-4">
+			<div className="max-w-md w-full space-y-8 p-8 bg-card rounded-lg shadow">
 				<div>
-					<h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+					<h2 className="text-center text-3xl font-bold tracking-tight text-foreground">
 						Welcome to EE6008
 					</h2>
-					<p className="mt-2 text-center text-sm text-gray-600">
+					<p className="mt-2 text-center text-sm text-muted-foreground">
 						Sign in with your registered email address
 					</p>
 				</div>
 
 				<form onSubmit={handleAuth} className="mt-8 space-y-6">
 					<div>
-						<label htmlFor="email" className="block text-sm font-medium text-gray-700">
+						<label
+							htmlFor="email"
+							className="block text-sm font-medium text-foreground"
+						>
 							Email address
 						</label>
 						<div className="mt-1">
@@ -84,7 +107,7 @@ const AuthPage = () => {
 								required
 								value={email}
 								onChange={(e) => setEmail(e.target.value.toLowerCase())}
-								className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+								className="block w-full appearance-none rounded-md border border-input bg-background px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
 								placeholder="name@e.ntu.edu.sg"
 							/>
 						</div>
@@ -94,10 +117,10 @@ const AuthPage = () => {
 						<div
 							className={`rounded-md p-4 ${
 								message.type === 'success'
-									? 'bg-green-50'
+									? 'bg-green-100 dark:bg-green-950'
 									: message.type === 'error'
-										? 'bg-red-50'
-										: 'bg-blue-50'
+										? 'bg-destructive/10'
+										: 'bg-blue-100 dark:bg-blue-950'
 							}`}
 						>
 							<div className="flex">
@@ -121,10 +144,10 @@ const AuthPage = () => {
 					<button
 						type="submit"
 						disabled={loading}
-						className={`flex w-full justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm ${
+						className={`flex w-full justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-primary-foreground shadow-sm ${
 							loading
-								? 'bg-indigo-400 cursor-not-allowed'
-								: 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+								? 'bg-primary/70 cursor-not-allowed'
+								: 'bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
 						}`}
 					>
 						{loading ? (
@@ -158,9 +181,9 @@ const AuthPage = () => {
 				</form>
 
 				{process.env.NODE_ENV === 'development' && debugLog.length > 0 && (
-					<div className="mt-8 p-4 bg-gray-50 rounded-md">
-						<h3 className="text-sm font-medium text-gray-700 mb-2">Debug Log:</h3>
-						<pre className="text-xs text-gray-600 whitespace-pre-wrap">
+					<div className="mt-8 p-4 bg-muted rounded-md">
+						<h3 className="text-sm font-medium text-foreground mb-2">Debug Log:</h3>
+						<pre className="text-xs text-muted-foreground whitespace-pre-wrap">
 							{debugLog.join('\n')}
 						</pre>
 					</div>

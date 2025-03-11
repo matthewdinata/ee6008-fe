@@ -1,3 +1,5 @@
+'use client';
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Download, Loader2, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -23,7 +25,7 @@ interface Semester {
 	status: string;
 }
 
-export default function BulkStudentUpload() {
+export function BulkStudentUpload() {
 	const [file, setFile] = useState<File | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
 	const [debugLog, setDebugLog] = useState<string[]>([]);
@@ -197,9 +199,12 @@ export default function BulkStudentUpload() {
 			if (fileInput) fileInput.value = '';
 		} catch (error) {
 			console.error('Error:', error);
-			const errorMsg = error instanceof Error ? error.message : 'Failed to upload file';
-			setErrorMessage(errorMsg);
-			addDebugMessage(`Error occurred: ${errorMsg}`);
+			addDebugMessage(
+				`Upload error: ${error instanceof Error ? error.message : String(error)}`
+			);
+			setErrorMessage(
+				`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+			);
 		} finally {
 			setIsUploading(false);
 		}

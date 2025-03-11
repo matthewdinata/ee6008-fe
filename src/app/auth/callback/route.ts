@@ -25,7 +25,37 @@ export async function GET(request: Request) {
 		const session = data.session;
 		if (!session) throw new Error('No session returned from Supabase');
 
-		const response = NextResponse.redirect(new URL('/dashboard', request.url));
+		// Get user role from database
+		const { data: userData, error: userError } = await supabase
+			.from('users')
+			.select('role')
+			.eq('id', session.user.id)
+			.single();
+
+		if (userError) {
+			console.error('Error fetching user role:', userError);
+		}
+
+		// Determine redirect URL based on role
+		let redirectUrl = '/dashboard'; // Default fallback
+
+		if (userData?.role) {
+			switch (userData.role.toLowerCase()) {
+				case 'admin':
+					redirectUrl = '/admin';
+					break;
+				case 'student':
+					redirectUrl = '/student';
+					break;
+				case 'faculty':
+					redirectUrl = '/faculty';
+					break;
+				default:
+					redirectUrl = '/dashboard';
+			}
+		}
+
+		const response = NextResponse.redirect(new URL(redirectUrl, request.url));
 
 		const cookieOptions = {
 			httpOnly: true,

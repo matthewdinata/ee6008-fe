@@ -1,10 +1,8 @@
 // 'use client';
-
 // import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 // import { Clock, LogOut, RefreshCw, Shield, User } from 'lucide-react';
 // import { useRouter } from 'next/navigation';
 // import { useEffect, useState } from 'react';
-
 // interface User {
 // 	id: number;
 // 	name: string;
@@ -13,13 +11,11 @@
 // 	created_at: string;
 // 	updated_at: string;
 // }
-
 // interface TokenInfo {
 // 	expiresAt: string;
 // 	timeUntilExpire: number;
 // 	shouldRefresh: boolean;
 // }
-
 // export default function Dashboard() {
 // 	const [user, setUser] = useState<User | null>(null);
 // 	const [loading, setLoading] = useState(true);
@@ -27,7 +23,6 @@
 // 	const [lastRefresh, setLastRefresh] = useState<string | null>(null);
 // 	const router = useRouter();
 // 	const supabase = createClientComponentClient();
-
 // 	// Function to format time until expiry
 // 	const formatTimeUntilExpiry = (minutes: number) => {
 // 		if (minutes < 60) return `${Math.round(minutes)} minutes`;
@@ -35,7 +30,6 @@
 // 		const remainingMinutes = Math.round(minutes % 60);
 // 		return `${hours} hours ${remainingMinutes} minutes`;
 // 	};
-
 // 	// Function to check and refresh token if needed
 // 	const checkAndRefreshToken = async () => {
 // 		try {
@@ -43,45 +37,37 @@
 // 			const {
 // 				data: { session },
 // 			} = await supabase.auth.getSession();
-
 // 			if (!session) {
 // 				throw new Error('No session found');
 // 			}
-
 // 			// Calculate token expiration info
 // 			const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
 // 			const timeUntilExpire = expiresAt - Date.now();
 // 			const shouldRefresh = timeUntilExpire < 1000 * 60 * 5; // Refresh if less than 1 hour left
-
 // 			setTokenInfo({
 // 				expiresAt: new Date(expiresAt).toLocaleString(),
 // 				timeUntilExpire: Math.round(timeUntilExpire / 1000 / 60),
 // 				shouldRefresh,
 // 			});
-
 // 			if (shouldRefresh) {
 // 				console.log('🔄 Token needs refresh, refreshing...');
 // 				const {
 // 					data: { session: newSession },
 // 					error: refreshError,
 // 				} = await supabase.auth.refreshSession();
-
 // 				if (refreshError) throw refreshError;
-
 // 				if (newSession) {
 // 					console.log('✅ Token refreshed successfully');
 // 					setLastRefresh(new Date().toLocaleString());
 // 					return newSession;
 // 				}
 // 			}
-
 // 			return session;
 // 		} catch (error) {
 // 			console.error('❌ Token refresh error:', error);
 // 			throw error;
 // 		}
 // 	};
-
 // 	// Function to verify with backend
 // 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 // 	const verifyWithBackend = async (session: any) => {
@@ -98,35 +84,27 @@
 // 				userId: session.user.id,
 // 			}),
 // 		});
-
 // 		if (!response.ok) {
 // 			throw new Error('Backend verification failed');
 // 		}
-
 // 		const data = await response.json();
 // 		console.log('✅ Backend verification successful');
 // 		return data;
 // 	};
-
 // 	useEffect(() => {
 // 		let mounted = true;
 // 		let refreshTimer: NodeJS.Timeout;
-
 // 		const initializeSession = async () => {
 // 			try {
 // 				setLoading(true);
-
 // 				// Check and refresh token if needed
 // 				const session = await checkAndRefreshToken();
-
 // 				// Verify with backend
 // 				const data = await verifyWithBackend(session);
-
 // 				if (mounted) {
 // 					setUser(data.user);
 // 					setLoading(false);
 // 				}
-
 // 				// Set up periodic token check (every 15 minutes)
 // 				refreshTimer = setInterval(
 // 					async () => {
@@ -144,13 +122,11 @@
 // 				router.push('/signin');
 // 			}
 // 		};
-
 // 		// Set up auth state listener
 // 		const {
 // 			data: { subscription },
 // 		} = supabase.auth.onAuthStateChange(async (event, session) => {
 // 			console.log('🔄 Auth state changed:', { event, email: session?.user?.email });
-
 // 			if (event === 'SIGNED_OUT') {
 // 				if (mounted) {
 // 					setUser(null);
@@ -160,10 +136,8 @@
 // 				initializeSession();
 // 			}
 // 		});
-
 // 		// Initial session check
 // 		initializeSession();
-
 // 		// Cleanup
 // 		return () => {
 // 			mounted = false;
@@ -171,7 +145,6 @@
 // 			subscription.unsubscribe();
 // 		};
 // 	}, [router, supabase.auth]);
-
 // 	if (loading) {
 // 		return (
 // 			<div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -182,11 +155,9 @@
 // 			</div>
 // 		);
 // 	}
-
 // 	if (!user) {
 // 		return null;
 // 	}
-
 // 	return (
 // 		<div className="min-h-screen bg-gray-50 py-8">
 // 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -216,7 +187,6 @@
 // 						</button>
 // 					</div>
 // 				</div>
-
 // 				{/* Main Content */}
 // 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 // 					{/* User Info Card */}
@@ -244,7 +214,6 @@
 // 							</div>
 // 						</div>
 // 					</div>
-
 // 					{/* Session Info Card */}
 // 					<div className="bg-white rounded-lg shadow-sm p-6">
 // 						<div className="flex items-center space-x-3 mb-4">
@@ -287,15 +256,11 @@
 // 	);
 // }
 // 'use client';
-
 // import { User } from '@supabase/auth-helpers-nextjs';
 // import React, { useEffect, useState } from 'react';
-
 // import { supabase } from '@/lib/supabase';
-
 // export default function DebugMetadataPage() {
 // 	const [user, setUser] = useState<User | null>(null);
-
 // 	useEffect(() => {
 // 		(async () => {
 // 			const {
@@ -311,7 +276,6 @@
 // 			}
 // 		})();
 // 	}, []);
-
 // 	return (
 // 		<div>
 // 			<h1>Debug Metadata</h1>
@@ -319,3 +283,13 @@
 // 		</div>
 // 	);
 // }
+import React from 'react';
+
+export default function Page() {
+	return (
+		<div className="container mx-auto p-8">
+			<h1 className="text-2xl font-bold mb-4">Student Dashboard</h1>
+			<p className="text-gray-700">Hello World! Welcome to your student dashboard.</p>
+		</div>
+	);
+}

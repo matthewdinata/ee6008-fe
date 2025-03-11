@@ -4,10 +4,10 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { cookies, headers } from 'next/headers';
 
-import { AuthProvider } from '@/components/AuthProvider';
 import AppBreadcrumbs from '@/components/layout/app-breadcrumbs';
 import AppHeader from '@/components/layout/app-header';
 import AppSidebar from '@/components/layout/app-sidebar';
+import { AuthProvider } from '@/components/layout/auth-provider';
 import Background from '@/components/layout/background';
 import ThemeProvider from '@/components/layout/theme-provider';
 import { Separator } from '@/components/ui/separator';
@@ -35,10 +35,7 @@ const geistMono = localFont({
 // ---------------------
 // 2) Export Page Metadata
 // ---------------------
-export const metadata: Metadata = {
-	title: 'EE6008',
-	description: 'EE6008 Application',
-};
+export const metadata: Metadata = { title: 'EE6008', description: 'EE6008 Application' };
 
 // ----------------------------------------
 // 3) Basic Layout (for unauthenticated or errors)

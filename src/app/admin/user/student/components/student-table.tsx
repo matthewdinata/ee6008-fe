@@ -42,7 +42,7 @@ interface User {
 	is_course_coordinator: boolean;
 }
 
-export default function UserTable() {
+export function StudentTable() {
 	const [allUsers, setAllUsers] = useState<User[]>([]); // Store all fetched users
 	const [isLoading, setIsLoading] = useState(false);
 	const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
@@ -202,13 +202,13 @@ export default function UserTable() {
 							<span className="text-sm text-muted-foreground">Show:</span>
 							<Select
 								value={pageSize}
-								onValueChange={(value) => {
-									setPageSize(value);
+								onValueChange={(val) => {
+									setPageSize(val);
 									setCurrentPage(1); // Reset to first page when changing page size
 								}}
 							>
-								<SelectTrigger className="w-[100px]">
-									<SelectValue />
+								<SelectTrigger className="w-20">
+									<SelectValue placeholder="10" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="10">10</SelectItem>
@@ -221,38 +221,56 @@ export default function UserTable() {
 					</div>
 				)}
 
-				<div className="rounded-md border border-border bg-card">
+				{/* Users Table */}
+				<div className="rounded-md border">
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead className="w-[100px]">ID</TableHead>
+								<TableHead className="w-[50px]">ID</TableHead>
 								<TableHead>Name</TableHead>
 								<TableHead>Email</TableHead>
-								<TableHead>Course Coordinator</TableHead>
-
-								<TableHead className="w-[100px]">Actions</TableHead>
+								<TableHead className="w-[150px]">Course Coordinator</TableHead>
+								<TableHead className="text-right">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{isLoading ? (
 								<TableRow>
-									<TableCell colSpan={7} className="text-center py-8">
-										<div className="flex justify-center">
-											<div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+									<TableCell colSpan={5} className="text-center py-10">
+										<div className="flex flex-col items-center justify-center">
+											<div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+											<span className="text-muted-foreground">
+												Loading users...
+											</span>
+										</div>
+									</TableCell>
+								</TableRow>
+							) : allUsers.length === 0 ? (
+								<TableRow>
+									<TableCell colSpan={5} className="text-center py-10">
+										<div className="flex flex-col items-center justify-center">
+											<span className="text-muted-foreground mb-2">
+												No users found.
+											</span>
+											<span className="text-sm text-muted-foreground">
+												Click &quot;Get Users&quot; to load faculty members.
+											</span>
 										</div>
 									</TableCell>
 								</TableRow>
 							) : currentUsers.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={7} className="text-center py-8">
-										{allUsers.length === 0
-											? 'Click "Get Users" to load data'
-											: 'No users found'}
+									<TableCell colSpan={5} className="text-center py-10">
+										<div className="flex flex-col items-center justify-center">
+											<span className="text-muted-foreground">
+												No matching results for &quot;{searchQuery}&quot;
+											</span>
+										</div>
 									</TableCell>
 								</TableRow>
 							) : (
 								currentUsers.map((user) => (
-									<TableRow key={user.email}>
+									<TableRow key={user.id}>
 										<TableCell className="font-medium">
 											{user.user_id}
 										</TableCell>
@@ -261,30 +279,34 @@ export default function UserTable() {
 										<TableCell>
 											{user.is_course_coordinator ? 'Yes' : 'No'}
 										</TableCell>
-										<TableCell>
+										<TableCell className="text-right">
 											<AlertDialog>
 												<AlertDialogTrigger asChild>
 													<Button
-														variant="destructive"
-														size="sm"
+														variant="ghost"
+														className="h-8 w-8 p-0 text-destructive hover:text-destructive/90"
 														disabled={deleteLoading === user.id}
 													>
 														{deleteLoading === user.id ? (
-															<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+															<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
 														) : (
 															<Trash2 className="h-4 w-4" />
 														)}
+														<span className="sr-only">Delete</span>
 													</Button>
 												</AlertDialogTrigger>
 												<AlertDialogContent>
 													<AlertDialogHeader>
 														<AlertDialogTitle>
-															Are you sure?
+															Are you absolutely sure?
 														</AlertDialogTitle>
 														<AlertDialogDescription>
 															This action cannot be undone. This will
-															permanently delete the user and remove
-															their data from our servers.
+															permanently delete the user{' '}
+															<span className="font-semibold">
+																{user.name} ({user.email})
+															</span>{' '}
+															and remove their data from the system.
 														</AlertDialogDescription>
 													</AlertDialogHeader>
 													<AlertDialogFooter>
@@ -295,7 +317,7 @@ export default function UserTable() {
 															onClick={() =>
 																handleDelete(user.user_id)
 															}
-															className="bg-red-600 hover:bg-red-700"
+															className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 														>
 															Delete
 														</AlertDialogAction>
@@ -310,53 +332,58 @@ export default function UserTable() {
 					</Table>
 				</div>
 
+				{/* Pagination */}
 				{allUsers.length > 0 && (
-					<div className="flex items-center justify-between">
-						<p className="text-sm text-muted-foreground">
-							Showing {currentUsers.length > 0 ? startIndex + 1 : 0}-
-							{Math.min(endIndex, totalItems)} of {totalItems} results
-						</p>
+					<div className="flex items-center justify-between space-x-6 lg:space-x-8">
+						<div className="flex items-center space-x-2">
+							<p className="text-sm font-medium">
+								Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{' '}
+								{totalItems}
+							</p>
+						</div>
 						<div className="flex items-center space-x-2">
 							<Button
 								variant="outline"
-								size="sm"
+								className="hidden h-8 w-8 p-0 lg:flex"
+								onClick={() => handlePageChange(1)}
+								disabled={currentPage === 1}
+							>
+								<span className="sr-only">Go to first page</span>
+								<ChevronLeft className="h-4 w-4" />
+								<ChevronLeft className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								className="h-8 w-8 p-0"
 								onClick={() => handlePageChange(currentPage - 1)}
 								disabled={currentPage === 1}
 							>
+								<span className="sr-only">Go to previous page</span>
 								<ChevronLeft className="h-4 w-4" />
 							</Button>
-							<div className="flex items-center gap-1">
-								{Array.from({ length: totalPages }, (_, i) => i + 1)
-									.filter((page) => {
-										return (
-											page === 1 ||
-											page === totalPages ||
-											Math.abs(page - currentPage) <= 1
-										);
-									})
-									.map((page, index, array) => (
-										<React.Fragment key={page}>
-											{index > 0 && array[index - 1] !== page - 1 && (
-												<span className="px-2">...</span>
-											)}
-											<Button
-												variant={
-													currentPage === page ? 'default' : 'outline'
-												}
-												size="sm"
-												onClick={() => handlePageChange(page)}
-											>
-												{page}
-											</Button>
-										</React.Fragment>
-									))}
+							<div className="flex items-center justify-center text-sm font-medium">
+								<span className="px-0.5">Page</span>
+								<span className="px-0.5">{currentPage}</span>
+								<span className="px-0.5">of</span>
+								<span className="px-0.5">{totalPages || 1}</span>
 							</div>
 							<Button
 								variant="outline"
-								size="sm"
+								className="h-8 w-8 p-0"
 								onClick={() => handlePageChange(currentPage + 1)}
-								disabled={currentPage === totalPages}
+								disabled={currentPage >= totalPages}
 							>
+								<span className="sr-only">Go to next page</span>
+								<ChevronRight className="h-4 w-4" />
+							</Button>
+							<Button
+								variant="outline"
+								className="hidden h-8 w-8 p-0 lg:flex"
+								onClick={() => handlePageChange(totalPages)}
+								disabled={currentPage >= totalPages}
+							>
+								<span className="sr-only">Go to last page</span>
+								<ChevronRight className="h-4 w-4" />
 								<ChevronRight className="h-4 w-4" />
 							</Button>
 						</div>
