@@ -1,5 +1,4 @@
 import { CheckCheck, History, Play } from 'lucide-react';
-import { useState } from 'react';
 
 import { useGetAllocationsBySemester } from '@/utils/hooks/use-get-allocations-by-semester';
 
@@ -8,9 +7,12 @@ import {
 	Dialog,
 	DialogClose,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
+	DialogTrigger,
 } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
 	Table,
 	TableBody,
@@ -20,64 +22,61 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
-function AllocationHistory({
-	semesterId,
-	isOpen,
-	onClose,
-}: {
-	semesterId: number;
-	isOpen: boolean;
-	onClose: () => void;
-}) {
+function AllocationHistory({ semesterId }: { semesterId: number }) {
 	const { data, isLoading } = useGetAllocationsBySemester(semesterId);
 
 	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Allocation History</DialogTitle>
-				</DialogHeader>
-				{isLoading ? (
-					<div>Loading...</div>
-				) : (
-					<div className="max-h-[400px] overflow-y-auto">
-						{data && data.length > 0 ? (
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Timestamp</TableHead>
-										<TableHead>Allocation %</TableHead>
-										<TableHead>Action</TableHead>
+		<>
+			<DialogHeader>
+				<DialogTitle>Allocation History</DialogTitle>
+				<DialogDescription>
+					This dialog shows the allocation history for the selected semester.
+				</DialogDescription>
+			</DialogHeader>
+			{isLoading ? (
+				<Skeleton className="h-48 w-full" />
+			) : (
+				<div className="max-h-[400px] overflow-y-auto">
+					{data && data.length > 0 ? (
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Timestamp</TableHead>
+									<TableHead>Allocation Rate</TableHead>
+									<TableHead>Dropped Projects</TableHead>
+									<TableHead>Action</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{data.map((allocation, idx) => (
+									<TableRow key={`${allocation.allocation_id}-${idx}`}>
+										<TableCell>
+											{new Date(allocation.timestamp).toLocaleString()}
+										</TableCell>
+										<TableCell>
+											{allocation.data?.allocationRate.toFixed(2)}%
+										</TableCell>
+										<TableCell>
+											{allocation.data?.droppedProjects.length}
+										</TableCell>
+										<TableCell>
+											<Button variant="outline" size="sm">
+												Apply
+											</Button>
+										</TableCell>
 									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{data.map((allocation) => (
-										<TableRow key={allocation.allocation_id}>
-											<TableCell>
-												{new Date(allocation.timestamp).toLocaleString()}
-											</TableCell>
-											<TableCell>
-												{allocation.data?.allocationRate.toFixed(2)}%
-											</TableCell>
-											<TableCell>
-												<Button variant="outline" size="sm">
-													Apply
-												</Button>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						) : (
-							<div>No allocations found.</div>
-						)}
-					</div>
-				)}
-				<DialogClose asChild>
-					<Button>Close</Button>
-				</DialogClose>
-			</DialogContent>
-		</Dialog>
+								))}
+							</TableBody>
+						</Table>
+					) : (
+						<div>No allocations found.</div>
+					)}
+				</div>
+			)}
+			<DialogClose asChild className="mt-1">
+				<Button>Close</Button>
+			</DialogClose>
+		</>
 	);
 }
 
@@ -90,17 +89,13 @@ type ActionButtonsProps = {
 };
 
 export function ActionButtons({
+	// TODO: update props to match the actual props used in the component
 	onGenerate,
 	onSave,
 	isGenerating,
 	hasData,
 	semesterId,
 }: ActionButtonsProps) {
-	const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
-	const handleHistoryOpen = () => setIsHistoryOpen(true);
-	const handleHistoryClose = () => setIsHistoryOpen(false);
-
 	return (
 		<div className="flex flex-wrap justify-between items-center">
 			<div className="flex flex-wrap gap-3 mr-auto">
@@ -108,20 +103,24 @@ export function ActionButtons({
 					<Play className="w-4 h-4" />
 					{isGenerating ? 'Generating...' : 'Generate Allocation'}
 				</Button>
-				<Button variant="outline" onClick={handleHistoryOpen} disabled={!hasData}>
-					<History className="w-4 h-4" />
-					History
-				</Button>
+
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button variant="outline" disabled={!hasData}>
+							<History className="w-4 h-4" />
+							History
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="sm:max-w-[640px]">
+						<AllocationHistory semesterId={semesterId} />
+					</DialogContent>
+				</Dialog>
+
 				<Button variant="secondary" onClick={onSave} disabled={!hasData}>
 					<CheckCheck className="w-4 h-4" />
 					Set Active Allocation
 				</Button>
 			</div>
-			<AllocationHistory
-				semesterId={semesterId}
-				isOpen={isHistoryOpen}
-				onClose={handleHistoryClose}
-			/>
 		</div>
 	);
 }
