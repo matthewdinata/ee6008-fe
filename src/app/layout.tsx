@@ -107,8 +107,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 		// 	}),
 		// });
 
-		// Verify user with backend
-
 		// Use the checkEligibility server action instead of direct fetch
 		const userData = {
 			email: user.email || '',
