@@ -1,5 +1,7 @@
 'use server';
 
+import { revalidateTag } from 'next/cache';
+
 import { fetcherFn } from '../../functions';
 
 type GenerateAllocationsData = {
@@ -35,6 +37,9 @@ export async function generateAllocations(
 			},
 			data
 		);
+
+		// TODO: check valid revalidation
+		revalidateTag('allocations-by-semester');
 
 		return {
 			allocations: result?.allocations ?? [],

@@ -20,13 +20,13 @@ export async function getRegistrationsByProjectId(
 				method: 'GET',
 			},
 			{
-				next: { tags: ['registrations-group-by-projects'] },
+				next: { tags: ['registrations-by-project-id'] },
 			}
 		);
 
 		return result ?? [];
 	} catch (error) {
-		console.error('Error in getRegistrationsGroupByProjects:', error);
+		console.error('Error in getRegistrationsByProjectId:', error);
 		return null;
 	}
 }

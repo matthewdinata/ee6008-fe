@@ -17,12 +17,13 @@ function AllocationContainer() {
 	const [isGenerating, setIsGenerating] = useState(false);
 
 	const { mutate: generateAllocations } = useGenerateAllocations();
+	const semesterId = 5; // TODO: replace with actual data
 
 	const handleGenerateAllocation = async () => {
 		setIsGenerating(true);
 		try {
 			generateAllocations(
-				{ semesterId: 5 }, // TODO: replace with actual data
+				{ semesterId },
 				{
 					onSuccess: (data) => {
 						setAllocationData(data as AllocationData);
@@ -59,6 +60,7 @@ function AllocationContainer() {
 				onSave={handleSaveDraft}
 				isGenerating={isGenerating}
 				hasData={!!allocationData}
+				semesterId={semesterId}
 			/>
 
 			{!allocationData && !isGenerating ? (
