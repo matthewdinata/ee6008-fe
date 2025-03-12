@@ -68,7 +68,6 @@ export async function getSemesters(): Promise<ServerActionResponse<Semester[]>> 
 				Authorization: `Bearer ${accessToken}`,
 			},
 		});
-
 		return {
 			success: true,
 			data: result,

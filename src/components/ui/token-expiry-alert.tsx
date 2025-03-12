@@ -1,5 +1,9 @@
 'use client';
 
+<<<<<<< HEAD
+=======
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+>>>>>>> b3c3c62 (used server actions for api call)
 import { RefreshCw } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -51,6 +55,7 @@ function getAllCookies(): Record<string, string> {
 	return result;
 }
 
+<<<<<<< HEAD
 // Function to check if session token exists and when it expires
 function getSessionTokenInfo(): { token: string | null; expiresAt: number | null } {
 	const sessionToken = getCookie('session-token');
@@ -77,11 +82,17 @@ function getSessionTokenInfo(): { token: string | null; expiresAt: number | null
 
 export function TokenExpiryAlert() {
 	const { theme } = useTheme();
+=======
+export function TokenExpiryAlert() {
+	const { theme } = useTheme();
+	const supabase = createClientComponentClient();
+>>>>>>> b3c3c62 (used server actions for api call)
 	const [open, setOpen] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
+<<<<<<< HEAD
 		// Function to check token expiration
 		const checkTokenExpiration = async () => {
 			try {
@@ -89,10 +100,63 @@ export function TokenExpiryAlert() {
 
 				if (!token || !expiresAt) {
 					// No valid session token or expiration time, no need to show warning
+=======
+		// Log cookies initially for debugging
+		// const allCookies = getAllCookies();
+		// console.log(
+		// 	'%c🍪 ALL COOKIES AT STARTUP:',
+		// 	'font-size: 14px; font-weight: bold; color: green;'
+		// );
+		// console.table(allCookies);
+
+		// Check for Supabase session
+		supabase.auth.getSession().then(({ data: _sessionData }) => {
+			// if (data.session) {
+			// 	console.log(
+			// 		'%c🔑 CURRENT SUPABASE SESSION:',
+			// 		'font-size: 14px; font-weight: bold; color: blue;',
+			// 		{
+			// 			accessToken: data.session.access_token.substring(0, 15) + '...',
+			// 			refreshToken: data.session.refresh_token.substring(0, 15) + '...',
+			// 			expiresAt: data.session.expires_at
+			// 				? new Date(data.session.expires_at * 1000).toLocaleString()
+			// 				: 'unknown',
+			// 		}
+			// 	);
+			// } else {
+			// 	console.log(
+			// 		'%c❌ NO SUPABASE SESSION FOUND',
+			// 		'font-size: 14px; font-weight: bold; color: red;'
+			// 	);
+			// }
+		});
+
+		// Function to check token expiration
+		const checkTokenExpiration = async () => {
+			// TESTING ONLY: Force dialog to open only once
+			// if (!hasShownAlertRef.current) {
+			// 	setOpen(true);
+			// 	hasShownAlertRef.current = true;
+			// 	return;
+			// }
+
+			try {
+				const { data: sessionData } = await supabase.auth.getSession();
+				const session = sessionData?.session;
+
+				if (!session) {
+					// No session, no need to show warning
+>>>>>>> b3c3c62 (used server actions for api call)
 					return;
 				}
 
 				// Calculate time until expiration in seconds
+<<<<<<< HEAD
+=======
+				const expiresAt = session.expires_at;
+				if (!expiresAt) return;
+
+>>>>>>> b3c3c62 (used server actions for api call)
 				const expiryTime = new Date(expiresAt * 1000);
 				const currentTime = new Date();
 				const timeLeftMs = expiryTime.getTime() - currentTime.getTime();
@@ -115,13 +179,18 @@ export function TokenExpiryAlert() {
 
 		// Clean up interval on component unmount
 		return () => clearInterval(intervalId);
+<<<<<<< HEAD
 	}, []);
+=======
+	}, [supabase.auth]);
+>>>>>>> b3c3c62 (used server actions for api call)
 
 	const handleRefreshToken = async () => {
 		setRefreshing(true);
 		setError(null);
 
 		try {
+<<<<<<< HEAD
 			// Call the server API endpoint to refresh the session
 			const response = await fetch('/api/auth/refresh', {
 				method: 'POST',
@@ -138,6 +207,46 @@ export function TokenExpiryAlert() {
 			const data = await response.json();
 
 			if (data.success) {
+=======
+			// Refresh the session
+			const { data, error: refreshError } = await supabase.auth.refreshSession();
+
+			if (refreshError) {
+				throw refreshError;
+			}
+
+			if (data.session) {
+				// Get the new access token
+				const newAccessToken = data.session.access_token;
+
+				// Set cookie to store the new session token
+				document.cookie = `session-token=${newAccessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+
+				// TESTING ONLY: Skip backend verification
+				// await verifyAuth(newAccessToken);
+				// console.log('TEST MODE: Skipping backend verification');
+
+				// Log session and cookies after refresh
+				// console.log(
+				// 	'%c✅ SESSION REFRESHED! NEW TOKEN:',
+				// 	'font-size: 16px; font-weight: bold; color: green;',
+				// 	{
+				// 		newAccessToken: newAccessToken.substring(0, 15) + '...',
+				// 		expiresAt: data.session.expires_at
+				// 			? new Date(data.session.expires_at * 1000).toLocaleString()
+				// 			: 'unknown',
+				// 	}
+				// );
+
+				// Log all cookies after refresh
+				// const allCookiesAfterRefresh = getAllCookies();
+				// console.log(
+				// 	'%c🍪 ALL COOKIES AFTER REFRESH:',
+				// 	'font-size: 14px; font-weight: bold; color: green;'
+				// );
+				// console.table(allCookiesAfterRefresh);
+
+>>>>>>> b3c3c62 (used server actions for api call)
 				// Close the dialog
 				setOpen(false);
 
@@ -156,6 +265,7 @@ export function TokenExpiryAlert() {
 
 	const handleSignOut = async () => {
 		try {
+<<<<<<< HEAD
 			// Use form submission for server-side logout
 			const form = document.createElement('form');
 			form.method = 'POST';
@@ -165,15 +275,35 @@ export function TokenExpiryAlert() {
 		} catch (error) {
 			// console.error('Error signing out:', error);
 			// Fallback to client-side cleanup if the form submission fails
+=======
+			// Sign out from Supabase
+			await supabase.auth.signOut();
+
+			// Clear cookies
+>>>>>>> b3c3c62 (used server actions for api call)
 			document.cookie = 'session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-email=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 
+<<<<<<< HEAD
 			// Redirect to sign in with current origin preserved
 			const currentOrigin = window.location.origin;
 			window.location.href = `${currentOrigin}/signin`;
+=======
+			// Clear storage
+			sessionStorage.removeItem('ee6008_user_session_data');
+			sessionStorage.removeItem('ee6008_prev_user_name');
+			sessionStorage.removeItem('ee6008_prev_user_email');
+			sessionStorage.removeItem('hasRenderedSidebar');
+			localStorage.removeItem('ee6008_user_data');
+
+			// Redirect to sign in
+			window.location.href = '/signin';
+		} catch (error) {
+			// console.error('Error signing out:', error);
+>>>>>>> b3c3c62 (used server actions for api call)
 		}
 	};
 
