@@ -61,6 +61,7 @@ function AllocationContainer() {
 				isGenerating={isGenerating}
 				hasData={!!allocationData}
 				semesterId={semesterId}
+				setAllocationData={setAllocationData}
 			/>
 
 			{!allocationData && !isGenerating ? (

@@ -1,4 +1,5 @@
 import { CheckCheck, History, Play } from 'lucide-react';
+import { useState } from 'react';
 
 import { useGetAllocationsBySemester } from '@/utils/hooks/use-get-allocations-by-semester';
 
@@ -22,7 +23,15 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
-function AllocationHistory({ semesterId }: { semesterId: number }) {
+import { AllocationData } from '../types';
+
+function AllocationHistory({
+	semesterId,
+	onApply,
+}: {
+	semesterId: number;
+	onApply: (allocationData: AllocationData) => void;
+}) {
 	const { data, isLoading } = useGetAllocationsBySemester(semesterId);
 
 	return (
@@ -60,7 +69,13 @@ function AllocationHistory({ semesterId }: { semesterId: number }) {
 											{allocation.data?.droppedProjects.length}
 										</TableCell>
 										<TableCell>
-											<Button variant="outline" size="sm">
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() =>
+													onApply(allocation.data as AllocationData)
+												}
+											>
 												Apply
 											</Button>
 										</TableCell>
@@ -73,7 +88,7 @@ function AllocationHistory({ semesterId }: { semesterId: number }) {
 					)}
 				</div>
 			)}
-			<DialogClose asChild className="mt-1">
+			<DialogClose asChild>
 				<Button>Close</Button>
 			</DialogClose>
 		</>
@@ -86,16 +101,23 @@ type ActionButtonsProps = {
 	isGenerating: boolean;
 	hasData: boolean;
 	semesterId: number;
+	setAllocationData: (data: AllocationData) => void;
 };
 
 export function ActionButtons({
-	// TODO: update props to match the actual props used in the component
 	onGenerate,
 	onSave,
 	isGenerating,
 	hasData,
 	semesterId,
+	setAllocationData,
 }: ActionButtonsProps) {
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+	const handleApply = (data: AllocationData) => {
+		setAllocationData(data);
+		setIsDialogOpen(false);
+	};
 	return (
 		<div className="flex flex-wrap justify-between items-center">
 			<div className="flex flex-wrap gap-3 mr-auto">
@@ -104,15 +126,19 @@ export function ActionButtons({
 					{isGenerating ? 'Generating...' : 'Generate Allocation'}
 				</Button>
 
-				<Dialog>
+				<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 					<DialogTrigger asChild>
-						<Button variant="outline" disabled={!hasData}>
+						<Button
+							variant="outline"
+							disabled={!hasData}
+							onClick={() => setIsDialogOpen(true)}
+						>
 							<History className="w-4 h-4" />
 							History
 						</Button>
 					</DialogTrigger>
 					<DialogContent className="sm:max-w-[640px]">
-						<AllocationHistory semesterId={semesterId} />
+						<AllocationHistory semesterId={semesterId} onApply={handleApply} />
 					</DialogContent>
 				</Dialog>
 
