@@ -9,8 +9,6 @@ type StatisticsCardsProps = {
 };
 
 export function StatisticsCards({ data, isGenerating }: StatisticsCardsProps) {
-	if (!data) return null;
-
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 			<Card>
@@ -22,7 +20,9 @@ export function StatisticsCards({ data, isGenerating }: StatisticsCardsProps) {
 						<div>
 							<p className="text-sm text-muted-foreground">Student Allocation Rate</p>
 							<p className="text-2xl font-bold">
-								{isGenerating ? '...' : `${data.allocationRate.toFixed(2)}%`}
+								{isGenerating || !data
+									? '...'
+									: `${data.allocationRate.toFixed(2)}%`}
 							</p>
 						</div>
 						<div>
@@ -30,13 +30,13 @@ export function StatisticsCards({ data, isGenerating }: StatisticsCardsProps) {
 								Average Preference Score
 							</p>
 							<p className="text-2xl font-bold">
-								{isGenerating ? '...' : data.averagePreference.toFixed(2)}
+								{isGenerating || !data ? '...' : data.averagePreference.toFixed(2)}
 							</p>
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Dropped Projects</p>
 							<p className="text-2xl font-bold">
-								{isGenerating ? '...' : data.droppedProjects.length}
+								{isGenerating || !data ? '...' : data.droppedProjects.length}
 							</p>
 						</div>
 					</div>
@@ -44,7 +44,7 @@ export function StatisticsCards({ data, isGenerating }: StatisticsCardsProps) {
 			</Card>
 
 			<PreferenceDistributionChart
-				data={data.preferenceDistribution}
+				data={data?.preferenceDistribution ?? {}}
 				isGenerating={isGenerating}
 			/>
 		</div>

@@ -10,6 +10,8 @@ type GenerateAllocationsData = {
 export type GenerateAllocationsResponseData = {
 	allocations: Array<{
 		studentId: number;
+		name: string;
+		matriculationNumber: string;
 		projectId: number;
 		priority: number;
 		status: string;

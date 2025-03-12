@@ -66,7 +66,7 @@ export default function RootLayout({
 										</div>
 									</header>
 									<AppHeader className="mt-16 mb-4 px-4" />
-									<div className="px-4 h-full w-full">{children}</div>
+									<div className="px-4 pb-6 h-full w-full">{children}</div>
 								</SidebarInset>
 							</SidebarProvider>
 						</Background>

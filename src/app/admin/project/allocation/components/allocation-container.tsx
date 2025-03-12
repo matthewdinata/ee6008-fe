@@ -1,22 +1,19 @@
 'use client';
 
+import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { useGenerateAllocations } from '@/utils/hooks/use-generate-allocations';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 import { AllocationData } from '../types';
 import { ActionButtons } from './action-buttons';
 import { AllocationResults } from './allocation-results';
 import { StatisticsCards } from './statistics-card';
 
-type AllocationContainerProps = {
-	initialData?: AllocationData;
-};
-
-function AllocationContainer({ initialData }: AllocationContainerProps) {
-	const [allocationData, setAllocationData] = useState<AllocationData | null>(
-		initialData || null
-	);
+function AllocationContainer() {
+	const [allocationData, setAllocationData] = useState<AllocationData | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
 
 	const { mutate: generateAllocations } = useGenerateAllocations();
@@ -64,9 +61,24 @@ function AllocationContainer({ initialData }: AllocationContainerProps) {
 				hasData={!!allocationData}
 			/>
 
-			<StatisticsCards data={allocationData} isGenerating={isGenerating} />
-
-			<AllocationResults data={allocationData} isGenerating={isGenerating} />
+			{!allocationData && !isGenerating ? (
+				<div className="mt-8">
+					<Alert variant="default" className="bg-amber-50 border-amber-200">
+						<AlertCircle className="h-4 w-4 text-amber-500" />
+						<AlertTitle className="text-amber-600">No Allocations Found</AlertTitle>
+						<AlertDescription className="text-gray-700">
+							No project allocations have been generated yet. Click{' '}
+							<span className="font-medium">&quot;Generate Allocation&quot;</span> to
+							start the process.
+						</AlertDescription>
+					</Alert>
+				</div>
+			) : (
+				<>
+					<StatisticsCards data={allocationData} isGenerating={isGenerating} />
+					<AllocationResults data={allocationData} isGenerating={isGenerating} />
+				</>
+			)}
 		</div>
 	);
 }

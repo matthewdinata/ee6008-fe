@@ -1,24 +1,17 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { Allocation, AllocationData } from '../types';
 
 const columns: ColumnDef<Allocation>[] = [
 	{
-		accessorKey: 'studentId',
-		id: 'studentId',
-		accessorFn: (row) => `${row.studentId.toString()}`,
+		accessorKey: 'matriculationNumber',
+		id: 'matriculationNumber',
 		header: ({ column }) => {
 			return (
 				<Button
@@ -26,13 +19,32 @@ const columns: ColumnDef<Allocation>[] = [
 					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
 					className="px-0 hover:bg-transparent"
 				>
-					Student ID
+					Matric No.
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			);
 		},
 		meta: {
-			header: 'Student ID',
+			header: 'Matric No.',
+		},
+	},
+	{
+		accessorKey: 'name',
+		id: 'name',
+		meta: {
+			header: 'Name',
+		},
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					className="px-0 hover:bg-transparent"
+				>
+					Name
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
 		},
 	},
 	{
@@ -69,29 +81,6 @@ const columns: ColumnDef<Allocation>[] = [
 			);
 		},
 	},
-	{
-		id: 'actions',
-		enableHiding: false,
-		cell: ({ row }) => {
-			const project = row.original;
-
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="h-8 w-8 p-0">
-							<span className="sr-only">Open menu</span>
-							<MoreHorizontal />
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuItem onClick={() => console.log('Viewing', project)}>
-							View details
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			);
-		},
-	},
 ];
 
 type AllocationResultsProps = {
@@ -114,10 +103,9 @@ export function AllocationResults({ data, isGenerating }: AllocationResultsProps
 						<DataTable
 							columns={columns}
 							data={data.allocations}
-							filterBy="studentId"
-							filterName="student ID"
+							filterBy="name"
+							filterName="name"
 							pageSize={6}
-							// TODO: handle dynamic data
 						/>
 					)
 				)}
