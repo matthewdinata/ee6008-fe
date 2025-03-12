@@ -1,4 +1,4 @@
-import { CheckCheck, History, Play } from 'lucide-react';
+import { CheckCheck, FileDown, History, Play } from 'lucide-react';
 import { useState } from 'react';
 
 import { useGetAllocationsBySemester } from '@/utils/hooks/use-get-allocations-by-semester';
@@ -88,7 +88,7 @@ function AllocationHistory({
 					)}
 				</div>
 			)}
-			<DialogClose asChild>
+			<DialogClose asChild className="mt-1">
 				<Button>Close</Button>
 			</DialogClose>
 		</>
@@ -125,7 +125,6 @@ export function ActionButtons({
 					<Play className="w-4 h-4" />
 					{isGenerating ? 'Generating...' : 'Generate Allocation'}
 				</Button>
-
 				<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 					<DialogTrigger asChild>
 						<Button
@@ -141,7 +140,11 @@ export function ActionButtons({
 						<AllocationHistory semesterId={semesterId} onApply={handleApply} />
 					</DialogContent>
 				</Dialog>
-
+				<Button variant="outline" disabled={!hasData}>
+					<FileDown className="w-4 h-4" />
+					Export to CSV
+				</Button>
+				{/* TODO: implement API */}
 				<Button variant="secondary" onClick={onSave} disabled={!hasData}>
 					<CheckCheck className="w-4 h-4" />
 					Set Active Allocation
