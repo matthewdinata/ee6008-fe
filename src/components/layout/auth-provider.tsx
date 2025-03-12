@@ -5,6 +5,8 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 
 import { supabase } from '@/lib/supabase';
 
+import { TokenExpiryAlert } from '@/components/ui/token-expiry-alert';
+
 interface AuthContextType {
 	session: Session | null;
 	user: User | null;
@@ -110,7 +112,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		refreshSession,
 	};
 
-	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+	return (
+		<AuthContext.Provider value={value}>
+			<TokenExpiryAlert />
+			{children}
+		</AuthContext.Provider>
+	);
 }
 
 export function useAuth(): AuthContextType {

@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { cookies, headers } from 'next/headers';
 
+import { checkEligibility } from '@/utils/actions/auth';
+
 import AppBreadcrumbs from '@/components/layout/app-breadcrumbs';
 import AppHeader from '@/components/layout/app-header';
 import AppSidebar from '@/components/layout/app-sidebar';
@@ -92,24 +94,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 		} = await supabase.auth.getSession();
 		if (!session?.access_token) throw new Error('No access token');
 
-		const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${session.access_token}`,
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				email: user.email,
-				name: user.email?.split('@')[0],
-				userId: user.id,
-			}),
-		});
+		// const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
+		// 	method: 'POST',
+		// 	headers: {
+		// 		Authorization: `Bearer ${session.access_token}`,
+		// 		'Content-Type': 'application/json',
+		// 	},
+		// 	body: JSON.stringify({
+		// 		email: user.email,
+		// 		name: user.email?.split('@')[0],
+		// 		userId: user.id,
+		// 	}),
+		// });
 
-		if (!response.ok) {
-			throw new Error('Backend verification failed');
-		}
+		// Verify user with backend
 
-		const data = await response.json();
+		// Use the checkEligibility server action instead of direct fetch
+		const userData = {
+			email: user.email || '',
+			name: user.email?.split('@')[0] || '',
+			userId: user.id,
+		};
+
+		const data = await checkEligibility(userData, session.access_token);
+
 		const role = data.user.role;
 
 		// Return the full layout if the user is verified

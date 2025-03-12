@@ -1,22 +1,13 @@
 'use server';
 
+import { checkAuth } from '@/utils/actions/auth';
+
 import { createClient } from '@/app/utils/supabase/server';
 
 export async function checkEligibility(email: string): Promise<boolean> {
 	try {
-		const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/check`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ email }),
-		});
-
-		if (!response.ok) {
-			throw new Error('Failed to check eligibility');
-		}
-
-		const data = await response.json();
+		const result = await checkAuth(email);
+		const data = result;
 		return data.isEligible;
 	} catch (error) {
 		console.error('Eligibility check error:', error);
@@ -28,7 +19,6 @@ export async function login(formData: FormData) {
 	const supabase = await createClient();
 	const email = formData.get('email') as string;
 
-	// Check eligibility before sending magic link
 	const isEligible = await checkEligibility(email);
 
 	if (!isEligible) {

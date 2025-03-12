@@ -5,6 +5,8 @@ import { Download, Loader2, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
+import { getSemesters } from '@/utils/actions/admin/fetch';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +50,34 @@ export function BulkStudentUpload() {
 		setDebugLog((prev) => [...prev, `${timestamp}: ${msg}`]);
 	};
 
+	// const fetchSemesters = async () => {
+	// 	try {
+	// 		const {
+	// 			data: { session },
+	// 		} = await supabase.auth.getSession();
+	// 		if (!session) {
+	// 			addDebugMessage('No session found for fetching semesters');
+	// 			return;
+	// 		}
+
+	// 		setLoadingSemesters(true);
+	// 		addDebugMessage('Fetching semesters...');
+
+	// 		const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/semesters`, {
+	// 			headers: {
+	// 				Authorization: `Bearer ${session.access_token}`,
+	// 			},
+	// 		});
+	// 		const data = await response.json();
+	// 		setSemesters(data);
+	// 		addDebugMessage(`Fetched ${data.length} semesters`);
+	// 	} catch (error) {
+	// 		addDebugMessage(`Error fetching semesters: ${error}`);
+	// 		console.error('Error fetching semesters:', error);
+	// 	} finally {
+	// 		setLoadingSemesters(false);
+	// 	}
+	// };
 	const fetchSemesters = async () => {
 		try {
 			const {
@@ -61,14 +91,16 @@ export function BulkStudentUpload() {
 			setLoadingSemesters(true);
 			addDebugMessage('Fetching semesters...');
 
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/semesters`, {
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-				},
-			});
-			const data = await response.json();
-			setSemesters(data);
-			addDebugMessage(`Fetched ${data.length} semesters`);
+			// Replace the direct fetch with the server action
+			const response = await getSemesters(session.access_token);
+
+			if (!response.success) {
+				addDebugMessage(`Error fetching semesters: ${response.error}`);
+				return;
+			}
+
+			setSemesters(response.data);
+			addDebugMessage(`Fetched ${response.data.length} semesters`);
 		} catch (error) {
 			addDebugMessage(`Error fetching semesters: ${error}`);
 			console.error('Error fetching semesters:', error);

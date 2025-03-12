@@ -5,6 +5,10 @@ import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-rea
 import React from 'react';
 import { useMemo, useState } from 'react';
 
+// Import types from fetch.ts for API responses and data models
+import { User as ApiUser } from '@/utils/actions/admin/fetch';
+import { deleteUser, getUsers } from '@/utils/actions/admin/fetch';
+
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -34,6 +38,7 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
+// Define the User interface used in the component
 interface User {
 	id: number;
 	user_id: number;
@@ -79,25 +84,27 @@ export function StudentTable() {
 			if (!session) {
 				throw new Error('No session found');
 			}
+			const response = await getUsers(session.access_token);
 
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users-faculty`, {
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-					'Content-Type': 'application/json',
-				},
-			});
+			// const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users-faculty`, {
+			// 	headers: {
+			// 		Authorization: `Bearer ${session.access_token}`,
+			// 		'Content-Type': 'application/json',
+			// 	},
+			// });
 
-			if (!response.ok) {
-				throw new Error('Failed to fetch users');
+			if (!response.success) {
+				throw new Error(response.error || 'Failed to fetch users');
 			}
 
-			const data = await response.json();
+			const data = response.data as ApiUser[];
 			console.log(data);
-			const formattedData = data.map((user: User) => ({
-				user_id: user.user_id,
-				email: user.email,
-				name: user.name,
-				is_course_coordinator: Boolean(user.is_course_coordinator),
+			const formattedData = data.map((userData) => ({
+				id: userData.id,
+				user_id: userData.id,
+				email: userData.email,
+				name: userData.name,
+				is_course_coordinator: Boolean(userData.is_course_coordinator),
 			}));
 
 			setAllUsers(formattedData);
@@ -121,20 +128,20 @@ export function StudentTable() {
 			if (!session) {
 				throw new Error('No session found');
 			}
+			const response = await deleteUser(userId, session.access_token);
+			// const response = await fetch(
+			// 	`${process.env.BACKEND_API_URL}/api/admin/users/${userId}`,
+			// 	{
+			// 		method: 'DELETE',
+			// 		headers: {
+			// 			Authorization: `Bearer ${session.access_token}`,
+			// 			'Content-Type': 'application/json',
+			// 		},
+			// 	}
+			// );
 
-			const response = await fetch(
-				`${process.env.BACKEND_API_URL}/api/admin/users/${userId}`,
-				{
-					method: 'DELETE',
-					headers: {
-						Authorization: `Bearer ${session.access_token}`,
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error('Failed to delete user');
+			if (!response.success) {
+				throw new Error(response.error || 'Failed to delete user');
 			}
 
 			// Remove the deleted user from the local state

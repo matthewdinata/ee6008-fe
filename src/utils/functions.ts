@@ -3,7 +3,7 @@
 'use server';
 
 type FetcherOptions = {
-	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+	method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 	headers?: Record<string, string>;
 	cache?: RequestCache;
 	next?: NextFetchRequestConfig;
@@ -16,8 +16,8 @@ type NextFetchRequestConfig = {
 
 export async function fetcherFn<T = any>(
 	path: string,
-	options: FetcherOptions,
-	data?: any
+	data?: any,
+	options: FetcherOptions = {}
 ): Promise<T> {
 	const apiUrl = process.env.BACKEND_API_URL;
 	if (!apiUrl) {
