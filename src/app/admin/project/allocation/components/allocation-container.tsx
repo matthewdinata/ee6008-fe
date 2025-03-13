@@ -70,7 +70,7 @@ function AllocationContainer() {
 						<AlertCircle className="h-4 w-4 text-amber-500" />
 						<AlertTitle className="text-amber-600">No Allocations Found</AlertTitle>
 						<AlertDescription className="text-gray-700">
-							No project allocations have been generated yet. Click{' '}
+							No project allocation is currently active. Click{' '}
 							<span className="font-medium">&quot;Generate Allocation&quot;</span> to
 							start the process.
 						</AlertDescription>

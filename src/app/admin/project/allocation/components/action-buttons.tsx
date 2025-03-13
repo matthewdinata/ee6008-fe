@@ -129,7 +129,7 @@ export function ActionButtons({
 					<DialogTrigger asChild>
 						<Button
 							variant="outline"
-							disabled={!hasData}
+							disabled={isGenerating}
 							onClick={() => setIsDialogOpen(true)}
 						>
 							<History className="w-4 h-4" />
@@ -140,12 +140,12 @@ export function ActionButtons({
 						<AllocationHistory semesterId={semesterId} onApply={handleApply} />
 					</DialogContent>
 				</Dialog>
-				<Button variant="outline" disabled={!hasData}>
+				<Button variant="outline" disabled={!hasData || isGenerating}>
 					<FileDown className="w-4 h-4" />
 					Export to CSV
 				</Button>
 				{/* TODO: implement API */}
-				<Button variant="secondary" onClick={onSave} disabled={!hasData}>
+				<Button variant="outline" onClick={onSave} disabled={!hasData || isGenerating}>
 					<CheckCheck className="w-4 h-4" />
 					Set Active Allocation
 				</Button>
