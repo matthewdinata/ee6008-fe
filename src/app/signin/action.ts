@@ -31,7 +31,8 @@ export async function login(formData: FormData) {
 		email,
 		options: {
 			// emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-			emailRedirectTo: `${process.env.PUBLIC_SITE_URL}/auth/callback`,
+			// emailRedirectTo: `${process.env.PUBLIC_SITE_URL}/auth/callback`,
+			emailRedirectTo: `https://ee6008ntu.netlify.app/auth/callback`,
 			shouldCreateUser: true,
 		},
 	});
