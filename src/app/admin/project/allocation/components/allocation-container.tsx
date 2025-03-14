@@ -4,7 +4,7 @@ import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { useGenerateAllocations } from '@/utils/hooks/use-generate-allocations';
-import { useGetActiveSemester } from '@/utils/hooks/use-get-active-semeseter';
+import { useGetActiveSemester } from '@/utils/hooks/use-get-active-semester';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
