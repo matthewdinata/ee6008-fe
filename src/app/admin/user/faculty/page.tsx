@@ -3,7 +3,7 @@ import UserTable from '@/app/admin/user/student/table';
 
 import { SingleUserAdd } from '../student/user';
 
-export default function DashboardLoading() {
+export default function FacultyUserPage() {
 	return (
 		<div className="container mx-auto p-6 text-foreground">
 			<div className="space-y-8">
@@ -16,7 +16,7 @@ export default function DashboardLoading() {
 
 					{/* Right Side - Single User Add */}
 					<div className="bg-card rounded-lg shadow-sm p-6 border border-border">
-						<SingleUserAdd />
+						<SingleUserAdd defaultRole="faculty" />
 					</div>
 				</div>
 

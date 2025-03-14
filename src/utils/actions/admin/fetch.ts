@@ -1,5 +1,7 @@
 'use server';
 
+import { cookies } from 'next/headers';
+
 import { fetcherFn } from '@/utils/functions';
 
 // Define interfaces for the data types
@@ -18,6 +20,14 @@ interface Semester {
 	status: string;
 }
 
+// Interface updated to ensure semesterId is treated as a number
+interface StudentUserData {
+	email: string;
+	name: string;
+	studentID: string;
+	semesterID?: number;
+}
+
 // Define response types for server actions
 export type ServerActionSuccess<T> = {
 	success: true;
@@ -33,18 +43,32 @@ export type ServerActionError = {
 
 export type ServerActionResponse<T> = ServerActionSuccess<T> | ServerActionError;
 
+export async function getAccessToken(): Promise<string | null> {
+	const cookieStore = cookies();
+	return cookieStore.get('session-token')?.value || null;
+}
+
 /**
  * Server action to fetch all semesters
- * @param accessToken User's access token for authorization
  */
-export async function getSemesters(accessToken: string): Promise<ServerActionResponse<Semester[]>> {
+export async function getSemesters(): Promise<ServerActionResponse<Semester[]>> {
 	try {
+		const accessToken = await getAccessToken();
+
+		if (!accessToken) {
+			return {
+				success: false,
+				error: 'Not authenticated',
+			};
+		}
+
 		const result = await fetcherFn('admin/semesters', null, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
 		});
+
 		return {
 			success: true,
 			data: result,
@@ -58,10 +82,6 @@ export async function getSemesters(accessToken: string): Promise<ServerActionRes
 	}
 }
 
-/**
- * Server action to fetch all users
- * @param accessToken User's access token for authorization
- */
 /**
  * Server action to fetch all users
  * @param accessToken User's access token for authorization
@@ -204,4 +224,262 @@ export async function deleteUser(
 			error: error instanceof Error ? error.message : 'Failed to delete user',
 		};
 	}
+}
+
+/**
+ * Server action to create a new user
+ */
+export async function createUser(userData: {
+	email: string;
+	name: string;
+	role: string;
+	studentID?: string;
+	semesterID?: number;
+	isCoordinator?: boolean;
+}): Promise<ServerActionResponse<User>> {
+	try {
+		console.log('Creating user with data:', JSON.stringify(userData));
+		const accessToken = await getAccessToken();
+
+		if (!accessToken) {
+			return {
+				success: false,
+				error: 'Not authenticated',
+			};
+		}
+
+		// Convert the client-side data structure to match the API expectations
+		const requestData: Record<string, unknown> = {
+			email: userData.email,
+			name: userData.name,
+			role: userData.role,
+		};
+
+		// Add role-specific fields based on role
+		console.log(`Processing role-specific fields for role: "${userData.role}"`);
+
+		if (userData.role === 'student') {
+			// For students, always pass studentID if available
+			if (userData.studentID) {
+				requestData.studentID = userData.studentID;
+			}
+			// Pass semesterID directly to match backend's expected format
+			requestData.semesterID = userData.semesterID ? userData.semesterID : null;
+			console.log('Added student-specific fields:', JSON.stringify(requestData));
+		} else if (userData.role === 'faculty') {
+			// For faculty members, set is_coordinator and explicitly set semesterID to null to avoid backend validation
+			requestData.is_coordinator = Boolean(userData.isCoordinator);
+			requestData.semesterID = null;
+			console.log('Added faculty-specific fields:', JSON.stringify(requestData));
+		} else {
+			console.log(`Using default fields for role: ${userData.role}`);
+		}
+
+		const apiUrl = process.env.BACKEND_API_URL;
+		if (!apiUrl) {
+			throw new Error('Backend API URL is not defined');
+		}
+
+		console.log('Final request data:', JSON.stringify(requestData));
+
+		const response = await fetch(`${apiUrl}/api/admin/users`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${accessToken}`,
+			},
+			body: JSON.stringify(requestData),
+		});
+
+		const responseData = await response.json();
+		console.log('Response from server:', JSON.stringify(responseData));
+
+		if (!response.ok) {
+			throw new Error(
+				responseData.details ||
+					responseData.message ||
+					'Unknown error occurred during user creation'
+			);
+		}
+
+		return {
+			success: true,
+			data: responseData,
+		};
+	} catch (error) {
+		console.error('Server Action: Error creating user:', error);
+		const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
+		return {
+			success: false,
+			error: errorMessage,
+		};
+	}
+}
+
+/**
+ * Server action to create a new faculty user
+ * This separate function ensures we don't trigger the semester validation for faculty users
+ */
+export async function createFacultyUser(userData: {
+	email: string;
+	name: string;
+	isCoordinator?: boolean;
+}): Promise<ServerActionResponse<User>> {
+	try {
+		console.log('Creating faculty user with data:', JSON.stringify(userData));
+		const accessToken = await getAccessToken();
+
+		if (!accessToken) {
+			return {
+				success: false,
+				error: 'Not authenticated',
+			};
+		}
+
+		// Convert the client-side data structure to match the API expectations
+		const requestData: Record<string, unknown> = {
+			email: userData.email,
+			name: userData.name,
+			role: 'faculty',
+			is_coordinator: Boolean(userData.isCoordinator),
+			// Explicitly setting semesterID to null for faculty
+			semesterID: null,
+		};
+
+		console.log('Faculty request data:', JSON.stringify(requestData));
+
+		const apiUrl = process.env.BACKEND_API_URL;
+		if (!apiUrl) {
+			throw new Error('Backend API URL is not defined');
+		}
+
+		const response = await fetch(`${apiUrl}/api/admin/users`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${accessToken}`,
+			},
+			body: JSON.stringify(requestData),
+		});
+
+		const responseData = await response.json();
+		console.log('Response from server:', JSON.stringify(responseData));
+
+		if (!response.ok) {
+			throw new Error(
+				responseData.details ||
+					responseData.message ||
+					'Unknown error occurred during faculty user creation'
+			);
+		}
+
+		return {
+			success: true,
+			data: responseData,
+		};
+	} catch (error) {
+		console.error('Server Action: Error creating faculty user:', error);
+		const errorMessage =
+			error instanceof Error ? error.message : 'Failed to create faculty user';
+		return {
+			success: false,
+			error: errorMessage,
+		};
+	}
+}
+
+/**
+ * Server action to create a new student user with active semester handling
+ */
+export async function createStudentUser(
+	userData: StudentUserData
+): Promise<ServerActionResponse<null>> {
+	console.log('Creating student user with data:', JSON.stringify(userData));
+
+	// Validate required fields
+	if (!userData.email || !userData.name || !userData.studentID) {
+		console.error('Missing required fields for student user creation');
+		return {
+			success: false,
+			error: 'Missing required student fields: email, name, and studentID are all required',
+		};
+	}
+
+	// Try to get active semester if semesterID is not provided
+	if (!userData.semesterID) {
+		console.log('No semester ID provided, trying to find active semester...');
+		try {
+			const semestersResponse = await getSemesters();
+			if (semestersResponse.success && semestersResponse.data) {
+				const activeSemester = semestersResponse.data.find(
+					(sem: Semester) => sem.is_active
+				);
+				if (activeSemester) {
+					console.log(
+						`Found active semester: ${activeSemester.name} (ID: ${activeSemester.id})`
+					);
+					userData.semesterID = activeSemester.id;
+				} else {
+					console.log('No active semester found');
+					return {
+						success: false,
+						error: 'No active semester found for student enrollment',
+					};
+				}
+			}
+		} catch (error) {
+			console.error('Error getting active semester:', error);
+		}
+	}
+
+	if (!userData.semesterID) {
+		return {
+			success: false,
+			error: 'No semester ID provided and no active semester found',
+		};
+	}
+
+	// Build the request with the correct field names for the backend
+	const requestData = {
+		email: userData.email,
+		name: userData.name,
+		role: 'student',
+		studentID: userData.studentID,
+		semesterID: userData.semesterID,
+	};
+
+	console.log('Final request data for student user:', JSON.stringify(requestData));
+
+	const apiUrl = process.env.BACKEND_API_URL;
+	if (!apiUrl) {
+		throw new Error('Backend API URL is not defined');
+	}
+
+	// Log URL for debugging
+	console.log(`Sending POST request to: ${apiUrl}/api/admin/users`);
+
+	const response = await fetch(`${apiUrl}/api/admin/users`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${await getAccessToken()}`,
+		},
+		body: JSON.stringify(requestData),
+	});
+
+	const responseData = await response.json();
+	console.log('Response from server:', JSON.stringify(responseData));
+
+	if (!response.ok) {
+		throw new Error(
+			responseData.details ||
+				responseData.message ||
+				'Unknown error occurred during student user creation'
+		);
+	}
+
+	return {
+		success: true,
+		data: null,
+	};
 }

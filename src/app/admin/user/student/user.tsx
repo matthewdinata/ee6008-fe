@@ -5,6 +5,8 @@ import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
+import { createFacultyUser, createUser, getSemesters } from '@/utils/actions/admin/fetch';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,236 +22,255 @@ import { Switch } from '@/components/ui/switch';
 interface FormData {
 	email: string;
 	name: string;
-	studentId: string;
+	studentID: string;
+	semesterID: string;
 	isCoordinator: boolean;
-	semesterId?: number;
 }
 
 interface FormErrors {
-	email?: string;
-	name?: string;
-	role?: string;
-	studentId?: string;
-	semesterId?: number;
+	[key: string]: string;
 }
 
-// Add Semester interface
 interface Semester {
 	id: number;
-	academic_year: number;
 	name: string;
+	academic_year: string | number;
 	is_active: boolean;
 	status: string;
 }
 
-export function SingleUserAdd() {
+interface SingleUserAddProps {
+	defaultRole?: string;
+}
+
+export function SingleUserAdd({ defaultRole }: SingleUserAddProps) {
 	const router = useRouter();
-	const supabase = createClientComponentClient();
+	const _supabase = createClientComponentClient();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [role, setRole] = useState<string>('');
+	const [role, setRole] = useState<string>(defaultRole || 'student');
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [debugLog, setDebugLog] = useState<string[]>([]);
 	const [successMessage, setSuccessMessage] = useState('');
+	const [errorMessage, setErrorMessage] = useState('');
+	const [formData, setFormData] = useState<FormData>({
+		email: '',
+		name: '',
+		studentID: '',
+		semesterID: '',
+		isCoordinator: false,
+	});
 
 	const [semesters, setSemesters] = useState<Semester[]>([]);
 	const [loadingSemesters, setLoadingSemesters] = useState(false);
 
-	// Add function to fetch semesters
-	const fetchSemesters = async () => {
-		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (!session) return;
-
+	// Fetch semesters on component mount
+	useEffect(() => {
+		const fetchSemesters = async () => {
 			setLoadingSemesters(true);
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/semesters`, {
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-				},
+			try {
+				const response = await getSemesters();
+				if (response.success) {
+					setSemesters(response.data || []);
+				}
+			} catch (error) {
+				console.error('Error fetching semesters:', error);
+			} finally {
+				setLoadingSemesters(false);
+			}
+		};
+
+		fetchSemesters();
+	}, []);
+
+	// Function to validate form fields
+	const validateForm = () => {
+		const validationErrors: FormErrors = {};
+		setErrors({});
+
+		// Validate email
+		if (!formData.email.trim()) {
+			validationErrors.email = 'Email is required';
+		} else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+			validationErrors.email = 'Email is invalid';
+		}
+
+		// Validate name
+		if (!formData.name.trim()) {
+			validationErrors.name = 'Name is required';
+		}
+
+		// Validate role
+		if (!role) {
+			validationErrors.role = 'Role is required';
+		}
+
+		// Role-specific validations
+		if (role === 'student') {
+			// Validate student ID for student role
+			if (!formData.studentID?.trim()) {
+				validationErrors.studentID = 'Student ID is required';
+			} else if (!/^[A-Za-z][A-Za-z0-9]{8}$/.test(formData.studentID)) {
+				validationErrors.studentID =
+					'Invalid student ID format. Must be 9 characters with a letter at the beginning.';
+			}
+		}
+
+		// Set validation errors and return validation result
+		setErrors(validationErrors);
+		return Object.keys(validationErrors).length === 0;
+	};
+
+	const _handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+		const { name, value, type } = e.target;
+		if (type === 'checkbox') {
+			setFormData({
+				...formData,
+				[name]: (e.target as HTMLInputElement).checked,
 			});
-			const data = await response.json();
-			setSemesters(data);
-		} catch (error) {
-			console.error('Error fetching semesters:', error);
-		} finally {
-			setLoadingSemesters(false);
+		} else {
+			setFormData({
+				...formData,
+				[name]: value,
+			});
+		}
+		// Clear the error for this field when user starts typing
+		if (errors[name]) {
+			setErrors({ ...errors, [name]: '' });
 		}
 	};
 
-	// Fetch semesters when role changes to student
-	useEffect(() => {
-		if (role === 'student') {
-			fetchSemesters();
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [role]);
-
-	const [formData, setFormData] = useState<FormData>({
-		email: '',
-		name: '',
-		studentId: '',
-		isCoordinator: false,
-	});
-
 	const addDebugMessage = (msg: string) => {
-		const timestamp = new Date().toLocaleTimeString();
+		const timestamp = new Date().toISOString().substr(11, 8);
 		setDebugLog((prev) => [...prev, `${timestamp}: ${msg}`]);
 	};
 
-	const validateForm = (): boolean => {
-		addDebugMessage('Starting form validation...');
-		const newErrors: FormErrors = {};
-
-		// Email validation
-		if (!formData.email) {
-			newErrors.email = 'Email is required';
-			addDebugMessage('Validation failed: Email is required');
-		} else if (!formData.email.endsWith('@e.ntu.edu.sg')) {
-			newErrors.email = 'Must be an NTU email address';
-			addDebugMessage('Validation failed: Invalid email domain');
-		} else {
-			addDebugMessage('Email validation passed');
-		}
-
-		// Name validation
-		if (!formData.name) {
-			newErrors.name = 'Name is required';
-			addDebugMessage('Validation failed: Name is required');
-		} else if (formData.name.length < 2) {
-			newErrors.name = 'Name must be at least 2 characters';
-			addDebugMessage('Validation failed: Name too short');
-		} else {
-			addDebugMessage('Name validation passed');
-		}
-
-		// Role validation
-		if (!role) {
-			newErrors.role = 'Role is required';
-			addDebugMessage('Validation failed: Role is required');
-		} else {
-			addDebugMessage(`Role validation passed: ${role} selected`);
-		}
-
-		// Student ID validation
-		if (role === 'student' && formData.studentId) {
-			if (!formData.studentId.startsWith('U') || formData.studentId.length !== 9) {
-				newErrors.studentId = 'Invalid student ID format (e.g., U2024123A)';
-				addDebugMessage('Validation failed: Invalid student ID format');
-			} else {
-				addDebugMessage('Student ID validation passed');
-			}
-		}
-
-		setErrors(newErrors);
-		const isValid = Object.keys(newErrors).length === 0;
-		addDebugMessage(`Form validation ${isValid ? 'successful' : 'failed'}`);
-		return isValid;
-	};
-
-	{
-		role === 'student' && (
-			<div className="space-y-2">
-				<Label htmlFor="semester">Semester</Label>
-				<Select
-					value={formData.semesterId?.toString() || ''}
-					onValueChange={(value) =>
-						setFormData({
-							...formData,
-							semesterId: parseInt(value),
-						})
-					}
-				>
-					<SelectTrigger>
-						<SelectValue placeholder="Select semester" />
-					</SelectTrigger>
-					<SelectContent>
-						{semesters.map((semester) => (
-							<SelectItem key={semester.id} value={semester.id.toString()}>
-								{semester.academic_year} {semester.name}
-								{semester.is_active && ' (Current)'}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-				{loadingSemesters && (
-					<div className="text-sm text-gray-500">Loading semesters...</div>
-				)}
-			</div>
-		);
-	}
-
-	const handleSubmit = async () => {
-		addDebugMessage('Starting form submission...');
-
-		if (!validateForm()) {
-			addDebugMessage('Form validation failed. Stopping submission.');
-			return;
-		}
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		console.log('Starting form submission...');
 
 		setIsSubmitting(true);
-		addDebugMessage('Form validation passed. Proceeding with submission...');
+		setErrorMessage('');
+		setSuccessMessage('');
+
+		// Validate form fields first
+		console.log('Starting form validation...');
+		if (!validateForm()) {
+			console.log('Form validation failed. Stopping submission.');
+			setIsSubmitting(false);
+			return;
+		}
+		console.log('Form validation passed. Proceeding with submission...');
+
+		// Check if we have a valid session
+		console.log('Checking authentication session...');
 
 		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			addDebugMessage('Checking authentication session...');
+			// Access data from the form
+			console.log('Session found. Preparing user data...');
 
-			if (!session) {
-				addDebugMessage('No active session found. Redirecting to signin...');
-				router.push('/signin');
-				return;
-			}
+			if (role === 'student') {
+				// Use the general create user function for students
+				const userData = {
+					email: formData.email,
+					name: formData.name,
+					role: 'student',
+					studentID: formData.studentID,
+					semesterID: formData.semesterID ? Number(formData.semesterID) : undefined,
+				};
 
-			addDebugMessage('Session found. Preparing user data...');
-			const userData = {
-				email: formData.email,
-				name: formData.name,
-				role: role,
-				...(role === 'student' && {
-					studentId: formData.studentId,
-					semesterId: formData.semesterId,
-				}),
-				...(role === 'faculty' && {
+				console.log('Prepared student data:', JSON.stringify(userData));
+				console.log('Calling general createUser for student...');
+
+				const result = await createUser(userData);
+
+				if (result.success) {
+					// Clear form on success
+					setFormData({
+						name: '',
+						email: '',
+						studentID: '',
+						semesterID: '',
+						isCoordinator: false,
+					});
+					setRole(defaultRole || 'student');
+					setSuccessMessage('Student user created successfully');
+					setErrorMessage('');
+					router.refresh();
+				} else {
+					// Keep form data on error
+					setErrorMessage(result.error);
+					setSuccessMessage('');
+				}
+			} else if (role === 'faculty') {
+				// For faculty users, use the dedicated faculty user creation function
+				const facultyData = {
+					email: formData.email,
+					name: formData.name,
 					isCoordinator: formData.isCoordinator,
-				}),
-			};
+				};
 
-			addDebugMessage('Sending API request to create user...');
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users`, {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(userData),
-			});
+				console.log('Prepared faculty data:', JSON.stringify(facultyData));
+				console.log('Calling server action to create faculty user...');
 
-			const data = await response.json();
+				const result = await createFacultyUser(facultyData);
 
-			if (!response.ok) {
-				throw new Error(data.details || data.message || 'Failed to create user');
+				if (result.success) {
+					// Clear form on success
+					setFormData({
+						name: '',
+						email: '',
+						studentID: '',
+						semesterID: '',
+						isCoordinator: false,
+					});
+					setRole(defaultRole || 'faculty');
+					setSuccessMessage('Faculty user created successfully');
+					setErrorMessage('');
+					router.refresh();
+				} else {
+					// Keep form data on error
+					setErrorMessage(result.error);
+					setSuccessMessage('');
+				}
+			} else {
+				// For other roles, use the general createUser function
+				const userData = {
+					email: formData.email,
+					name: formData.name,
+					role: role,
+				};
+
+				console.log('Prepared regular user data:', JSON.stringify(userData));
+				console.log('Calling server action to create user...');
+
+				const result = await createUser(userData);
+
+				if (result.success) {
+					// Clear form on success
+					setFormData({
+						name: '',
+						email: '',
+						studentID: '',
+						semesterID: '',
+						isCoordinator: false,
+					});
+					setRole(defaultRole || 'student');
+					setSuccessMessage('User created successfully');
+					setErrorMessage('');
+					router.refresh();
+				} else {
+					// Keep form data on error
+					setErrorMessage(result.error);
+					setSuccessMessage('');
+				}
 			}
-
-			addDebugMessage('User created successfully!');
-			setSuccessMessage('✓ User has been successfully created!');
-
-			// Reset form
-			setFormData({
-				email: '',
-				name: '',
-				studentId: '',
-				isCoordinator: false,
-			});
-			setRole('');
-			setErrors({});
 		} catch (error) {
-			console.error('Error:', error);
-			addDebugMessage(
-				`Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`
+			console.error('Error creating user:', error);
+			setErrorMessage(
+				error instanceof Error ? error.message : 'An error occurred creating the user'
 			);
+			setSuccessMessage('');
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -259,9 +280,9 @@ export function SingleUserAdd() {
 		<div className="container mx-auto p-6">
 			<h1 className="text-2xl font-bold mb-4">Add Single User</h1>
 			<div className="space-y-4 max-w-lg">
-				{/* Success Message */}
+				{/* Success/Error Messages */}
 				{successMessage && (
-					<div className="bg-green-50 p-4 rounded-md mb-4">
+					<div className="mb-4 rounded-md bg-green-50 p-4">
 						<div className="flex">
 							<div className="flex-shrink-0">
 								<svg
@@ -285,30 +306,53 @@ export function SingleUserAdd() {
 					</div>
 				)}
 
-				{/* Existing form fields... */}
+				{errorMessage && (
+					<div className="mb-4 rounded-md bg-red-50 p-4">
+						<div className="flex">
+							<div className="flex-shrink-0">
+								<svg
+									className="h-5 w-5 text-red-400"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+								>
+									<path
+										fillRule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414l2-2a1 1 0 000-1.414z"
+										clipRule="evenodd"
+									/>
+								</svg>
+							</div>
+							<div className="ml-3">
+								<p className="text-sm font-medium text-red-800">{errorMessage}</p>
+							</div>
+						</div>
+					</div>
+				)}
+
 				{/* Email Field */}
 				<div className="space-y-2">
 					<Label htmlFor="email">Email (@e.ntu.edu.sg)</Label>
 					<Input
 						id="email"
+						name="email"
 						type="email"
 						placeholder="user@e.ntu.edu.sg"
 						value={formData.email}
-						onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+						onChange={_handleChange}
 						className={errors.email ? 'border-red-500' : ''}
 					/>
 					{errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
 				</div>
 
-				{/* Rest of the existing form fields... */}
 				{/* Name Field */}
 				<div className="space-y-2">
 					<Label htmlFor="name">Name</Label>
 					<Input
 						id="name"
+						name="name"
 						placeholder="Full Name"
 						value={formData.name}
-						onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+						onChange={_handleChange}
 						className={errors.name ? 'border-red-500' : ''}
 					/>
 					{errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
@@ -335,35 +379,34 @@ export function SingleUserAdd() {
 				{role === 'student' && (
 					<>
 						<div className="space-y-2">
-							<Label htmlFor="studentId">Student ID</Label>
+							<Label htmlFor="studentID">Student ID</Label>
 							<Input
-								id="studentId"
+								id="studentID"
+								name="studentID"
 								placeholder="e.g., U2024123A"
-								value={formData.studentId}
-								onChange={(e) =>
-									setFormData({ ...formData, studentId: e.target.value })
-								}
-								className={errors.studentId ? 'border-red-500' : ''}
+								value={formData.studentID}
+								onChange={_handleChange}
+								className={errors.studentID ? 'border-red-500' : ''}
 							/>
-							{errors.studentId && (
-								<p className="text-sm text-red-500">{errors.studentId}</p>
+							{errors.studentID && (
+								<p className="text-sm text-red-500">{errors.studentID}</p>
 							)}
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="semester">Semester</Label>
+							<Label htmlFor="semesterID">Semester</Label>
 							<Select
-								value={formData.semesterId?.toString() || ''}
+								value={formData.semesterID || ''}
 								onValueChange={(value) => {
 									addDebugMessage(`Selected semester ID: ${value}`);
 									setFormData({
 										...formData,
-										semesterId: parseInt(value),
+										semesterID: value,
 									});
 								}}
 							>
 								<SelectTrigger
-									className={errors.semesterId ? 'border-red-500' : ''}
+									className={errors.semesterID ? 'border-red-500' : ''}
 								>
 									<SelectValue placeholder="Select semester" />
 								</SelectTrigger>
@@ -382,8 +425,8 @@ export function SingleUserAdd() {
 							{loadingSemesters && (
 								<div className="text-sm text-gray-500">Loading semesters...</div>
 							)}
-							{errors.semesterId && (
-								<p className="text-sm text-red-500">{errors.semesterId}</p>
+							{errors.semesterID && (
+								<p className="text-sm text-red-500">{errors.semesterID}</p>
 							)}
 						</div>
 					</>
@@ -402,8 +445,32 @@ export function SingleUserAdd() {
 					</div>
 				)}
 
+				{/* Debugging Semester Info */}
+				<div className="mt-4 text-xs text-gray-600">
+					<p>Available Semesters:</p>
+					<ul className="list-disc pl-5">
+						{semesters.map((semester) => (
+							<li key={semester.id}>
+								ID: {semester.id} - {semester.academic_year} {semester.name} -
+								Active: {semester.is_active ? 'Yes' : 'No'} - Status:{' '}
+								{semester.status}
+							</li>
+						))}
+					</ul>
+				</div>
+
 				{/* Submit Button */}
-				<Button onClick={handleSubmit} disabled={isSubmitting} className="w-full">
+				<Button
+					type="submit"
+					onClick={(e) => {
+						e.preventDefault();
+						handleSubmit(
+							new Event('submit') as unknown as React.FormEvent<HTMLFormElement>
+						);
+					}}
+					disabled={isSubmitting}
+					className="w-full"
+				>
 					{isSubmitting ? (
 						<>
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />

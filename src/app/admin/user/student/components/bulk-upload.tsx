@@ -80,19 +80,9 @@ export function BulkStudentUpload() {
 	// };
 	const fetchSemesters = async () => {
 		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (!session) {
-				addDebugMessage('No session found for fetching semesters');
-				return;
-			}
-
-			setLoadingSemesters(true);
 			addDebugMessage('Fetching semesters...');
 
-			// Replace the direct fetch with the server action
-			const response = await getSemesters(session.access_token);
+			const response = await getSemesters();
 
 			if (!response.success) {
 				addDebugMessage(`Error fetching semesters: ${response.error}`);
@@ -182,7 +172,7 @@ export function BulkStudentUpload() {
 
 			// Construct URL with query parameter
 			const url = new URL(
-				`${process.env.BACKEND_API_URL}/api/admin/users/bulk-upload-faculty`
+				`${process.env.BACKEND_API_URL}/api/admin/users/bulk-upload-students`
 			);
 			url.searchParams.append('semester_id', selectedSemester);
 
