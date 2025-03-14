@@ -1,72 +1,87 @@
 'use client';
 
+import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
+import { Semester } from '@/types';
 import { useGenerateAllocations } from '@/utils/hooks/use-generate-allocations';
 
-import { AllocationData } from '../types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+import { GeneratedAllocationData } from '../types';
 import { ActionButtons } from './action-buttons';
 import { AllocationResults } from './allocation-results';
 import { StatisticsCards } from './statistics-card';
 
-type AllocationContainerProps = {
-	initialData?: AllocationData;
-};
+interface AllocationContainerProps {
+	activeSemester: Semester;
+	initialData: GeneratedAllocationData | null;
+}
 
-function AllocationContainer({ initialData }: AllocationContainerProps) {
-	const [allocationData, setAllocationData] = useState<AllocationData | null>(
-		initialData || null
+function AllocationContainer({ activeSemester, initialData }: AllocationContainerProps) {
+	const [allocationData, setAllocationData] = useState<GeneratedAllocationData | null>(
+		initialData
 	);
-	const [isGenerating, setIsGenerating] = useState(false);
-
-	const { mutate: generateAllocations } = useGenerateAllocations();
+	const { mutate: generateAllocations, isPending: isGenerating } = useGenerateAllocations();
 
 	const handleGenerateAllocation = async () => {
-		setIsGenerating(true);
 		try {
-			generateAllocations(
-				{ semesterId: 5 }, // TODO: replace with actual data
-				{
-					onSuccess: (data) => {
-						setAllocationData(data as AllocationData);
-					},
-					onError: (error) => {
-						console.error('Failed to generate allocation:', error);
-					},
-					onSettled: () => {
-						setIsGenerating(false);
-					},
-				}
-			);
+			if (activeSemester) {
+				generateAllocations(
+					{ semesterId: activeSemester.id },
+					{
+						onSuccess: (data) => {
+							setAllocationData(data as GeneratedAllocationData);
+						},
+						onError: (error) => {
+							console.error('Failed to generate allocation:', error);
+						},
+					}
+				);
+			} else {
+				console.error('No active semester found');
+			}
 		} catch (error) {
 			console.error('Failed to generate allocation:', error);
-			setIsGenerating(false);
-		}
-	};
-
-	const handleSaveDraft = async () => {
-		if (!allocationData) return;
-
-		try {
-			// TODO: Replace with actual save logic
-			console.log('Draft saved:', allocationData);
-		} catch (error) {
-			console.error('Failed to save draft:', error);
 		}
 	};
 
 	return (
 		<div className="space-y-6">
 			<ActionButtons
-				onGenerate={handleGenerateAllocation}
-				onSave={handleSaveDraft}
-				isGenerating={isGenerating}
-				hasData={!!allocationData}
+				handleGenerate={handleGenerateAllocation}
+				isPending={isGenerating}
+				allocationData={allocationData}
+				semesterId={activeSemester.id}
+				setAllocationData={setAllocationData}
 			/>
 
-			<StatisticsCards data={allocationData} isGenerating={isGenerating} />
-
-			<AllocationResults data={allocationData} isGenerating={isGenerating} />
+			{!allocationData && !isGenerating ? (
+				<div className="mt-8">
+					<Alert
+						variant="default"
+						className="bg-amber-50 dark:bg-amber-700/20 border-amber-200 dark:border-amber-300"
+					>
+						<AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+						<AlertTitle className="text-amber-600 dark:text-amber-500">
+							No Allocations Found
+						</AlertTitle>
+						<AlertDescription className="text-foreground dark:text-foreground/80">
+							No project allocation is currently active. Apply an allocation
+							from&nbsp;
+							<span className="font-medium">&quot;History&quot;</span>
+							&nbsp;or click&nbsp;
+							<span className="font-medium">&quot;Generate Allocation&quot;</span>
+							&nbsp;to create a new allocation.
+						</AlertDescription>
+					</Alert>
+				</div>
+			) : (
+				<>
+					<StatisticsCards data={allocationData} isGenerating={isGenerating} />
+					<AllocationResults data={allocationData} isGenerating={isGenerating} />
+				</>
+			)}
 		</div>
 	);
 }
