@@ -1,5 +1,6 @@
 import { Check, CheckCheck, FileDown, History, Play } from 'lucide-react';
 import { useState } from 'react';
+import { CSVLink } from 'react-csv';
 
 import { useClearSelectedAllocation } from '@/utils/hooks/use-clear-selected-allocation';
 import { useGetAllocationsBySemester } from '@/utils/hooks/use-get-allocations-by-semester';
@@ -27,6 +28,7 @@ import {
 } from '@/components/ui/table';
 
 import { GeneratedAllocationData } from '../types';
+import { prepareCSVData } from '../utils';
 
 function AllocationHistory({
 	semesterId,
@@ -196,9 +198,28 @@ export function ActionButtons({
 						<AllocationHistory semesterId={semesterId} onApply={handleApply} />
 					</DialogContent>
 				</Dialog>
-				<Button variant="outline" disabled={!allocationData || isPending}>
-					<FileDown className="w-4 h-4" />
-					Export to CSV
+
+				<Button
+					variant="outline"
+					disabled={!allocationData || isPending}
+					asChild={!!allocationData && !isPending}
+				>
+					{allocationData && !isPending ? (
+						<CSVLink
+							data={prepareCSVData(allocationData).data}
+							headers={prepareCSVData(allocationData).headers}
+							filename={prepareCSVData(allocationData).filename}
+							className="flex items-center"
+						>
+							<FileDown className="w-4 h-4 mr-2" />
+							Export to CSV
+						</CSVLink>
+					) : (
+						<>
+							<FileDown className="w-4 h-4 mr-2" />
+							Export to CSV
+						</>
+					)}
 				</Button>
 
 				<Button
