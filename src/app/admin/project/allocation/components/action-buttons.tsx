@@ -143,6 +143,9 @@ export function ActionButtons({
 		setIsDialogOpen(false);
 	};
 
+	const isActive =
+		allocationData && allocationData?.allocationId === selectedAllocation?.allocationId;
+
 	const handleIsActiveButtonClick = async () => {
 		try {
 			if (semesterId && allocationData) {
@@ -172,9 +175,6 @@ export function ActionButtons({
 			console.error('Failed to toggle selected allocation:', error);
 		}
 	};
-
-	const isActive =
-		allocationData && allocationData?.allocationId === selectedAllocation?.allocationId;
 
 	return (
 		<div className="flex flex-wrap justify-between items-center">
