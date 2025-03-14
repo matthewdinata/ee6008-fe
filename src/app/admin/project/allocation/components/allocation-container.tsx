@@ -4,8 +4,10 @@ import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { useGenerateAllocations } from '@/utils/hooks/use-generate-allocations';
+import { useGetActiveSemester } from '@/utils/hooks/use-get-active-semeseter';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { AllocationData } from '../types';
 import { ActionButtons } from './action-buttons';
@@ -14,53 +16,55 @@ import { StatisticsCards } from './statistics-card';
 
 function AllocationContainer() {
 	const [allocationData, setAllocationData] = useState<AllocationData | null>(null);
-	const [isGenerating, setIsGenerating] = useState(false);
 
-	const { mutate: generateAllocations } = useGenerateAllocations();
-	const semesterId = 5; // TODO: replace with actual data
+	const { mutate: generateAllocations, isPending: isGenerating } = useGenerateAllocations();
+	const { data: activeSemester, isPending: isFetchingActiveSemester } = useGetActiveSemester();
 
 	const handleGenerateAllocation = async () => {
-		setIsGenerating(true);
 		try {
-			generateAllocations(
-				{ semesterId },
-				{
-					onSuccess: (data) => {
-						setAllocationData(data as AllocationData);
-					},
-					onError: (error) => {
-						console.error('Failed to generate allocation:', error);
-					},
-					onSettled: () => {
-						setIsGenerating(false);
-					},
-				}
-			);
+			if (activeSemester) {
+				generateAllocations(
+					{ semesterId: activeSemester.id },
+					{
+						onSuccess: (data) => {
+							setAllocationData(data as AllocationData);
+						},
+						onError: (error) => {
+							console.error('Failed to generate allocation:', error);
+						},
+					}
+				);
+			} else {
+				console.error('No active semester found');
+			}
 		} catch (error) {
 			console.error('Failed to generate allocation:', error);
-			setIsGenerating(false);
 		}
 	};
 
-	const handleSaveDraft = async () => {
-		if (!allocationData) return;
+	if (isFetchingActiveSemester) return <Skeleton className="h-48 w-full" />;
 
-		try {
-			// TODO: Replace with actual save logic
-			console.log('Draft saved:', allocationData);
-		} catch (error) {
-			console.error('Failed to save draft:', error);
-		}
-	};
+	if (!activeSemester) {
+		return (
+			<div>
+				<Alert variant="default" className="bg-amber-50 border-amber-200">
+					<AlertCircle className="h-4 w-4 text-amber-500" />
+					<AlertTitle className="text-amber-600">No Allocations Found</AlertTitle>
+					<AlertDescription className="text-gray-700">
+						No semester is currently active. Please activate a semester.
+					</AlertDescription>
+				</Alert>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-6">
 			<ActionButtons
 				onGenerate={handleGenerateAllocation}
-				onSave={handleSaveDraft}
 				isGenerating={isGenerating}
 				hasData={!!allocationData}
-				semesterId={semesterId}
+				semesterId={activeSemester.id}
 				setAllocationData={setAllocationData}
 			/>
 

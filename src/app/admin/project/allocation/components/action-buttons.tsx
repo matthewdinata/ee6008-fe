@@ -97,7 +97,6 @@ function AllocationHistory({
 
 type ActionButtonsProps = {
 	onGenerate: () => void;
-	onSave: () => void;
 	isGenerating: boolean;
 	hasData: boolean;
 	semesterId: number;
@@ -106,7 +105,6 @@ type ActionButtonsProps = {
 
 export function ActionButtons({
 	onGenerate,
-	onSave,
 	isGenerating,
 	hasData,
 	semesterId,
@@ -145,7 +143,11 @@ export function ActionButtons({
 					Export to CSV
 				</Button>
 				{/* TODO: implement API */}
-				<Button variant="outline" onClick={onSave} disabled={!hasData || isGenerating}>
+				<Button
+					variant="outline"
+					onClick={() => console.log('TODO')}
+					disabled={!hasData || isGenerating}
+				>
 					<CheckCheck className="w-4 h-4" />
 					Set Active Allocation
 				</Button>
