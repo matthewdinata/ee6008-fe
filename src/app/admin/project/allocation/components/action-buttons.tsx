@@ -23,16 +23,17 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
-import { AllocationData } from '../types';
+import { GeneratedAllocationData } from '../types';
 
 function AllocationHistory({
 	semesterId,
 	onApply,
 }: {
 	semesterId: number;
-	onApply: (allocationData: AllocationData) => void;
+	onApply: (allocationData: GeneratedAllocationData) => void;
 }) {
 	const { data, isLoading } = useGetAllocationsBySemester(semesterId);
+	console.log(data);
 
 	return (
 		<>
@@ -50,6 +51,7 @@ function AllocationHistory({
 						<Table>
 							<TableHeader>
 								<TableRow>
+									<TableHead>ID</TableHead>
 									<TableHead>Timestamp</TableHead>
 									<TableHead>Allocation Rate</TableHead>
 									<TableHead>Dropped Projects</TableHead>
@@ -58,7 +60,8 @@ function AllocationHistory({
 							</TableHeader>
 							<TableBody>
 								{data.map((allocation, idx) => (
-									<TableRow key={`${allocation.allocation_id}-${idx}`}>
+									<TableRow key={`${allocation.allocationId}-${idx}`}>
+										<TableCell>{allocation.allocationId?.toString()}</TableCell>
 										<TableCell>
 											{new Date(allocation.timestamp).toLocaleString()}
 										</TableCell>
@@ -73,7 +76,9 @@ function AllocationHistory({
 												variant="outline"
 												size="sm"
 												onClick={() =>
-													onApply(allocation.data as AllocationData)
+													onApply(
+														allocation.data as GeneratedAllocationData
+													)
 												}
 											>
 												Apply
@@ -100,7 +105,7 @@ type ActionButtonsProps = {
 	isGenerating: boolean;
 	hasData: boolean;
 	semesterId: number;
-	setAllocationData: (data: AllocationData) => void;
+	setAllocationData: (data: GeneratedAllocationData) => void;
 };
 
 export function ActionButtons({
@@ -112,7 +117,7 @@ export function ActionButtons({
 }: ActionButtonsProps) {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-	const handleApply = (data: AllocationData) => {
+	const handleApply = (data: GeneratedAllocationData) => {
 		setAllocationData(data);
 		setIsDialogOpen(false);
 	};

@@ -3,22 +3,26 @@
 import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
+import { Semester } from '@/types';
 import { useGenerateAllocations } from '@/utils/hooks/use-generate-allocations';
-import { useGetActiveSemester } from '@/utils/hooks/use-get-active-semester';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
 
-import { AllocationData } from '../types';
+import { GeneratedAllocationData } from '../types';
 import { ActionButtons } from './action-buttons';
 import { AllocationResults } from './allocation-results';
 import { StatisticsCards } from './statistics-card';
 
-function AllocationContainer() {
-	const [allocationData, setAllocationData] = useState<AllocationData | null>(null);
+interface AllocationContainerProps {
+	activeSemester: Semester;
+	initialData: GeneratedAllocationData | null;
+}
 
+function AllocationContainer({ activeSemester, initialData }: AllocationContainerProps) {
+	const [allocationData, setAllocationData] = useState<GeneratedAllocationData | null>(
+		initialData
+	);
 	const { mutate: generateAllocations, isPending: isGenerating } = useGenerateAllocations();
-	const { data: activeSemester, isPending: isFetchingActiveSemester } = useGetActiveSemester();
 
 	const handleGenerateAllocation = async () => {
 		try {
@@ -27,7 +31,7 @@ function AllocationContainer() {
 					{ semesterId: activeSemester.id },
 					{
 						onSuccess: (data) => {
-							setAllocationData(data as AllocationData);
+							setAllocationData(data as GeneratedAllocationData);
 						},
 						onError: (error) => {
 							console.error('Failed to generate allocation:', error);
@@ -41,22 +45,6 @@ function AllocationContainer() {
 			console.error('Failed to generate allocation:', error);
 		}
 	};
-
-	if (isFetchingActiveSemester) return <Skeleton className="h-48 w-full" />;
-
-	if (!activeSemester) {
-		return (
-			<div>
-				<Alert variant="default" className="bg-amber-50 border-amber-200">
-					<AlertCircle className="h-4 w-4 text-amber-500" />
-					<AlertTitle className="text-amber-600">No Allocations Found</AlertTitle>
-					<AlertDescription className="text-gray-700">
-						No semester is currently active. Please activate a semester.
-					</AlertDescription>
-				</Alert>
-			</div>
-		);
-	}
 
 	return (
 		<div className="space-y-6">

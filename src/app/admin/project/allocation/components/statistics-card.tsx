@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { AllocationData } from '../types';
+import { GeneratedAllocationData } from '../types';
 import { PreferenceDistributionChart } from './preference-distribution-chart';
 
 type StatisticsCardsProps = {
-	data: AllocationData | null;
+	data: GeneratedAllocationData | null;
 	isGenerating: boolean;
 };
 

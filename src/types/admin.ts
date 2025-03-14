@@ -9,3 +9,11 @@ export type Semester = {
 	updatedAt: Date;
 	selectedAllocationId: number;
 };
+
+export type AllocationData = {
+	allocationId: number;
+	timestamp: Date;
+	name: string;
+	data: string;
+	semesterId: number;
+};
