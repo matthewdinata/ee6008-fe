@@ -1,6 +1,6 @@
 'use server';
 
-import { GeneratedAllocationData } from '@/app/admin/project/allocation/types';
+import { AllocationDetails } from '@/types';
 
 import { fetcherFn } from '../../functions';
 
@@ -8,7 +8,7 @@ export type GetAllocationsBySemesterResponseData = Array<{
 	allocationId: number;
 	timestamp: string;
 	name: string;
-	data: GeneratedAllocationData;
+	data: AllocationDetails;
 }> | null;
 
 export async function getAllocationsBySemester(

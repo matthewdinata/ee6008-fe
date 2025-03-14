@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 
-import { Allocation, AllocationData } from '../types';
+import { Allocation, GeneratedAllocationData } from '../types';
 
 const columns: ColumnDef<Allocation>[] = [
 	{
@@ -84,7 +84,7 @@ const columns: ColumnDef<Allocation>[] = [
 ];
 
 type AllocationResultsProps = {
-	data: AllocationData | null;
+	data: GeneratedAllocationData | null;
 	isGenerating: boolean;
 };
 
@@ -102,7 +102,7 @@ export function AllocationResults({ data, isGenerating }: AllocationResultsProps
 					data && (
 						<DataTable
 							columns={columns}
-							data={data.allocations}
+							data={data.result.allocations}
 							filterBy="name"
 							filterName="name"
 							pageSize={6}

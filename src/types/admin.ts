@@ -17,3 +17,19 @@ export type AllocationData = {
 	data: string;
 	semesterId: number;
 };
+
+export type AllocationDetails = {
+	allocations: Array<{
+		studentId: number;
+		name: string;
+		matriculationNumber: string;
+		projectId: number;
+		priority: number;
+		status: string;
+	}>;
+	allocationRate: number;
+	averagePreference: number;
+	preferenceDistribution: { [key: string]: number };
+	unallocatedStudents: Array<number>;
+	droppedProjects: Array<number>;
+};

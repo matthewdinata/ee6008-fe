@@ -28,8 +28,11 @@ async function AllocationData() {
 		);
 	}
 
-	const allocationData: GeneratedAllocationData | null = selectedAllocationData?.data
-		? JSON.parse(JSON.stringify(selectedAllocationData.data))
+	const allocationData: GeneratedAllocationData | null = selectedAllocationData
+		? {
+				allocationId: selectedAllocationData.allocationId,
+				result: JSON.parse(JSON.stringify(selectedAllocationData.data)),
+			}
 		: null;
 
 	return <AllocationContainer activeSemester={activeSemester} initialData={allocationData} />;
@@ -37,7 +40,7 @@ async function AllocationData() {
 
 export default async function GenerateAllocationPage() {
 	return (
-		<Suspense fallback={<Skeleton className="h-48 w-full" />}>
+		<Suspense fallback={<Skeleton className="h-96 w-full" />}>
 			<AllocationData />
 		</Suspense>
 	);

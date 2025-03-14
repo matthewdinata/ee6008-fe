@@ -1,4 +1,4 @@
-import { CheckCheck, FileDown, History, Play } from 'lucide-react';
+import { Check, FileDown, History, Play } from 'lucide-react';
 import { useState } from 'react';
 
 import { useGetAllocationsBySemester } from '@/utils/hooks/use-get-allocations-by-semester';
@@ -33,7 +33,6 @@ function AllocationHistory({
 	onApply: (allocationData: GeneratedAllocationData) => void;
 }) {
 	const { data, isLoading } = useGetAllocationsBySemester(semesterId);
-	console.log(data);
 
 	return (
 		<>
@@ -76,9 +75,12 @@ function AllocationHistory({
 												variant="outline"
 												size="sm"
 												onClick={() =>
-													onApply(
-														allocation.data as GeneratedAllocationData
-													)
+													onApply({
+														allocationId: allocation.allocationId,
+														result: JSON.parse(
+															JSON.stringify(allocation.data)
+														),
+													})
 												}
 											>
 												Apply
@@ -153,8 +155,8 @@ export function ActionButtons({
 					onClick={() => console.log('TODO')}
 					disabled={!hasData || isGenerating}
 				>
-					<CheckCheck className="w-4 h-4" />
-					Set Active Allocation
+					<Check className="w-4 h-4" />
+					Set as Active
 				</Button>
 			</div>
 		</div>
