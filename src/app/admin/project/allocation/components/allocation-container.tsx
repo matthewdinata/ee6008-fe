@@ -58,10 +58,15 @@ function AllocationContainer({ activeSemester, initialData }: AllocationContaine
 
 			{!allocationData && !isGenerating ? (
 				<div className="mt-8">
-					<Alert variant="default" className="bg-amber-50 border-amber-200">
-						<AlertCircle className="h-4 w-4 text-amber-500" />
-						<AlertTitle className="text-amber-600">No Allocations Found</AlertTitle>
-						<AlertDescription className="text-gray-700">
+					<Alert
+						variant="default"
+						className="bg-amber-50 dark:bg-amber-700/20 border-amber-200 dark:border-amber-300"
+					>
+						<AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+						<AlertTitle className="text-amber-600 dark:text-amber-500">
+							No Allocations Found
+						</AlertTitle>
+						<AlertDescription className="text-foreground dark:text-foreground/80">
 							No project allocation is currently active. Apply an allocation
 							from&nbsp;
 							<span className="font-medium">&quot;History&quot;</span>

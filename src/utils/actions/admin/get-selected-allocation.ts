@@ -14,6 +14,7 @@ export async function getSelectedAllocation(
 			`admin/semesters/${semesterId}/allocation`,
 			{
 				method: 'GET',
+				cache: 'no-store',
 			},
 			{
 				next: { tags: ['selected-allocation'] },

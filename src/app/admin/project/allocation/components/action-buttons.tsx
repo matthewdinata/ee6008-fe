@@ -97,7 +97,7 @@ function AllocationHistory({
 								</TableBody>
 							</Table>
 
-							<p className="text-sm text-gray-500 mt-2">
+							<p className="text-sm text-muted-foreground mt-2">
 								Note: Only displaying the last 20 allocation data.
 							</p>
 						</>
@@ -146,9 +146,6 @@ export function ActionButtons({
 			if (semesterId && allocationData) {
 				if (isActive) {
 					clearSelectedAllocation(semesterId, {
-						onSuccess: () => {
-							setAllocationData(null);
-						},
 						onError: (error) => {
 							console.error('Failed to clear selected allocation:', error);
 						},
