@@ -50,54 +50,63 @@ function AllocationHistory({
 			) : (
 				<div className="max-h-[400px] overflow-y-auto">
 					{data && data.length > 0 ? (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>ID</TableHead>
-									<TableHead>Timestamp</TableHead>
-									<TableHead>Allocation Rate</TableHead>
-									<TableHead>Dropped Projects</TableHead>
-									<TableHead>Action</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{data.map((allocation, idx) => (
-									<TableRow key={`${allocation.allocationId}-${idx}`}>
-										<TableCell>{allocation.allocationId?.toString()}</TableCell>
-										<TableCell>
-											{new Date(allocation.timestamp).toLocaleString()}
-										</TableCell>
-										<TableCell>
-											{allocation.data?.allocationRate.toFixed(2)}%
-										</TableCell>
-										<TableCell>
-											{allocation.data?.droppedProjects.length}
-										</TableCell>
-										<TableCell>
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() =>
-													onApply({
-														allocationId: allocation.allocationId,
-														result: JSON.parse(
-															JSON.stringify(allocation.data)
-														),
-													})
-												}
-											>
-												Apply
-											</Button>
-										</TableCell>
+						<>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>ID</TableHead>
+										<TableHead>Timestamp</TableHead>
+										<TableHead>Allocation Rate</TableHead>
+										<TableHead>Dropped Projects</TableHead>
+										<TableHead>Action</TableHead>
 									</TableRow>
-								))}
-							</TableBody>
-						</Table>
+								</TableHeader>
+								<TableBody>
+									{data.map((allocation, idx) => (
+										<TableRow key={`${allocation.allocationId}-${idx}`}>
+											<TableCell>
+												{allocation.allocationId?.toString()}
+											</TableCell>
+											<TableCell>
+												{new Date(allocation.timestamp).toLocaleString()}
+											</TableCell>
+											<TableCell>
+												{allocation.data?.allocationRate.toFixed(2)}%
+											</TableCell>
+											<TableCell>
+												{allocation.data?.droppedProjects.length}
+											</TableCell>
+											<TableCell>
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={() =>
+														onApply({
+															allocationId: allocation.allocationId,
+															result: JSON.parse(
+																JSON.stringify(allocation.data)
+															),
+														})
+													}
+												>
+													Apply
+												</Button>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+
+							<p className="text-sm text-gray-500 mt-2">
+								Note: Only displaying the last 20 allocation data.
+							</p>
+						</>
 					) : (
 						<div>No allocations found.</div>
 					)}
 				</div>
 			)}
+
 			<DialogClose asChild className="mt-1">
 				<Button>Close</Button>
 			</DialogClose>
@@ -194,7 +203,7 @@ export function ActionButtons({
 					<FileDown className="w-4 h-4" />
 					Export to CSV
 				</Button>
-				{/* TODO: implement API */}
+
 				<Button
 					variant="outline"
 					onClick={handleIsActiveButtonClick}
