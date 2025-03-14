@@ -21,7 +21,7 @@ export async function getAllocationsBySemester(
 				method: 'GET',
 			},
 			{
-				next: { tags: ['allocations-by-semester'] },
+				next: { tags: [`allocations-by-semester-${semesterId}`] },
 			}
 		);
 

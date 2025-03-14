@@ -24,15 +24,17 @@ export async function fetcherFn<T = any>(
 		throw new Error('Backend API URL is not defined');
 	}
 
-	const { headers = {} } = options;
+	const { method, headers = {}, cache, next } = options;
 
 	const fetchOptions: RequestInit & { next?: NextFetchRequestConfig } = {
-		method: options.method,
+		method: method,
 		headers: {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${process.env.BACKEND_API_KEY}`,
 			...headers,
 		},
+		cache: cache,
+		next: next,
 	};
 
 	if (data && options.method !== 'GET') {
@@ -42,8 +44,6 @@ export async function fetcherFn<T = any>(
 
 	try {
 		const response = await fetch(`${apiUrl}/api/${path}`, fetchOptions);
-
-		console.log(`${apiUrl}/api/${path}`);
 
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);

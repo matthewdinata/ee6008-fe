@@ -49,9 +49,9 @@ function AllocationContainer({ activeSemester, initialData }: AllocationContaine
 	return (
 		<div className="space-y-6">
 			<ActionButtons
-				onGenerate={handleGenerateAllocation}
-				isGenerating={isGenerating}
-				hasData={!!allocationData}
+				handleGenerate={handleGenerateAllocation}
+				isPending={isGenerating}
+				allocationData={allocationData}
 				semesterId={activeSemester.id}
 				setAllocationData={setAllocationData}
 			/>
@@ -62,9 +62,12 @@ function AllocationContainer({ activeSemester, initialData }: AllocationContaine
 						<AlertCircle className="h-4 w-4 text-amber-500" />
 						<AlertTitle className="text-amber-600">No Allocations Found</AlertTitle>
 						<AlertDescription className="text-gray-700">
-							No project allocation is currently active. Click{' '}
-							<span className="font-medium">&quot;Generate Allocation&quot;</span> to
-							start the process.
+							No project allocation is currently active. Apply an allocation
+							from&nbsp;
+							<span className="font-medium">&quot;History&quot;</span>
+							&nbsp;or click&nbsp;
+							<span className="font-medium">&quot;Generate Allocation&quot;</span>
+							&nbsp;to create a new allocation.
 						</AlertDescription>
 					</Alert>
 				</div>
