@@ -4,7 +4,7 @@ import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { Semester } from '@/types';
-import { useGenerateAllocations } from '@/utils/hooks/use-generate-allocations';
+import { useGenerateAllocations } from '@/utils/hooks/admin/use-generate-allocations';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 

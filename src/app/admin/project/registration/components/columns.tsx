@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 
-import { useGetRegistrationsByProjectId } from '@/utils/hooks/use-get-registrations-by-project-id';
+import { useGetRegistrationsByProjectId } from '@/utils/hooks/admin/use-get-registrations-by-project-id';
 
 import { Button } from '@/components/ui/button';
 import {

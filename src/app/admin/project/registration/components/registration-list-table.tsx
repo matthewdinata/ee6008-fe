@@ -1,6 +1,6 @@
 'use client';
 
-import { useGetRegistrationsGroupByProjects } from '@/utils/hooks/use-get-registrations-group-by-projects';
+import { useGetRegistrationsGroupByProjects } from '@/utils/hooks/admin/use-get-registrations-group-by-projects';
 
 import { DataTable } from '@/components/ui/data-table';
 import { Skeleton } from '@/components/ui/skeleton';

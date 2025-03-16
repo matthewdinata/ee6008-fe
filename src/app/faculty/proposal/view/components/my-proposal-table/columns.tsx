@@ -3,6 +3,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 
+import { ProposalStatus } from '@/types/faculty';
+import { ProposalResponse } from '@/utils/actions/faculty/get-proposals-by-faculty-id';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,11 +15,10 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { Proposal, ProposalStatus } from './types';
-
-export const columns: ColumnDef<Proposal>[] = [
+export const columns: ColumnDef<ProposalResponse>[] = [
 	{
 		accessorKey: 'title',
+		id: 'title',
 		header: ({ column }) => {
 			return (
 				<Button
@@ -29,22 +31,73 @@ export const columns: ColumnDef<Proposal>[] = [
 				</Button>
 			);
 		},
+		meta: {
+			header: 'Title',
+		},
 	},
 	{
-		accessorKey: 'semester',
+		accessorKey: 'semester.name',
+		id: 'semester',
 		header: 'Semester',
+		cell: ({ row }) => {
+			const semesterName = row.original.semester.name;
+			const semesterNumber = semesterName.split(' ')[1];
+			return <span>{semesterNumber}</span>;
+		},
+		meta: {
+			header: 'Semester',
+		},
 	},
 	{
-		accessorKey: 'programme',
-		header: 'Programme',
+		accessorKey: 'semester.academicYear',
+		id: 'academicYear',
+		header: 'Year',
+		meta: {
+			header: 'Year',
+		},
 	},
 	{
-		accessorKey: 'reviewer',
-		header: 'Reviewer',
+		accessorKey: 'programme.name',
+		id: 'programme',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					className="px-0 hover:bg-transparent"
+				>
+					Programme
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
+		meta: {
+			header: 'Programme',
+		},
+	},
+	{
+		accessorKey: 'venue.name',
+		id: 'venue',
+		header: 'Venue',
+		meta: {
+			header: 'Venue',
+		},
 	},
 	{
 		accessorKey: 'status',
-		header: 'Status',
+		id: 'status',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					className="px-0 hover:bg-transparent"
+				>
+					Status
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
 		cell: ({ row }) => {
 			const status = row.original.status;
 			let variant: 'outline' | 'outlineSuccess' | 'outlinePending' | 'outlineFail' =
@@ -58,14 +111,21 @@ export const columns: ColumnDef<Proposal>[] = [
 				variant = 'outlineFail';
 			}
 
-			return <Badge variant={variant}>{status}</Badge>;
+			return (
+				<Badge variant={variant} className="capitalize">
+					{status}
+				</Badge>
+			);
+		},
+		meta: {
+			header: 'Status',
 		},
 	},
 	{
 		id: 'actions',
 		enableHiding: false,
 		cell: ({ row }) => {
-			const proposal = row.original;
+			const project = row.original;
 
 			return (
 				<DropdownMenu>
@@ -76,11 +136,8 @@ export const columns: ColumnDef<Proposal>[] = [
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
-						<DropdownMenuItem>Edit</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={() => console.log(`Deleting proposal (ID: ${proposal.id})`)}
-						>
-							Delete
+						<DropdownMenuItem onClick={() => console.log('Viewing', project)}>
+							View details
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

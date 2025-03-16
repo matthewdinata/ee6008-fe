@@ -1,23 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { toggleSelectedAllocation } from '../actions/admin/toggle-selected-allocation';
+import { clearSelectedAllocation } from '../../actions/admin/clear-selected-allocation';
 
-export const useToggleSelectedAllocation = () => {
+export const useClearSelectedAllocation = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: async ({
-			semesterId,
-			allocationId,
-		}: {
-			semesterId: number;
-			allocationId: number;
-		}) => {
+		mutationFn: async (semesterId: number) => {
 			try {
-				const result = await toggleSelectedAllocation({
-					semesterId,
-					allocationId,
-				});
-
+				const result = await clearSelectedAllocation(semesterId);
 				return result;
 			} catch (error) {
 				console.error('Error in mutation function:', error);
@@ -35,7 +25,7 @@ export const useToggleSelectedAllocation = () => {
 			});
 		},
 		onError: (error) => {
-			console.error('The useToggleSelectedAllocation mutation failed with error:', error);
+			console.error('The useClearSelectedAllocation mutation failed with error:', error);
 		},
 	});
 };
