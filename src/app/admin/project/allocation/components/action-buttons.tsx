@@ -2,10 +2,10 @@ import { Check, CheckCheck, FileDown, History, Play } from 'lucide-react';
 import { useState } from 'react';
 import { CSVLink } from 'react-csv';
 
-import { useClearSelectedAllocation } from '@/utils/hooks/use-clear-selected-allocation';
-import { useGetAllocationsBySemester } from '@/utils/hooks/use-get-allocations-by-semester';
-import { useGetSelectedAllocation } from '@/utils/hooks/use-get-selected-allocation';
-import { useToggleSelectedAllocation } from '@/utils/hooks/use-toggle-selected-allocation';
+import { useClearSelectedAllocation } from '@/utils/hooks/admin/use-clear-selected-allocation';
+import { useGetAllocationsBySemester } from '@/utils/hooks/admin/use-get-allocations-by-semester';
+import { useGetSelectedAllocation } from '@/utils/hooks/admin/use-get-selected-allocation';
+import { useToggleSelectedAllocation } from '@/utils/hooks/admin/use-toggle-selected-allocation';
 
 import { Button } from '@/components/ui/button';
 import {

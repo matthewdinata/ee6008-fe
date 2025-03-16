@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { generateAllocations } from '../actions/admin/generate-allocations';
+import { generateAllocations } from '../../actions/admin/generate-allocations';
 
 export const useGenerateAllocations = () => {
 	const queryClient = useQueryClient();

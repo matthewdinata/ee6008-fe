@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getSelectedAllocation } from '../actions/admin/get-selected-allocation';
+import { getSelectedAllocation } from '../../actions/admin/get-selected-allocation';
 
 export const useGetSelectedAllocation = (semesterId: number) => {
 	return useQuery({

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getAllocationsBySemester } from '../actions/admin/get-allocations-by-semester';
+import { getAllocationsBySemester } from '../../actions/admin/get-allocations-by-semester';
 
 export const useGetAllocationsBySemester = (semesterId: number) => {
 	return useQuery({
