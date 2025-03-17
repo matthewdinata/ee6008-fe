@@ -1,9 +1,9 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Loader2, Upload } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import { useState } from 'react';
+
+import { uploadFile } from '@/utils/actions/admin/upload';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,6 @@ export function FileUpload() {
 	const [isUploading, setIsUploading] = useState(false);
 	const [successMessage, setSuccessMessage] = useState('');
 	const [errorMessage, setErrorMessage] = useState('');
-
-	const supabase = createClientComponentClient();
-	const router = useRouter();
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files.length > 0) {
@@ -37,26 +34,11 @@ export function FileUpload() {
 		setSuccessMessage('');
 
 		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-
-			if (!session) {
-				router.push('/signin');
-				return;
-			}
-
 			const formData = new FormData();
 			formData.append('file', file);
 
-			// Example upload endpoint - update with your actual API endpoint
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/upload`, {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-				},
-				body: formData,
-			});
+			// Use the uploadFile utility function which handles session management internally
+			const response = await uploadFile(formData);
 
 			if (!response.ok) {
 				const errorData = await response.json().catch(() => ({}));

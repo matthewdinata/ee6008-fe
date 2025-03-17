@@ -1,9 +1,9 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-react';
-import React from 'react';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
+
+import { deleteUser, fetchStudentUsers } from '@/utils/actions/admin/upload';
 
 import {
 	AlertDialog,
@@ -44,14 +44,13 @@ interface User {
 	is_active: boolean;
 }
 
-export default function UserTable() {
+export function UserTable() {
 	const [allUsers, setAllUsers] = useState<User[]>([]); // Store all fetched users
 	const [isLoading, setIsLoading] = useState(false);
 	const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState('10');
-	const supabase = createClientComponentClient();
 
 	// Filter users based on search query
 	const filteredUsers = useMemo(() => {
@@ -71,29 +70,10 @@ export default function UserTable() {
 	const endIndex = startIndex + parseInt(pageSize);
 	const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
-	const fetchUsers = async () => {
+	const fetchAllStudents = async () => {
 		try {
 			setIsLoading(true);
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-
-			if (!session) {
-				throw new Error('No session found');
-			}
-
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users-student`, {
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-					'Content-Type': 'application/json',
-				},
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to fetch users');
-			}
-
-			const data = await response.json();
+			const data = await fetchStudentUsers();
 			const formattedData = data.map((user: User) => ({
 				id: user.student_id,
 				email: user.email,
@@ -102,12 +82,11 @@ export default function UserTable() {
 				academic_year: user.academic_year,
 				is_active: user.is_active,
 			}));
-
 			setAllUsers(formattedData);
 			setCurrentPage(1); // Reset to first page when new data is fetched
 			setSearchQuery(''); // Clear search when new data is fetched
 		} catch (error) {
-			console.error('Error:', error);
+			console.error('Error fetching students:', error);
 		} finally {
 			setIsLoading(false);
 		}
@@ -116,29 +95,7 @@ export default function UserTable() {
 	const handleDelete = async (userId: number) => {
 		try {
 			setDeleteLoading(userId);
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-
-			if (!session) {
-				throw new Error('No session found');
-			}
-
-			const response = await fetch(
-				`${process.env.BACKEND_API_URL}/api/admin/users/${userId}`,
-				{
-					method: 'DELETE',
-					headers: {
-						Authorization: `Bearer ${session.access_token}`,
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error('Failed to delete user');
-			}
-
+			await deleteUser(userId.toString());
 			// Remove the deleted user from the local state
 			setAllUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
 		} catch (error) {
@@ -160,7 +117,7 @@ export default function UserTable() {
 				<div className="flex justify-between items-center">
 					<h2 className="text-2xl font-bold">User List</h2>
 					<Button
-						onClick={fetchUsers}
+						onClick={fetchAllStudents}
 						disabled={isLoading}
 						className="flex items-center gap-2"
 					>

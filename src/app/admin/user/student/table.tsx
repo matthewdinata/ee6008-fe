@@ -1,9 +1,9 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-react';
-import React from 'react';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
+
+import { User, deleteUser, fetchFacultyUsers } from '@/utils/actions/admin/user';
 
 import {
 	AlertDialog,
@@ -34,14 +34,6 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
-interface User {
-	id: number;
-	user_id: number;
-	email: string;
-	name: string;
-	is_course_coordinator: boolean;
-}
-
 export default function UserTable() {
 	const [allUsers, setAllUsers] = useState<User[]>([]); // Store all fetched users
 	const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +41,6 @@ export default function UserTable() {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState('10');
-	const supabase = createClientComponentClient();
 
 	// Filter users based on search query
 	const filteredUsers = useMemo(() => {
@@ -72,34 +63,8 @@ export default function UserTable() {
 	const fetchUsers = async () => {
 		try {
 			setIsLoading(true);
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-
-			if (!session) {
-				throw new Error('No session found');
-			}
-
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users-faculty`, {
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-					'Content-Type': 'application/json',
-				},
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to fetch users');
-			}
-
-			const data = await response.json();
-			console.log(data);
-			const formattedData = data.map((user: User) => ({
-				user_id: user.user_id,
-				email: user.email,
-				name: user.name,
-				is_course_coordinator: Boolean(user.is_course_coordinator),
-			}));
-
+			// Use utility function to fetch faculty users
+			const formattedData = await fetchFacultyUsers();
 			setAllUsers(formattedData);
 
 			setCurrentPage(1); // Reset to first page when new data is fetched
@@ -114,28 +79,8 @@ export default function UserTable() {
 	const handleDelete = async (userId: number) => {
 		try {
 			setDeleteLoading(userId);
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-
-			if (!session) {
-				throw new Error('No session found');
-			}
-
-			const response = await fetch(
-				`${process.env.BACKEND_API_URL}/api/admin/users/${userId}`,
-				{
-					method: 'DELETE',
-					headers: {
-						Authorization: `Bearer ${session.access_token}`,
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error('Failed to delete user');
-			}
+			// Use utility function to delete a user
+			await deleteUser(userId);
 
 			// Remove the deleted user from the local state
 			setAllUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));

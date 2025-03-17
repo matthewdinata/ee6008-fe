@@ -1,7 +1,7 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Download, Loader2, Upload } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+
+import { bulkUploadStudent, fetchSemesters } from '@/utils/actions/admin/upload';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -37,37 +37,22 @@ export default function BulkStudentUpload() {
 	const [debugLog, setDebugLog] = useState<string[]>([]);
 	const [successMessage, setSuccessMessage] = useState('');
 	const [errorMessage, setErrorMessage] = useState('');
-	const [selectedSemester, setSelectedSemester] = useState('');
 	const [semesters, setSemesters] = useState<Semester[]>([]);
 	const [loadingSemesters, setLoadingSemesters] = useState(false);
+	const [selectedSemester, setSelectedSemester] = useState('');
 
-	const supabase = createClientComponentClient();
-	const router = useRouter();
 	const addDebugMessage = (msg: string) => {
 		const timestamp = new Date().toLocaleTimeString();
 		setDebugLog((prev) => [...prev, `${timestamp}: ${msg}`]);
 	};
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const fetchSemesters = async () => {
+	const fetchSemestersData = async () => {
 		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (!session) {
-				addDebugMessage('No session found for fetching semesters');
-				return;
-			}
-
 			setLoadingSemesters(true);
 			addDebugMessage('Fetching semesters...');
 
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/semesters`, {
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-				},
-			});
-			const data = await response.json();
+			const data = await fetchSemesters();
 			setSemesters(data);
 			addDebugMessage(`Fetched ${data.length} semesters`);
 		} catch (error) {
@@ -77,9 +62,11 @@ export default function BulkStudentUpload() {
 			setLoadingSemesters(false);
 		}
 	};
+
 	useEffect(() => {
-		fetchSemesters();
-	}, [fetchSemesters]);
+		fetchSemestersData();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files.length > 0) {
@@ -134,17 +121,6 @@ export default function BulkStudentUpload() {
 		addDebugMessage('Starting file upload process...');
 
 		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			addDebugMessage('Checking authentication session...');
-
-			if (!session) {
-				addDebugMessage('No active session found. Redirecting to signin...');
-				router.push('/signin');
-				return;
-			}
-
 			addDebugMessage('Preparing form data for upload...');
 			const formData = new FormData();
 			formData.append('file', file);
@@ -152,51 +128,15 @@ export default function BulkStudentUpload() {
 			// Log the semester ID being sent
 			addDebugMessage(`Using semester ID: ${selectedSemester}`);
 
-			// Construct URL with query parameter
-			const url = new URL(
-				`${process.env.BACKEND_API_URL}/api/admin/users/bulk-upload-student`
-			);
-			url.searchParams.append('semester_id', selectedSemester);
-
 			addDebugMessage('Sending file to server...');
-			const response = await fetch(url.toString(), {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-				},
-				body: formData,
-			});
+			const response = await bulkUploadStudent(formData, selectedSemester);
 
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}));
-				throw new Error(errorData.message || `Upload failed: ${response.statusText}`);
+			if (!response) {
+				throw new Error('Upload failed: No response received');
 			}
 
-			const result = await response.json();
-			addDebugMessage('Received response from server');
-
-			// Safely check the response structure
-			const successCount = result?.success?.length || 0;
-			const failedCount = result?.failed?.length || 0;
-
-			if (failedCount > 0) {
-				setErrorMessage(
-					`Upload completed with ${failedCount} errors. Check debug log for details.`
-				);
-				if (Array.isArray(result.failed)) {
-					result.failed.forEach((failure: { email: string; error: string }) => {
-						addDebugMessage(`Failed to upload ${failure.email}: ${failure.error}`);
-					});
-				}
-			}
-
-			if (successCount > 0) {
-				addDebugMessage(`Successfully uploaded ${successCount} students`);
-				setSuccessMessage(`✓ Successfully uploaded ${successCount} students!`);
-			} else if (failedCount === 0) {
-				setErrorMessage('No records were processed. Please check your file format.');
-			}
-
+			addDebugMessage('File uploaded successfully!');
+			setSuccessMessage('✓ Students have been successfully uploaded!');
 			setFile(null);
 			// Reset file input
 			const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;

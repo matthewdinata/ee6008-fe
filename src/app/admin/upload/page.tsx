@@ -1,9 +1,9 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Download, Loader2, Upload } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+
+import { bulkUpload } from '@/utils/actions/admin/upload';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,6 @@ export default function BulkUserUpload() {
 	const [debugLog, setDebugLog] = useState<string[]>([]);
 	const [successMessage, setSuccessMessage] = useState('');
 	const [errorMessage, setErrorMessage] = useState('');
-	const supabase = createClientComponentClient();
-	const router = useRouter();
 
 	const addDebugMessage = (msg: string) => {
 		const timestamp = new Date().toLocaleTimeString();
@@ -68,7 +66,7 @@ export default function BulkUserUpload() {
 
 	const handleUpload = async () => {
 		if (!file) {
-			setErrorMessage('Please select a file before uploading.');
+			setErrorMessage('Please select a file to upload');
 			addDebugMessage('Upload attempted without file selection');
 			return;
 		}
@@ -79,35 +77,15 @@ export default function BulkUserUpload() {
 		addDebugMessage('Starting file upload process...');
 
 		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			addDebugMessage('Checking authentication session...');
-
-			if (!session) {
-				addDebugMessage('No active session found. Redirecting to signin...');
-				router.push('/signin');
-				return;
-			}
-
 			addDebugMessage('Preparing form data for upload...');
 			const formData = new FormData();
 			formData.append('file', file);
 
 			addDebugMessage('Sending file to server...');
-			const response = await fetch(
-				`${process.env.BACKEND_API_URL}/api/admin/users/bulk-upload`,
-				{
-					method: 'POST',
-					headers: {
-						Authorization: `Bearer ${session.access_token}`,
-					},
-					body: formData,
-				}
-			);
+			const response = await bulkUpload(formData);
 
-			if (!response.ok) {
-				throw new Error(`Upload failed: ${response.statusText}`);
+			if (!response) {
+				throw new Error('Upload failed: No response received');
 			}
 
 			addDebugMessage('File uploaded successfully!');
@@ -225,5 +203,3 @@ export default function BulkUserUpload() {
 		</div>
 	);
 }
-
-//  export default BulkUserUpload;

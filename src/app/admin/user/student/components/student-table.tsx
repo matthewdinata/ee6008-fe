@@ -86,13 +86,6 @@ export function StudentTable() {
 			}
 			const response = await getUsers(session.access_token);
 
-			// const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users-faculty`, {
-			// 	headers: {
-			// 		Authorization: `Bearer ${session.access_token}`,
-			// 		'Content-Type': 'application/json',
-			// 	},
-			// });
-
 			if (!response.success) {
 				throw new Error(response.error || 'Failed to fetch users');
 			}
@@ -129,16 +122,6 @@ export function StudentTable() {
 				throw new Error('No session found');
 			}
 			const response = await deleteUser(userId, session.access_token);
-			// const response = await fetch(
-			// 	`${process.env.BACKEND_API_URL}/api/admin/users/${userId}`,
-			// 	{
-			// 		method: 'DELETE',
-			// 		headers: {
-			// 			Authorization: `Bearer ${session.access_token}`,
-			// 			'Content-Type': 'application/json',
-			// 		},
-			// 	}
-			// );
 
 			if (!response.success) {
 				throw new Error(response.error || 'Failed to delete user');

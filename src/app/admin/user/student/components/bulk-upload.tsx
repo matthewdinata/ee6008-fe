@@ -2,10 +2,10 @@
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Download, Loader2, Upload } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 import { getSemesters } from '@/utils/actions/admin/fetch';
+import { bulkUploadStudents } from '@/utils/actions/admin/user';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -27,57 +27,24 @@ interface Semester {
 	status: string;
 }
 
-export function BulkStudentUpload() {
+export default function BulkStudentUpload(): React.ReactElement {
+	// State hooks
 	const [file, setFile] = useState<File | null>(null);
-	const [isUploading, setIsUploading] = useState(false);
-	const [debugLog, setDebugLog] = useState<string[]>([]);
-	const [successMessage, setSuccessMessage] = useState('');
-	const [errorMessage, setErrorMessage] = useState('');
-	const [selectedSemester, setSelectedSemester] = useState('');
+	const [selectedSemester, setSelectedSemester] = useState<string>('');
 	const [semesters, setSemesters] = useState<Semester[]>([]);
-	const [loadingSemesters, setLoadingSemesters] = useState(false);
+	const [loadingSemesters, setLoadingSemesters] = useState<boolean>(false);
+	const [isUploading, setIsUploading] = useState<boolean>(false);
+	const [successMessage, setSuccessMessage] = useState<string>('');
+	const [errorMessage, setErrorMessage] = useState<string>('');
+	const [debugLog, setDebugLog] = useState<string[]>([]);
 
 	const supabase = createClientComponentClient();
-	const router = useRouter();
-
-	useEffect(() => {
-		fetchSemesters();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
 
 	const addDebugMessage = (msg: string) => {
 		const timestamp = new Date().toLocaleTimeString();
 		setDebugLog((prev) => [...prev, `${timestamp}: ${msg}`]);
 	};
 
-	// const fetchSemesters = async () => {
-	// 	try {
-	// 		const {
-	// 			data: { session },
-	// 		} = await supabase.auth.getSession();
-	// 		if (!session) {
-	// 			addDebugMessage('No session found for fetching semesters');
-	// 			return;
-	// 		}
-
-	// 		setLoadingSemesters(true);
-	// 		addDebugMessage('Fetching semesters...');
-
-	// 		const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/semesters`, {
-	// 			headers: {
-	// 				Authorization: `Bearer ${session.access_token}`,
-	// 			},
-	// 		});
-	// 		const data = await response.json();
-	// 		setSemesters(data);
-	// 		addDebugMessage(`Fetched ${data.length} semesters`);
-	// 	} catch (error) {
-	// 		addDebugMessage(`Error fetching semesters: ${error}`);
-	// 		console.error('Error fetching semesters:', error);
-	// 	} finally {
-	// 		setLoadingSemesters(false);
-	// 	}
-	// };
 	const fetchSemesters = async () => {
 		try {
 			addDebugMessage('Fetching semesters...');
@@ -133,76 +100,59 @@ export function BulkStudentUpload() {
 
 		addDebugMessage('Template download completed');
 	};
+
 	const handleUpload = async () => {
+		// Clear previous messages
+		setSuccessMessage('');
+		setErrorMessage('');
+		setDebugLog([]);
+
 		if (!file) {
-			setErrorMessage('Please select a file before uploading.');
-			addDebugMessage('Upload attempted without file selection');
+			setErrorMessage('Please select a file to upload');
 			return;
 		}
 
 		if (!selectedSemester) {
-			setErrorMessage('Please select a semester before uploading.');
-			addDebugMessage('Upload attempted without semester selection');
+			setErrorMessage('Please select a semester');
 			return;
 		}
 
 		setIsUploading(true);
-		setErrorMessage('');
-		setSuccessMessage('');
-		addDebugMessage('Starting file upload process...');
+		addDebugMessage('Starting upload process...');
 
 		try {
+			// Get current session
 			const {
 				data: { session },
 			} = await supabase.auth.getSession();
-			addDebugMessage('Checking authentication session...');
 
 			if (!session) {
-				addDebugMessage('No active session found. Redirecting to signin...');
-				router.push('/signin');
-				return;
+				throw new Error('No active session found');
 			}
-
-			addDebugMessage('Preparing form data for upload...');
-			const formData = new FormData();
-			formData.append('file', file);
 
 			// Log the semester ID being sent
 			addDebugMessage(`Using semester ID: ${selectedSemester}`);
 
-			// Construct URL with query parameter
-			const url = new URL(
-				`${process.env.BACKEND_API_URL}/api/admin/users/bulk-upload-students`
-			);
-			url.searchParams.append('semester_id', selectedSemester);
+			const result = await bulkUploadStudents(file, selectedSemester);
 
-			addDebugMessage('Sending file to server...');
-			const response = await fetch(url.toString(), {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-				},
-				body: formData,
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}));
-				throw new Error(errorData.message || `Upload failed: ${response.statusText}`);
+			if (!result.success) {
+				addDebugMessage(`Error uploading students: ${result.error}`);
+				setErrorMessage(result.error);
+				return;
 			}
 
-			const result = await response.json();
 			addDebugMessage('Received response from server');
 
 			// Safely check the response structure
-			const successCount = result?.success?.length || 0;
-			const failedCount = result?.failed?.length || 0;
+			const successCount = result.data.success.length;
+			const failedCount = result.data.failed.length;
 
 			if (failedCount > 0) {
 				setErrorMessage(
 					`Upload completed with ${failedCount} errors. Check debug log for details.`
 				);
-				if (Array.isArray(result.failed)) {
-					result.failed.forEach((failure: { email: string; error: string }) => {
+				if (Array.isArray(result.data.failed)) {
+					result.data.failed.forEach((failure: { email: string; error: string }) => {
 						addDebugMessage(`Failed to upload ${failure.email}: ${failure.error}`);
 					});
 				}
@@ -231,6 +181,11 @@ export function BulkStudentUpload() {
 			setIsUploading(false);
 		}
 	};
+
+	useEffect(() => {
+		fetchSemesters();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return (
 		<div className="container mx-auto p-6">

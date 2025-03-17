@@ -1,9 +1,9 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import { createUser, fetchSemesters } from '@/utils/actions/admin/upload';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,63 +28,24 @@ interface FormData {
 interface FormErrors {
 	email?: string;
 	name?: string;
-	role?: string;
 	studentId?: string;
-	semesterId?: number;
+	role?: string;
+	semesterId?: string;
 }
 
-// Add Semester interface
 interface Semester {
 	id: number;
-	academic_year: number;
 	name: string;
+	academic_year: number;
 	is_active: boolean;
 	status: string;
 }
 
-export function SingleUserAdd() {
-	const router = useRouter();
-	const supabase = createClientComponentClient();
-
+export default function SingleUserAdd() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [role, setRole] = useState<string>('');
 	const [errors, setErrors] = useState<FormErrors>({});
-	const [debugLog, setDebugLog] = useState<string[]>([]);
 	const [successMessage, setSuccessMessage] = useState('');
-
-	const [semesters, setSemesters] = useState<Semester[]>([]);
-	const [loadingSemesters, setLoadingSemesters] = useState(false);
-
-	// Add function to fetch semesters
-	const fetchSemesters = async () => {
-		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (!session) return;
-
-			setLoadingSemesters(true);
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/semesters`, {
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-				},
-			});
-			const data = await response.json();
-			setSemesters(data);
-		} catch (error) {
-			console.error('Error fetching semesters:', error);
-		} finally {
-			setLoadingSemesters(false);
-		}
-	};
-
-	// Fetch semesters when role changes to student
-	useEffect(() => {
-		if (role === 'student') {
-			fetchSemesters();
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [role]);
 
 	const [formData, setFormData] = useState<FormData>({
 		email: '',
@@ -93,58 +54,50 @@ export function SingleUserAdd() {
 		isCoordinator: false,
 	});
 
-	const addDebugMessage = (msg: string) => {
-		const timestamp = new Date().toLocaleTimeString();
-		setDebugLog((prev) => [...prev, `${timestamp}: ${msg}`]);
+	const [semesters, setSemesters] = useState<Semester[]>([]);
+
+	const fetchSemestersData = async () => {
+		try {
+			const data = await fetchSemesters();
+			setSemesters(data);
+		} catch (error) {
+			console.error('Error fetching semesters:', error);
+		}
 	};
 
+	useEffect(() => {
+		if (role === 'student') {
+			fetchSemestersData();
+		}
+	}, [role]);
+
 	const validateForm = (): boolean => {
-		addDebugMessage('Starting form validation...');
 		const newErrors: FormErrors = {};
 
-		// Email validation
 		if (!formData.email) {
 			newErrors.email = 'Email is required';
-			addDebugMessage('Validation failed: Email is required');
 		} else if (!formData.email.endsWith('@e.ntu.edu.sg')) {
 			newErrors.email = 'Must be an NTU email address';
-			addDebugMessage('Validation failed: Invalid email domain');
-		} else {
-			addDebugMessage('Email validation passed');
 		}
 
-		// Name validation
 		if (!formData.name) {
 			newErrors.name = 'Name is required';
-			addDebugMessage('Validation failed: Name is required');
 		} else if (formData.name.length < 2) {
 			newErrors.name = 'Name must be at least 2 characters';
-			addDebugMessage('Validation failed: Name too short');
-		} else {
-			addDebugMessage('Name validation passed');
 		}
 
-		// Role validation
 		if (!role) {
 			newErrors.role = 'Role is required';
-			addDebugMessage('Validation failed: Role is required');
-		} else {
-			addDebugMessage(`Role validation passed: ${role} selected`);
 		}
 
-		// Student ID validation
 		if (role === 'student' && formData.studentId) {
 			if (!formData.studentId.startsWith('U') || formData.studentId.length !== 9) {
 				newErrors.studentId = 'Invalid student ID format (e.g., U2024123A)';
-				addDebugMessage('Validation failed: Invalid student ID format');
-			} else {
-				addDebugMessage('Student ID validation passed');
 			}
 		}
 
 		setErrors(newErrors);
 		const isValid = Object.keys(newErrors).length === 0;
-		addDebugMessage(`Form validation ${isValid ? 'successful' : 'failed'}`);
 		return isValid;
 	};
 
@@ -173,37 +126,18 @@ export function SingleUserAdd() {
 						))}
 					</SelectContent>
 				</Select>
-				{loadingSemesters && (
-					<div className="text-sm text-gray-500">Loading semesters...</div>
-				)}
 			</div>
 		);
 	}
 
 	const handleSubmit = async () => {
-		addDebugMessage('Starting form submission...');
-
 		if (!validateForm()) {
-			addDebugMessage('Form validation failed. Stopping submission.');
 			return;
 		}
 
 		setIsSubmitting(true);
-		addDebugMessage('Form validation passed. Proceeding with submission...');
 
 		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			addDebugMessage('Checking authentication session...');
-
-			if (!session) {
-				addDebugMessage('No active session found. Redirecting to signin...');
-				router.push('/signin');
-				return;
-			}
-
-			addDebugMessage('Session found. Preparing user data...');
 			const userData = {
 				email: formData.email,
 				name: formData.name,
@@ -217,26 +151,9 @@ export function SingleUserAdd() {
 				}),
 			};
 
-			addDebugMessage('Sending API request to create user...');
-			const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users`, {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(userData),
-			});
-
-			const data = await response.json();
-
-			if (!response.ok) {
-				throw new Error(data.details || data.message || 'Failed to create user');
-			}
-
-			addDebugMessage('User created successfully!');
+			await createUser(userData);
 			setSuccessMessage('✓ User has been successfully created!');
 
-			// Reset form
 			setFormData({
 				email: '',
 				name: '',
@@ -247,9 +164,6 @@ export function SingleUserAdd() {
 			setErrors({});
 		} catch (error) {
 			console.error('Error:', error);
-			addDebugMessage(
-				`Error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`
-			);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -259,7 +173,6 @@ export function SingleUserAdd() {
 		<div className="container mx-auto p-6">
 			<h1 className="text-2xl font-bold mb-4">Add Single User</h1>
 			<div className="space-y-4 max-w-lg">
-				{/* Success Message */}
 				{successMessage && (
 					<div className="bg-green-50 p-4 rounded-md mb-4">
 						<div className="flex">
@@ -285,8 +198,6 @@ export function SingleUserAdd() {
 					</div>
 				)}
 
-				{/* Existing form fields... */}
-				{/* Email Field */}
 				<div className="space-y-2">
 					<Label htmlFor="email">Email (@e.ntu.edu.sg)</Label>
 					<Input
@@ -300,8 +211,6 @@ export function SingleUserAdd() {
 					{errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
 				</div>
 
-				{/* Rest of the existing form fields... */}
-				{/* Name Field */}
 				<div className="space-y-2">
 					<Label htmlFor="name">Name</Label>
 					<Input
@@ -314,7 +223,6 @@ export function SingleUserAdd() {
 					{errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
 				</div>
 
-				{/* Role Field */}
 				<div className="space-y-2">
 					<Label htmlFor="role">Role</Label>
 					<Select value={role} onValueChange={setRole}>
@@ -331,7 +239,6 @@ export function SingleUserAdd() {
 					{errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
 				</div>
 
-				{/* Conditional Fields */}
 				{role === 'student' && (
 					<>
 						<div className="space-y-2">
@@ -355,7 +262,6 @@ export function SingleUserAdd() {
 							<Select
 								value={formData.semesterId?.toString() || ''}
 								onValueChange={(value) => {
-									addDebugMessage(`Selected semester ID: ${value}`);
 									setFormData({
 										...formData,
 										semesterId: parseInt(value),
@@ -379,9 +285,6 @@ export function SingleUserAdd() {
 									))}
 								</SelectContent>
 							</Select>
-							{loadingSemesters && (
-								<div className="text-sm text-gray-500">Loading semesters...</div>
-							)}
 							{errors.semesterId && (
 								<p className="text-sm text-red-500">{errors.semesterId}</p>
 							)}
@@ -402,7 +305,6 @@ export function SingleUserAdd() {
 					</div>
 				)}
 
-				{/* Submit Button */}
 				<Button onClick={handleSubmit} disabled={isSubmitting} className="w-full">
 					{isSubmitting ? (
 						<>
@@ -413,19 +315,7 @@ export function SingleUserAdd() {
 						'Create User'
 					)}
 				</Button>
-
-				{/* Debug Log */}
-				{process.env.NODE_ENV === 'development' && debugLog.length > 0 && (
-					<div className="mt-8 p-4 bg-gray-50 rounded-md">
-						<h3 className="text-sm font-medium text-gray-700 mb-2">Debug Log:</h3>
-						<pre className="text-xs text-gray-600 whitespace-pre-wrap">
-							{debugLog.join('\n')}
-						</pre>
-					</div>
-				)}
 			</div>
 		</div>
 	);
 }
-
-export default SingleUserAdd;
