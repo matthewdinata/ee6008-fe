@@ -4,6 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
+import { useCreateProposal } from '@/utils/hooks/faculty/use-create-proposal';
+import { useGetActiveProgrammes } from '@/utils/hooks/faculty/use-get-active-programmes';
+import { useGetActiveVenues } from '@/utils/hooks/faculty/use-get-active-venues';
+
 import { Button } from '@/components/ui/button';
 import {
 	Form,
@@ -22,6 +26,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
@@ -29,26 +34,49 @@ const formSchema = z.object({
 		.string()
 		.min(2, 'Title must be at least 2 characters')
 		.max(255, 'Title must be less than 255 characters'),
-	programme: z.string().min(1, 'Programme is required'),
+	programmeId: z.number().int().positive('Programme is required'),
 	description: z
 		.string()
 		.min(15, 'Description must be at least 15 characters')
 		.max(1000, 'Description must be less than 1000 characters'),
+	venueId: z.number().int().positive('Venue is required'),
 });
 
 export function AddProposalForm() {
+	const { data: venues, isPending: isLoadingVenues } = useGetActiveVenues();
+	const { data: programmes, isPending: isLoadingProgrammes } = useGetActiveProgrammes();
+	const { mutate: createProposal, isPending: isCreatingProposal } = useCreateProposal();
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			title: '',
-			programme: '',
+			programmeId: undefined,
 			description: '',
+			venueId: undefined,
 		},
 	});
 
 	function onSubmit(values: z.infer<typeof formSchema>) {
-		console.log(values);
+		const professorId = 56; // TODO: replace with actual professor ID
+		try {
+			if (professorId) {
+				createProposal({
+					title: values.title,
+					description: values.description,
+					professorId,
+					venueId: values.venueId,
+					programmeId: values.programmeId,
+				});
+			} else {
+				console.error('No professor ID found');
+			}
+		} catch (error) {
+			console.error('Failed to create proposal:', error);
+		}
 	}
+
+	const isLoading = isLoadingVenues || isLoadingProgrammes || isCreatingProposal;
 
 	return (
 		<Form {...form}>
@@ -73,30 +101,34 @@ export function AddProposalForm() {
 
 				<FormField
 					control={form.control}
-					name="programme"
+					name="programmeId"
 					render={({ field, fieldState }) => (
 						<FormItem>
 							<FormLabel>Programme</FormLabel>
-							<Select onValueChange={field.onChange} defaultValue={field.value}>
+							<Select
+								onValueChange={(value) => field.onChange(parseInt(value))}
+								value={field.value?.toString()}
+							>
 								<FormControl>
 									<SelectTrigger>
 										<SelectValue placeholder="Select a programme" />
 									</SelectTrigger>
 								</FormControl>
 								<SelectContent>
-									<SelectItem value="electronics">Electronics</SelectItem>
-									<SelectItem value="communications_engineering">
-										Communications Engineering
-									</SelectItem>
-									<SelectItem value="computer_control_automation">
-										Computer Control &amp; Automation
-									</SelectItem>
-									<SelectItem value="power_engineering">
-										Power Engineering
-									</SelectItem>
-									<SelectItem value="signal_processing">
-										Signal Processing
-									</SelectItem>
+									{isLoadingProgrammes ? (
+										<div className="flex items-center justify-center p-2">
+											<Skeleton className="h-8 w-full" />
+										</div>
+									) : (
+										programmes?.map((programme) => (
+											<SelectItem
+												key={programme.id}
+												value={programme.id.toString()}
+											>
+												{programme.name}
+											</SelectItem>
+										))
+									)}
 								</SelectContent>
 							</Select>
 							{fieldState.error ? (
@@ -104,6 +136,50 @@ export function AddProposalForm() {
 							) : (
 								<FormDescription>
 									The programme covering your project&#x27;s primary area
+								</FormDescription>
+							)}
+						</FormItem>
+					)}
+				/>
+
+				<FormField
+					control={form.control}
+					name="venueId"
+					render={({ field, fieldState }) => (
+						<FormItem>
+							<FormLabel>Venue</FormLabel>
+							<Select
+								onValueChange={(value) => field.onChange(parseInt(value))}
+								value={field.value?.toString()}
+							>
+								<FormControl>
+									<SelectTrigger>
+										<SelectValue placeholder="Select a venue" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									{isLoadingVenues ? (
+										<div className="flex items-center justify-center p-2">
+											<Skeleton className="h-8 w-full" />
+										</div>
+									) : (
+										venues?.map((venue) => (
+											<SelectItem key={venue.id} value={venue.id.toString()}>
+												{venue.name}
+
+												<span className="text-muted-foreground ml-2">
+													({venue.location})
+												</span>
+											</SelectItem>
+										))
+									)}
+								</SelectContent>
+							</Select>
+							{fieldState.error ? (
+								<FormMessage />
+							) : (
+								<FormDescription>
+									The venue where your project will progress or be worked on
 								</FormDescription>
 							)}
 						</FormItem>
@@ -139,7 +215,9 @@ export function AddProposalForm() {
 						</FormItem>
 					)}
 				/>
-				<Button type="submit">Submit</Button>
+				<Button type="submit" disabled={isLoading}>
+					Submit
+				</Button>
 			</form>
 		</Form>
 	);
