@@ -1,9 +1,12 @@
 'use client';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 >>>>>>> b3c3c62 (used server actions for api call)
+=======
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 import { RefreshCw } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -56,6 +59,9 @@ function getAllCookies(): Record<string, string> {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 // Function to check if session token exists and when it expires
 function getSessionTokenInfo(): { token: string | null; expiresAt: number | null } {
 	const sessionToken = getCookie('session-token');
@@ -80,6 +86,7 @@ function getSessionTokenInfo(): { token: string | null; expiresAt: number | null
 	return { token: sessionToken, expiresAt: null };
 }
 
+<<<<<<< HEAD
 export function TokenExpiryAlert() {
 	const { theme } = useTheme();
 =======
@@ -87,11 +94,16 @@ export function TokenExpiryAlert() {
 	const { theme } = useTheme();
 	const supabase = createClientComponentClient();
 >>>>>>> b3c3c62 (used server actions for api call)
+=======
+export function TokenExpiryAlert() {
+	const { theme } = useTheme();
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 	const [open, setOpen] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
+<<<<<<< HEAD
 <<<<<<< HEAD
 		// Function to check token expiration
 		const checkTokenExpiration = async () => {
@@ -131,32 +143,34 @@ export function TokenExpiryAlert() {
 			// }
 		});
 
+=======
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 		// Function to check token expiration
 		const checkTokenExpiration = async () => {
-			// TESTING ONLY: Force dialog to open only once
-			// if (!hasShownAlertRef.current) {
-			// 	setOpen(true);
-			// 	hasShownAlertRef.current = true;
-			// 	return;
-			// }
-
 			try {
-				const { data: sessionData } = await supabase.auth.getSession();
-				const session = sessionData?.session;
+				const { token, expiresAt } = getSessionTokenInfo();
 
+<<<<<<< HEAD
 				if (!session) {
 					// No session, no need to show warning
 >>>>>>> b3c3c62 (used server actions for api call)
+=======
+				if (!token || !expiresAt) {
+					// No valid session token or expiration time, no need to show warning
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 					return;
 				}
 
 				// Calculate time until expiration in seconds
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 				const expiresAt = session.expires_at;
 				if (!expiresAt) return;
 
 >>>>>>> b3c3c62 (used server actions for api call)
+=======
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 				const expiryTime = new Date(expiresAt * 1000);
 				const currentTime = new Date();
 				const timeLeftMs = expiryTime.getTime() - currentTime.getTime();
@@ -180,10 +194,14 @@ export function TokenExpiryAlert() {
 		// Clean up interval on component unmount
 		return () => clearInterval(intervalId);
 <<<<<<< HEAD
+<<<<<<< HEAD
 	}, []);
 =======
 	}, [supabase.auth]);
 >>>>>>> b3c3c62 (used server actions for api call)
+=======
+	}, []);
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 
 	const handleRefreshToken = async () => {
 		setRefreshing(true);
@@ -191,6 +209,9 @@ export function TokenExpiryAlert() {
 
 		try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 			// Call the server API endpoint to refresh the session
 			const response = await fetch('/api/auth/refresh', {
 				method: 'POST',
@@ -198,6 +219,7 @@ export function TokenExpiryAlert() {
 					'Content-Type': 'application/json',
 				},
 			});
+<<<<<<< HEAD
 
 			if (!response.ok) {
 				const errorData = await response.json();
@@ -210,43 +232,21 @@ export function TokenExpiryAlert() {
 =======
 			// Refresh the session
 			const { data, error: refreshError } = await supabase.auth.refreshSession();
+=======
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 
-			if (refreshError) {
-				throw refreshError;
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to refresh session');
 			}
 
-			if (data.session) {
-				// Get the new access token
-				const newAccessToken = data.session.access_token;
+			const data = await response.json();
 
-				// Set cookie to store the new session token
-				document.cookie = `session-token=${newAccessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-
-				// TESTING ONLY: Skip backend verification
-				// await verifyAuth(newAccessToken);
-				// console.log('TEST MODE: Skipping backend verification');
-
-				// Log session and cookies after refresh
-				// console.log(
-				// 	'%c✅ SESSION REFRESHED! NEW TOKEN:',
-				// 	'font-size: 16px; font-weight: bold; color: green;',
-				// 	{
-				// 		newAccessToken: newAccessToken.substring(0, 15) + '...',
-				// 		expiresAt: data.session.expires_at
-				// 			? new Date(data.session.expires_at * 1000).toLocaleString()
-				// 			: 'unknown',
-				// 	}
-				// );
-
-				// Log all cookies after refresh
-				// const allCookiesAfterRefresh = getAllCookies();
-				// console.log(
-				// 	'%c🍪 ALL COOKIES AFTER REFRESH:',
-				// 	'font-size: 14px; font-weight: bold; color: green;'
-				// );
-				// console.table(allCookiesAfterRefresh);
-
+<<<<<<< HEAD
 >>>>>>> b3c3c62 (used server actions for api call)
+=======
+			if (data.success) {
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 				// Close the dialog
 				setOpen(false);
 
@@ -266,6 +266,9 @@ export function TokenExpiryAlert() {
 	const handleSignOut = async () => {
 		try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 			// Use form submission for server-side logout
 			const form = document.createElement('form');
 			form.method = 'POST';
@@ -275,18 +278,22 @@ export function TokenExpiryAlert() {
 		} catch (error) {
 			// console.error('Error signing out:', error);
 			// Fallback to client-side cleanup if the form submission fails
+<<<<<<< HEAD
 =======
 			// Sign out from Supabase
 			await supabase.auth.signOut();
 
 			// Clear cookies
 >>>>>>> b3c3c62 (used server actions for api call)
+=======
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 			document.cookie = 'session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-email=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 			// Redirect to sign in with current origin preserved
 			const currentOrigin = window.location.origin;
@@ -304,6 +311,10 @@ export function TokenExpiryAlert() {
 		} catch (error) {
 			// console.error('Error signing out:', error);
 >>>>>>> b3c3c62 (used server actions for api call)
+=======
+			// Redirect to sign in
+			window.location.href = '/signin';
+>>>>>>> 0104e15 (discard deprecated supabase-auth-helper)
 		}
 	};
 

@@ -5,6 +5,10 @@ import { cookies } from 'next/headers';
 
 import { fetcherFn } from '@/utils/functions';
 
+
+
+/* eslint-disable prettier/prettier */
+
 /**
  * Gets a session from cookies for server actions
  * @returns The Supabase session
@@ -41,7 +45,7 @@ export async function getServerActionSession() {
 
 	// Create a session-like object to maintain compatibility
 	return {
-		accessToken: accessToken,
+		access_token: accessToken,
 		user: data.user,
 	};
 }
