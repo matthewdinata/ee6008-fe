@@ -1,6 +1,5 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
 	BadgeCheck,
 	Bell,
@@ -51,7 +50,6 @@ export default function HeaderUser({ user }: { user: UserInfo }) {
 	const { systemTheme, theme, setTheme } = useTheme();
 	const currentTheme = theme === 'system' ? systemTheme : theme;
 	const router = useRouter();
-	const supabase = createClientComponentClient();
 	const [mounted, setMounted] = useState(false);
 	const [directUser, setDirectUser] = useState<UserInfo | null>(null);
 
@@ -91,13 +89,9 @@ export default function HeaderUser({ user }: { user: UserInfo }) {
 	// Skip rendering proper content during SSR to prevent hydration errors
 	if (!mounted) {
 		return (
-			<Button variant="ghost" size="sm" className="h-8 gap-1 px-2">
-				<Avatar className="h-5 w-5">
-					<AvatarFallback className="text-xs">U</AvatarFallback>
-				</Avatar>
-				<span className="text-xs">User</span>
-				<ChevronsUpDown className="size-3 shrink-0 opacity-50" />
-			</Button>
+			<div className="h-8 px-2">
+				<span className="text-xs font-medium">Loading...</span>
+			</div>
 		);
 	}
 
@@ -177,8 +171,19 @@ export default function HeaderUser({ user }: { user: UserInfo }) {
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					onClick={async () => {
-						await supabase.auth.signOut();
-						router.push('/signin');
+						// Use form submission to server-side logout endpoint
+						const form = document.createElement('form');
+						form.method = 'POST';
+						form.action = '/api/auth/signout';
+						// Add timestamp to prevent caching
+						const timestamp = new Date().getTime();
+						const input = document.createElement('input');
+						input.type = 'hidden';
+						input.name = 'timestamp';
+						input.value = timestamp.toString();
+						form.appendChild(input);
+						document.body.appendChild(form);
+						form.submit();
 					}}
 				>
 					<LogOut className="mr-2 h-4 w-4" />

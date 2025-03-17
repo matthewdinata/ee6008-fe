@@ -1,6 +1,7 @@
 'use server';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
 // Define types for User data
 export interface User {
@@ -27,20 +28,44 @@ export type ServerActionError = {
 export type ServerActionResponse<T> = ServerActionSuccess<T> | ServerActionError;
 
 /**
- * Utility function to get the current session from the client component
+ * Utility function to get the current session from cookies in server actions
  * @returns The Supabase session
  */
 export async function getSessionFromClient() {
-	const supabase = createClientComponentClient();
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
+	const cookieStore = cookies();
+	const accessToken = cookieStore.get('session-token')?.value;
 
-	if (!session) {
+	if (!accessToken) {
+		console.error('No session token found in cookies');
 		throw new Error('No session found');
 	}
 
-	return session;
+	// Verify the token is valid by creating a client and getting the user
+	const supabase = createClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+		{
+			global: {
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+			},
+		}
+	);
+
+	// Get user data to verify token
+	const { data, error } = await supabase.auth.getUser();
+
+	if (error || !data.user) {
+		console.error('Invalid session token:', error);
+		throw new Error('No session found');
+	}
+
+	// Create a session-like object to maintain compatibility
+	return {
+		access_token: accessToken,
+		user: data.user,
+	};
 }
 
 /**

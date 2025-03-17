@@ -1,13 +1,12 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-react';
-import React from 'react';
-import { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 // Import types from fetch.ts for API responses and data models
 import { User as ApiUser } from '@/utils/actions/admin/fetch';
 import { deleteUser, getUsers } from '@/utils/actions/admin/fetch';
+import { getSessionFromClient } from '@/utils/actions/admin/user';
 
 import {
 	AlertDialog,
@@ -54,7 +53,7 @@ export function StudentTable() {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState('10');
-	const supabase = createClientComponentClient();
+	const [error, setError] = useState<string | null>(null);
 
 	// Filter users based on search query
 	const filteredUsers = useMemo(() => {
@@ -77,35 +76,41 @@ export function StudentTable() {
 	const fetchUsers = async () => {
 		try {
 			setIsLoading(true);
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
+			setError(null);
 
-			if (!session) {
-				throw new Error('No session found');
+			// Use the server-side function instead of client component
+			try {
+				const session = await getSessionFromClient();
+				console.log('Fetching users with token:', session.access_token);
+
+				const response = await getUsers(session.access_token);
+
+				if (!response.success) {
+					setError(response.error || 'Failed to fetch users');
+					throw new Error(response.error || 'Failed to fetch users');
+				}
+
+				const data = response.data as ApiUser[];
+				console.log('Fetched users:', data);
+				const formattedData = data.map((userData) => ({
+					id: userData.id,
+					user_id: userData.id,
+					email: userData.email,
+					name: userData.name,
+					is_course_coordinator: Boolean(userData.is_course_coordinator),
+				}));
+
+				setAllUsers(formattedData);
+
+				setCurrentPage(1); // Reset to first page when new data is fetched
+				setSearchQuery(''); // Clear search when new data is fetched
+			} catch (sessionError) {
+				console.error('Session error:', sessionError);
+				setError('Authentication error. Please sign in again.');
 			}
-			const response = await getUsers(session.access_token);
-
-			if (!response.success) {
-				throw new Error(response.error || 'Failed to fetch users');
-			}
-
-			const data = response.data as ApiUser[];
-			console.log(data);
-			const formattedData = data.map((userData) => ({
-				id: userData.id,
-				user_id: userData.id,
-				email: userData.email,
-				name: userData.name,
-				is_course_coordinator: Boolean(userData.is_course_coordinator),
-			}));
-
-			setAllUsers(formattedData);
-
-			setCurrentPage(1); // Reset to first page when new data is fetched
-			setSearchQuery(''); // Clear search when new data is fetched
 		} catch (error) {
-			console.error('Error:', error);
+			console.error('Error fetching users:', error);
+			setError(error instanceof Error ? error.message : 'An unexpected error occurred');
 		} finally {
 			setIsLoading(false);
 		}
@@ -114,9 +119,9 @@ export function StudentTable() {
 	const handleDelete = async (userId: number) => {
 		try {
 			setDeleteLoading(userId);
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
+
+			// Use the server-side function to get the session
+			const session = await getSessionFromClient();
 
 			if (!session) {
 				throw new Error('No session found');
@@ -142,6 +147,10 @@ export function StudentTable() {
 		}
 	};
 
+	useEffect(() => {
+		fetchUsers();
+	}, []);
+
 	return (
 		<div className="container mx-auto p-6 text-foreground">
 			<div className="flex flex-col space-y-4">
@@ -165,6 +174,15 @@ export function StudentTable() {
 						)}
 					</Button>
 				</div>
+
+				{error && (
+					<div
+						className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg"
+						role="alert"
+					>
+						<span className="font-medium">Error:</span> {error}
+					</div>
+				)}
 
 				{allUsers.length > 0 && (
 					<div className="flex justify-between items-center gap-4">

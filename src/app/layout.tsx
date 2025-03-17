@@ -1,5 +1,5 @@
 // app/layout.tsx
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { cookies, headers } from 'next/headers';
@@ -75,47 +75,49 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 		return <BasicLayout>{children}</BasicLayout>;
 	}
 
-	// For non-auth pages, continue with normal authentication flow
-	const supabase = createServerComponentClient({ cookies });
-	const {
-		data: { user },
-		error: userError,
-	} = await supabase.auth.getUser();
+	// Get session token from cookies
+	const cookieStore = cookies();
+	const accessToken = cookieStore.get('session-token')?.value;
 
-	// If no user or error occurs, render the basic layout
-	if (!user || userError) {
+	// If no token, render the basic layout
+	if (!accessToken) {
 		return <BasicLayout>{children}</BasicLayout>;
 	}
 
 	try {
-		// Verify user with backend
+		// Create Supabase client with the token
+		const supabase = createClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+			{
+				global: {
+					headers: {
+						Authorization: `Bearer ${accessToken}`,
+					},
+				},
+			}
+		);
+
+		// Verify user with token
 		const {
-			data: { session },
-		} = await supabase.auth.getSession();
-		if (!session?.access_token) throw new Error('No access token');
+			data: { user },
+			error: userError,
+		} = await supabase.auth.getUser();
 
-		// const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
-		// 	method: 'POST',
-		// 	headers: {
-		// 		Authorization: `Bearer ${session.access_token}`,
-		// 		'Content-Type': 'application/json',
-		// 	},
-		// 	body: JSON.stringify({
-		// 		email: user.email,
-		// 		name: user.email?.split('@')[0],
-		// 		userId: user.id,
-		// 	}),
-		// });
+		// If no user or error occurs, render the basic layout
+		if (!user || userError) {
+			console.error('Auth error in layout:', userError?.message);
+			return <BasicLayout>{children}</BasicLayout>;
+		}
 
-		// Use the checkEligibility server action instead of direct fetch
+		// Use the checkEligibility server action to get user role
 		const userData = {
 			email: user.email || '',
 			name: user.email?.split('@')[0] || '',
 			userId: user.id,
 		};
 
-		const data = await checkEligibility(userData, session.access_token);
-
+		const data = await checkEligibility(userData, accessToken);
 		const role = data.user.role;
 
 		// Return the full layout if the user is verified

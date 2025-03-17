@@ -1,6 +1,5 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -45,7 +44,6 @@ interface SingleUserAddProps {
 
 export function SingleUserAdd({ defaultRole }: SingleUserAddProps) {
 	const router = useRouter();
-	const _supabase = createClientComponentClient();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [role, setRole] = useState<string>(defaultRole || 'student');

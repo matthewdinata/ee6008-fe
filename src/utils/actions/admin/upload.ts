@@ -2,13 +2,57 @@
 'use server';
 
 /* eslint-disable import/extensions */
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 
 import { fetcherFn } from '@/utils/functions';
 
 /* eslint-disable prettier/prettier */
 
 /* eslint-disable prettier/prettier */
+
+/* eslint-disable prettier/prettier */
+
+/**
+ * Gets a session from cookies for server actions
+ * @returns The Supabase session
+ */
+async function getServerActionSession() {
+	const cookieStore = cookies();
+	const accessToken = cookieStore.get('session-token')?.value;
+
+	if (!accessToken) {
+		console.error('No session token found in cookies');
+		throw new Error('No active session found');
+	}
+
+	// Verify the token is valid by creating a client and getting the user
+	const supabase = createClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+		{
+			global: {
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+			},
+		}
+	);
+
+	// Get user data to verify token
+	const { data, error } = await supabase.auth.getUser();
+
+	if (error || !data.user) {
+		console.error('Invalid session token:', error);
+		throw new Error('No active session found');
+	}
+
+	// Create a session-like object to maintain compatibility
+	return {
+		access_token: accessToken,
+		user: data.user,
+	};
+}
 
 /**
  * Server action to handle bulk upload of faculty users
@@ -30,14 +74,7 @@ export async function bulkUploadFaculty(formData: FormData, accessToken: string)
  * @param semesterId The semester ID to associate with the uploaded students
  */
 export async function bulkUploadStudent(formData: FormData, semesterId: string) {
-	const supabase = createClientComponentClient();
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
-
-	if (!session) {
-		throw new Error('No active session found');
-	}
+	const session = await getServerActionSession();
 
 	// Construct the URL with the semester_id parameter
 	const url = `admin/users/bulk-upload-student?semester_id=${encodeURIComponent(semesterId)}`;
@@ -55,14 +92,7 @@ export async function bulkUploadStudent(formData: FormData, semesterId: string) 
  * @param formData Form data containing the file and other required parameters
  */
 export async function bulkUpload(formData: FormData) {
-	const supabase = createClientComponentClient();
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
-
-	if (!session) {
-		throw new Error('No active session found');
-	}
+	const session = await getServerActionSession();
 
 	return fetcherFn('admin/users/bulk-upload', formData, {
 		method: 'POST',
@@ -77,14 +107,7 @@ export async function bulkUpload(formData: FormData) {
  * @returns Array of semester objects
  */
 export async function fetchSemesters() {
-	const supabase = createClientComponentClient();
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
-
-	if (!session) {
-		throw new Error('No active session found');
-	}
+	const session = await getServerActionSession();
 
 	const apiUrl = process.env.BACKEND_API_URL;
 	if (!apiUrl) {
@@ -109,14 +132,7 @@ export async function fetchSemesters() {
  * @returns Array of student user objects
  */
 export async function fetchStudentUsers() {
-	const supabase = createClientComponentClient();
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
-
-	if (!session) {
-		throw new Error('No active session found');
-	}
+	const session = await getServerActionSession();
 
 	const apiUrl = process.env.BACKEND_API_URL;
 	if (!apiUrl) {
@@ -150,14 +166,7 @@ export async function createUser(userData: {
 	semesterId?: number;
 	isCoordinator?: boolean;
 }) {
-	const supabase = createClientComponentClient();
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
-
-	if (!session) {
-		throw new Error('No active session found');
-	}
+	const session = await getServerActionSession();
 
 	const apiUrl = process.env.BACKEND_API_URL;
 	if (!apiUrl) {
@@ -188,14 +197,7 @@ export async function createUser(userData: {
  * @returns The response data
  */
 export async function deleteUser(userId: string) {
-	const supabase = createClientComponentClient();
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
-
-	if (!session) {
-		throw new Error('No active session found');
-	}
+	const session = await getServerActionSession();
 
 	const apiUrl = process.env.BACKEND_API_URL;
 	if (!apiUrl) {
@@ -223,14 +225,7 @@ export async function deleteUser(userId: string) {
  * @returns The response data
  */
 export async function uploadFile(formData: FormData) {
-	const supabase = createClientComponentClient();
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
-
-	if (!session) {
-		throw new Error('No active session found');
-	}
+	const session = await getServerActionSession();
 
 	return fetcherFn('admin/upload', formData, {
 		method: 'POST',

@@ -1,6 +1,5 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
 	BadgeCheck,
 	Bell,
@@ -57,7 +56,6 @@ export default function NavUser({ user }: { user: UserInfo }) {
 	const { systemTheme, theme, setTheme } = useTheme();
 	const currentTheme = theme === 'system' ? systemTheme : theme;
 	const router = useRouter();
-	const supabase = createClientComponentClient();
 	const [mounted, setMounted] = useState(false);
 	const [directUser, setDirectUser] = useState<{
 		name: string;
@@ -102,22 +100,9 @@ export default function NavUser({ user }: { user: UserInfo }) {
 	// Skip rendering proper content during SSR to prevent hydration errors
 	if (!mounted) {
 		return (
-			<SidebarMenu>
-				<SidebarMenuItem className={isMobile ? 'w-full' : ''}>
-					<SidebarMenuButton size="lg" className="justify-between w-full">
-						<div className="flex items-center gap-2 truncate">
-							<Avatar className="h-5 w-5">
-								<AvatarFallback className="text-xs">U</AvatarFallback>
-							</Avatar>
-							<div className="grid flex-1 gap-px truncate text-left text-xs leading-none">
-								<span className="truncate font-semibold">User</span>
-								<span className="truncate opacity-60"></span>
-							</div>
-						</div>
-						<ChevronsUpDown className="size-3 shrink-0 opacity-50" />
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-			</SidebarMenu>
+			<div className="flex items-center h-10 px-2">
+				<span className="text-xs font-medium">Loading...</span>
+			</div>
 		);
 	}
 
@@ -207,39 +192,30 @@ export default function NavUser({ user }: { user: UserInfo }) {
 						<DropdownMenuItem
 							onClick={async () => {
 								try {
-									// First sign out from Supabase auth
-									await supabase.auth.signOut();
+									console.log('Starting sign out process...');
 
-									// Manually clear all cookies we set in middleware
-									document.cookie =
-										'session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-									document.cookie =
-										'user-role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-									document.cookie =
-										'user-id=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-									document.cookie =
-										'user-name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-									document.cookie =
-										'user-email=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+									// Create a form to submit to /api/auth/signout - this will ensure server-side cleanup
+									const form = document.createElement('form');
+									form.method = 'POST';
+									form.action = '/api/auth/signout';
+									form.style.display = 'none';
 
-									// Clear session storage
-									if (typeof window !== 'undefined') {
-										sessionStorage.removeItem('ee6008_user_session_data');
-										sessionStorage.removeItem('ee6008_prev_user_name');
-										sessionStorage.removeItem('ee6008_prev_user_email');
-										sessionStorage.removeItem('hasRenderedSidebar');
+									// Add a timestamp to prevent caching
+									const timestampField = document.createElement('input');
+									timestampField.type = 'hidden';
+									timestampField.name = 'timestamp';
+									timestampField.value = Date.now().toString();
+									form.appendChild(timestampField);
 
-										// Also clear local storage items
-										localStorage.removeItem('ee6008_user_data');
-									}
+									// Add the form to the document body and submit it
+									document.body.appendChild(form);
+									form.submit();
 
-									console.log(
-										'🔐 Sign out successful - redirecting to signin page'
-									);
-									// Force reload to clear any cached state
-									window.location.href = '/signin';
+									// Don't use client-side redirect - let the server handle it
 								} catch (error) {
-									console.error('Error signing out:', error);
+									console.error('Error during sign out process:', error);
+									// Fallback in case the form submission fails
+									window.location.href = '/signin?error=signout_failed';
 								}
 							}}
 						>

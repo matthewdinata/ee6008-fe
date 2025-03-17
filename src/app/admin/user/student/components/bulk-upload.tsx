@@ -1,11 +1,10 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Download, Loader2, Upload } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 import { getSemesters } from '@/utils/actions/admin/fetch';
-import { bulkUploadStudents } from '@/utils/actions/admin/user';
+import { bulkUploadStudents, getSessionFromClient } from '@/utils/actions/admin/user';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -37,8 +36,6 @@ export default function BulkStudentUpload(): React.ReactElement {
 	const [successMessage, setSuccessMessage] = useState<string>('');
 	const [errorMessage, setErrorMessage] = useState<string>('');
 	const [debugLog, setDebugLog] = useState<string[]>([]);
-
-	const supabase = createClientComponentClient();
 
 	const addDebugMessage = (msg: string) => {
 		const timestamp = new Date().toLocaleTimeString();
@@ -121,17 +118,15 @@ export default function BulkStudentUpload(): React.ReactElement {
 		addDebugMessage('Starting upload process...');
 
 		try {
-			// Get current session
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-
-			if (!session) {
-				throw new Error('No active session found');
+			// Get current session using server-side function
+			try {
+				await getSessionFromClient(); // Just verify the session exists
+				// Log the semester ID being sent
+				addDebugMessage(`Using semester ID: ${selectedSemester}`);
+			} catch (error) {
+				addDebugMessage(`Error getting session: ${error}`);
+				setErrorMessage('Error getting session');
 			}
-
-			// Log the semester ID being sent
-			addDebugMessage(`Using semester ID: ${selectedSemester}`);
 
 			const result = await bulkUploadStudents(file, selectedSemester);
 

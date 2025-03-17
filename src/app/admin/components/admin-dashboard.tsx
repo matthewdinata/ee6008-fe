@@ -1,6 +1,5 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Clock, LogOut, RefreshCw, Shield, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -20,13 +19,51 @@ interface TokenInfo {
 	shouldRefresh: boolean;
 }
 
+// Function to get session token info from cookie
+function getSessionTokenInfo(): { expiresAt: number | null; timeUntilExpire: number } {
+	// Get session token from cookie
+	const getSessionCookie = () => {
+		if (typeof document === 'undefined') return null;
+		const cookies = document.cookie.split(';');
+		for (let i = 0; i < cookies.length; i++) {
+			const cookie = cookies[i].trim();
+			if (cookie.startsWith('session-token=')) {
+				return cookie.substring('session-token='.length);
+			}
+		}
+		return null;
+	};
+
+	const sessionToken = getSessionCookie();
+
+	// Parse JWT token to get expiration time
+	if (sessionToken) {
+		try {
+			// JWT tokens are in format: header.payload.signature
+			// The payload contains the expiration time
+			const parts = sessionToken.split('.');
+			if (parts.length === 3) {
+				const payload = JSON.parse(atob(parts[1]));
+				if (payload.exp) {
+					const expiresAt = payload.exp * 1000; // Convert to milliseconds
+					const timeUntilExpire = expiresAt - Date.now();
+					return { expiresAt, timeUntilExpire };
+				}
+			}
+		} catch (e) {
+			console.error('Error parsing JWT token:', e);
+		}
+	}
+
+	return { expiresAt: null, timeUntilExpire: 0 };
+}
+
 export function AdminDashboard() {
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
 	const [lastRefresh, setLastRefresh] = useState<string | null>(null);
 	const router = useRouter();
-	const supabase = createClientComponentClient();
 
 	const formatTimeUntilExpiry = (minutes: number) => {
 		if (minutes < 60) return `${Math.round(minutes)} minutes`;
@@ -35,20 +72,15 @@ export function AdminDashboard() {
 		return `${hours} hours ${remainingMinutes} minutes`;
 	};
 
-	const checkAndRefreshToken = useCallback(async () => {
+	const checkTokenStatus = useCallback(() => {
 		try {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
+			const { expiresAt, timeUntilExpire } = getSessionTokenInfo();
 
-			if (!session) {
+			if (!expiresAt) {
 				throw new Error('No session found');
 			}
 
-			const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
-			const timeUntilExpire = expiresAt - Date.now();
 			const shouldRefresh = timeUntilExpire < 1000 * 60 * 5; // Refresh if less than 5 minutes left
-
 			const expiresDate = new Date(expiresAt);
 
 			setTokenInfo({
@@ -57,44 +89,90 @@ export function AdminDashboard() {
 				shouldRefresh,
 			});
 
-			return { session, shouldRefresh };
+			return { shouldRefresh };
 		} catch (error) {
 			console.error('Error checking token:', error);
-			return { session: null, shouldRefresh: false };
+			return { shouldRefresh: false };
 		}
-	}, [supabase]);
+	}, []);
 
 	const refreshToken = useCallback(async () => {
 		try {
-			const { data } = await supabase.auth.refreshSession();
-			if (data.session) {
+			// Call the server API endpoint to refresh the session
+			const response = await fetch('/api/auth/refresh', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to refresh session');
+			}
+
+			const data = await response.json();
+
+			if (data.success) {
 				setLastRefresh(new Date().toLocaleString());
-				await checkAndRefreshToken(); // Update token info after refresh
+				checkTokenStatus(); // Update token info after refresh
+				return true;
+			} else {
+				throw new Error('Failed to refresh session');
 			}
 		} catch (error) {
 			console.error('Error refreshing token:', error);
+			return false;
 		}
-	}, [supabase, checkAndRefreshToken]);
+	}, [checkTokenStatus]);
 
 	const handleLogout = async () => {
-		await supabase.auth.signOut();
-		router.push('/signin');
+		try {
+			// Use form submission for server-side logout
+			const form = document.createElement('form');
+			form.method = 'POST';
+			form.action = '/api/auth/signout';
+			document.body.appendChild(form);
+			form.submit();
+		} catch (error) {
+			console.error('Error signing out:', error);
+			// Fallback to client-side cleanup and redirect
+			router.push('/signin');
+		}
 	};
 
 	const fetchUserData = useCallback(async () => {
 		try {
-			const { session } = await checkAndRefreshToken();
-			if (!session) {
-				throw new Error('No session found');
+			// Get user data from cookies instead of session
+			const getCookieValue = (name: string): string => {
+				if (typeof document === 'undefined') return '';
+				const cookies = document.cookie.split(';');
+				for (let i = 0; i < cookies.length; i++) {
+					const cookie = cookies[i].trim();
+					if (cookie.startsWith(name + '=')) {
+						return cookie.substring(name.length + 1);
+					}
+				}
+				return '';
+			};
+
+			const userName = getCookieValue('user-name');
+			const userEmail = getCookieValue('user-email');
+			const userRole = getCookieValue('user-role');
+
+			if (!userName || !userEmail) {
+				throw new Error('User data not found in cookies');
 			}
 
-			// For demo, create a mock user
-			// In a real app, you would fetch this from your database
+			// Check token status to update UI
+			checkTokenStatus();
+
+			// Create user object from cookies
 			const mockUser: User = {
 				id: 1,
-				name: session.user?.email?.split('@')[0] || 'User',
-				email: session.user?.email || 'user@example.com',
-				role: 'Admin', // This should come from your DB
+				name: userName,
+				email: userEmail,
+				role: userRole || 'User',
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString(),
 			};
@@ -105,20 +183,20 @@ export function AdminDashboard() {
 			console.error('Error fetching user data:', error);
 			router.push('/signin');
 		}
-	}, [checkAndRefreshToken, router]);
+	}, [checkTokenStatus, router]);
 
 	useEffect(() => {
 		fetchUserData();
 		// Set up a timer to check token expiry every minute
 		const timerInterval = setInterval(async () => {
-			const { shouldRefresh } = await checkAndRefreshToken();
+			const { shouldRefresh } = checkTokenStatus();
 			if (shouldRefresh) {
 				await refreshToken();
 			}
 		}, 60000); // Check every minute
 
 		return () => clearInterval(timerInterval);
-	}, [checkAndRefreshToken, fetchUserData, refreshToken]);
+	}, [checkTokenStatus, fetchUserData, refreshToken]);
 
 	if (loading) {
 		return (

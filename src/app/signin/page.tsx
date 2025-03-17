@@ -1,8 +1,10 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+// Import the client-side createClient function instead of using supabase-js directly
+import { createClient } from '@/app/utils/supabase/client';
 
 import { login } from './action';
 
@@ -14,27 +16,45 @@ type MessageType = {
 const AuthPage = () => {
 	const [email, setEmail] = useState('');
 	const [loading, setLoading] = useState(false);
+	const [sessionLoading, setSessionLoading] = useState(true);
 	const [message, setMessage] = useState<MessageType>({ text: '', type: 'info' });
 	const [debugLog, setDebugLog] = useState<string[]>([]);
 	const router = useRouter();
-	const supabase = createClientComponentClient();
+
+	// Get the Supabase client
+	const supabase = createClient();
 
 	// Check if user is already logged in and redirect if they are
 	useEffect(() => {
 		const checkSession = async () => {
-			setLoading(true);
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
+			try {
+				setSessionLoading(true);
+				const {
+					data: { session },
+					error,
+				} = await supabase.auth.getSession();
 
-			if (session) {
-				// User is already logged in, redirect to dashboard
-				console.log('User already logged in, redirecting to dashboard');
-				router.push('/dashboard');
-			} else {
-				setLoading(false);
+				if (error) {
+					console.error('Session check error:', error);
+					addDebugMessage(`Session error: ${error.message}`);
+				}
+
+				if (session) {
+					// User is already logged in, redirect to dashboard
+					console.log('User already logged in, redirecting to dashboard');
+					addDebugMessage('User already logged in, redirecting to dashboard');
+					router.push('/dashboard');
+				}
+			} catch (err) {
+				console.error('Session check exception:', err);
+				addDebugMessage(
+					`Session check exception: ${err instanceof Error ? err.message : String(err)}`
+				);
+			} finally {
+				setSessionLoading(false);
 			}
 		};
+
 		checkSession();
 	}, [router, supabase.auth]);
 
@@ -66,6 +86,9 @@ const AuthPage = () => {
 			setEmail('');
 		} catch (error) {
 			console.error('Authentication error:', error);
+			addDebugMessage(
+				`Authentication error: ${error instanceof Error ? error.message : String(error)}`
+			);
 			setMessage({
 				text:
 					error instanceof Error
@@ -77,6 +100,39 @@ const AuthPage = () => {
 			setLoading(false);
 		}
 	};
+
+	// Show a loading indicator while checking the session
+	if (sessionLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-background p-4">
+				<div className="flex flex-col items-center space-y-4">
+					<div className="animate-spin h-10 w-10">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							className="h-10 w-10 text-primary"
+						>
+							<circle
+								className="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								strokeWidth="4"
+							/>
+							<path
+								className="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							/>
+						</svg>
+					</div>
+					<p className="text-muted-foreground">Checking session...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-background p-4">
