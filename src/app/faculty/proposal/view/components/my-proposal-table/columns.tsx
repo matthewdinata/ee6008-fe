@@ -123,7 +123,7 @@ export const columns: ColumnDef<ProposalResponse>[] = [
 	{
 		accessorKey: 'semester.name',
 		id: 'semester',
-		header: 'Semester',
+		header: 'Sem.',
 		cell: ({ row }) => {
 			const semesterName = row.original.semester.name;
 			const semesterNumber = semesterName.split(' ')[1];

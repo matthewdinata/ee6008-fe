@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown, Check, MoreHorizontal, X } from 'lucide-react';
 
 import { ProposalStatus } from '@/types/faculty';
 import { ProposalResponse } from '@/utils/actions/faculty/get-all-proposals';
@@ -24,6 +24,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function ProjectDetails({ project }: { project: ProposalResponse }) {
 	if (!project) return <Skeleton className="h-48 w-full" />;
@@ -124,7 +125,7 @@ export const columns: ColumnDef<ProposalResponse>[] = [
 	{
 		accessorKey: 'semester.name',
 		id: 'semester',
-		header: 'Semester',
+		header: 'Sem.',
 		cell: ({ row }) => {
 			const semesterName = row.original.semester.name;
 			const semesterNumber = semesterName.split(' ')[1];
@@ -225,33 +226,73 @@ export const columns: ColumnDef<ProposalResponse>[] = [
 			const project = row.original;
 
 			return (
-				<Dialog>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" className="h-8 w-8 p-0">
-								<span className="sr-only">Open menu</span>
-								<MoreHorizontal />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DialogTrigger asChild>
-								<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-									View details
-								</DropdownMenuItem>
-							</DialogTrigger>
-						</DropdownMenuContent>
-					</DropdownMenu>
-					<DialogContent className="sm:max-w-md">
-						<DialogHeader>
-							<DialogTitle>{project.title}</DialogTitle>
-							<DialogDescription>Project details and information</DialogDescription>
-						</DialogHeader>
-						<ProjectDetails project={project} />
-						<DialogClose asChild className="mt-4">
-							<Button>Close</Button>
-						</DialogClose>
-					</DialogContent>
-				</Dialog>
+				<div className="flex">
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									className="h-8 w-8 p-0 hover:text-emerald-500"
+									onClick={() => {
+										/* handle approve */
+									}}
+								>
+									<Check />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Approve</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									className="h-8 w-8 p-0 hover:text-red-500"
+									onClick={() => {
+										/* handle reject */
+									}}
+								>
+									<X />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Reject</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+					<Dialog>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" className="h-8 w-8 p-0">
+									<span className="sr-only">Open menu</span>
+									<MoreHorizontal />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DialogTrigger asChild>
+									<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+										View details
+									</DropdownMenuItem>
+								</DialogTrigger>
+							</DropdownMenuContent>
+						</DropdownMenu>
+						<DialogContent className="sm:max-w-md">
+							<DialogHeader>
+								<DialogTitle>{project.title}</DialogTitle>
+								<DialogDescription>
+									Project details and information
+								</DialogDescription>
+							</DialogHeader>
+							<ProjectDetails project={project} />
+							<DialogClose asChild className="mt-4">
+								<Button>Close</Button>
+							</DialogClose>
+						</DialogContent>
+					</Dialog>
+				</div>
 			);
 		},
 	},
