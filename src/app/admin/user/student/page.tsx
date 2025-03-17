@@ -1,4 +1,4 @@
-import { BulkStudentUpload } from '@/app/admin/user/student/components/bulk-upload';
+import BulkStudentUpload from '@/app/admin/user/student/components/bulk-upload';
 import { StudentTable } from '@/app/admin/user/student/components/student-table';
 
 import { SingleUserAdd } from '../student/user';
