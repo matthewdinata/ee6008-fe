@@ -171,19 +171,26 @@ export default function HeaderUser({ user }: { user: UserInfo }) {
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
 					onClick={async () => {
-						// Use form submission to server-side logout endpoint
-						const form = document.createElement('form');
-						form.method = 'POST';
-						form.action = '/api/auth/signout';
-						// Add timestamp to prevent caching
-						const timestamp = new Date().getTime();
-						const input = document.createElement('input');
-						input.type = 'hidden';
-						input.name = 'timestamp';
-						input.value = timestamp.toString();
-						form.appendChild(input);
-						document.body.appendChild(form);
-						form.submit();
+						try {
+							// Use form submission to server-side logout endpoint
+							const form = document.createElement('form');
+							form.method = 'POST';
+							form.action = '/api/auth/signout';
+							// Add timestamp to prevent caching
+							const timestamp = new Date().getTime();
+							const input = document.createElement('input');
+							input.type = 'hidden';
+							input.name = 'timestamp';
+							input.value = timestamp.toString();
+							form.appendChild(input);
+							document.body.appendChild(form);
+							form.submit();
+						} catch (error) {
+							console.error('Error during sign out process:', error);
+							// Fallback in case the form submission fails
+							const currentOrigin = window.location.origin;
+							window.location.href = `${currentOrigin}/signin?error=signout_failed`;
+						}
 					}}
 				>
 					<LogOut className="mr-2 h-4 w-4" />

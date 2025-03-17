@@ -22,7 +22,9 @@ export async function middleware(request: NextRequest) {
 
 	// If no token, redirect to signin
 	if (!accessToken) {
-		return NextResponse.redirect(new URL('/signin', request.url));
+		const url = new URL(request.url);
+		const origin = url.origin;
+		return NextResponse.redirect(`${origin}/signin`);
 	}
 
 	try {
@@ -94,7 +96,9 @@ export async function middleware(request: NextRequest) {
 		const hasAccess = checkPathAccess(role, requestedPath);
 
 		if (!hasAccess) {
-			return NextResponse.redirect(new URL('/unauthorized', request.url));
+			const url = new URL(request.url);
+			const origin = url.origin;
+			return NextResponse.redirect(`${origin}/unauthorized`);
 		}
 
 		// User is authenticated and authorized - update cookies with user info
@@ -133,7 +137,9 @@ export async function middleware(request: NextRequest) {
 		console.error('⚠️ Authorization check error:', error);
 
 		// Clear the invalid cookies
-		const response = NextResponse.redirect(new URL('/signin', request.url));
+		const url = new URL(request.url);
+		const origin = url.origin;
+		const response = NextResponse.redirect(`${origin}/signin`);
 		response.cookies.delete('session-token');
 		response.cookies.delete('user-role');
 		response.cookies.delete('user-id');

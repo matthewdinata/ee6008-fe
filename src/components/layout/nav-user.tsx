@@ -214,8 +214,9 @@ export default function NavUser({ user }: { user: UserInfo }) {
 									// Don't use client-side redirect - let the server handle it
 								} catch (error) {
 									console.error('Error during sign out process:', error);
-									// Fallback in case the form submission fails
-									window.location.href = '/signin?error=signout_failed';
+									// Fallback in case the form submission fails - redirect to current origin
+									const currentOrigin = window.location.origin;
+									window.location.href = `${currentOrigin}/signin?error=signout_failed`;
 								}
 							}}
 						>

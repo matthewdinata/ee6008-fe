@@ -22,8 +22,12 @@ export async function POST(request: Request) {
 		// Sign out from Supabase auth
 		await supabase.auth.signOut();
 
-		// Create response with redirect
-		const response = NextResponse.redirect(new URL('/signin', request.url));
+		// Extract the origin from the request URL to maintain the same site
+		const url = new URL(request.url);
+		const origin = url.origin;
+
+		// Create response with redirect to the same origin
+		const response = NextResponse.redirect(`${origin}/signin`);
 
 		// Clear all authentication cookies
 		const cookiesToClear = [
@@ -48,8 +52,12 @@ export async function POST(request: Request) {
 	} catch (error) {
 		console.error('Error in signout API route:', error);
 
-		// Return redirect even if there's an error
-		const response = NextResponse.redirect(new URL('/signin?error=signout_error', request.url));
+		// Extract the origin from the request URL even for error case
+		const url = new URL(request.url);
+		const origin = url.origin;
+
+		// Return redirect even if there's an error, but to the same origin
+		const response = NextResponse.redirect(`${origin}/signin?error=signout_error`);
 
 		// Still try to clear cookies in case of error
 		const cookiesToClear = [

@@ -71,7 +71,10 @@ export async function GET(request: Request) {
 			}
 		}
 
-		const response = NextResponse.redirect(new URL(redirectUrl, request.url));
+		// Get the current origin to preserve the deployment URL
+		const url = new URL(request.url);
+		const origin = url.origin;
+		const response = NextResponse.redirect(`${origin}${redirectUrl}`);
 
 		const cookieOptions = {
 			httpOnly: true,
@@ -126,8 +129,11 @@ export async function GET(request: Request) {
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		const encodedError = encodeURIComponent(errorMessage.substring(0, 100));
+		// Get the current origin to preserve the deployment URL
+		const url = new URL(request.url);
+		const origin = url.origin;
 		return NextResponse.redirect(
-			new URL(`/signin?error=auth_callback_error&details=${encodedError}`, request.url)
+			`${origin}/signin?error=auth_callback_error&details=${encodedError}`
 		);
 	}
 }

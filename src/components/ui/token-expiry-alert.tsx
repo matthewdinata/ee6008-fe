@@ -171,8 +171,9 @@ export function TokenExpiryAlert() {
 			document.cookie = 'user-name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			document.cookie = 'user-email=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 
-			// Redirect to sign in
-			window.location.href = '/signin';
+			// Redirect to sign in with current origin preserved
+			const currentOrigin = window.location.origin;
+			window.location.href = `${currentOrigin}/signin`;
 		}
 	};
 
