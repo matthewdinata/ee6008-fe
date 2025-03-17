@@ -67,7 +67,7 @@ function ProjectDetails({ project }: { project: ProposalResponse }) {
 
 			<div>
 				<h3 className="font-semibold">Dates</h3>
-				<div className="grid grid-cols-2 gap-4 mt-1">
+				<div className="grid grid-cols-2 gap-4 mt-0.5">
 					<div>
 						<p className="text-sm">
 							{new Date(project.createdAt).toLocaleDateString()}
