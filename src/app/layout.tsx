@@ -8,6 +8,7 @@ import Background from '@/components/layout/background';
 import ThemeProvider from '@/components/layout/theme-provider';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/sonner';
 
 import './globals.css';
 import Provider from './provider';
@@ -72,6 +73,7 @@ export default function RootLayout({
 						</Background>
 					</ThemeProvider>
 				</Provider>
+				<Toaster />
 			</body>
 		</html>
 	);
