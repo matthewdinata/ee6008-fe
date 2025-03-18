@@ -1,14 +1,6 @@
 'use client';
 
-import {
-	BadgeCheck,
-	Bell,
-	ChevronsUpDown,
-	CreditCard,
-	LogOut,
-	MoonIcon,
-	SunIcon,
-} from 'lucide-react';
+import { BadgeCheck, ChevronsUpDown, CreditCard, LogOut, MoonIcon, SunIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -158,13 +150,9 @@ export default function NavUser({ user }: { user: UserInfo }) {
 									</span>
 								)}
 							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => router.push('/settings')}>
+							<DropdownMenuItem onClick={() => router.push(`/${user.role}`)}>
 								<CreditCard className="mr-2 h-4 w-4" />
-								<span>Account settings</span>
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => router.push('/notifications')}>
-								<Bell className="mr-2 h-4 w-4" />
-								<span>Notifications</span>
+								<span>Account</span>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />

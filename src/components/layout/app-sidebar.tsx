@@ -448,9 +448,11 @@ export default function AppSidebar({
 				{/* Pass the current pathname to help with active state */}
 				<NavMain items={navConfig} role={userConfig.role?.toLowerCase() || role} />
 			</SidebarContent>
+
 			<SidebarFooter className="flex flex-row justify-between">
-				<NavUser user={userConfig} />
+				{authLoading ? <Skeleton className="w-full h-12" /> : <NavUser user={userConfig} />}
 			</SidebarFooter>
+
 			<SidebarRail />
 		</Sidebar>
 	);
