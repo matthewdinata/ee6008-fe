@@ -11,7 +11,6 @@ import AppHeader from '@/components/layout/app-header';
 import AppSidebar from '@/components/layout/app-sidebar';
 import { AuthProvider } from '@/components/layout/auth-provider';
 import Background from '@/components/layout/background';
-import ThemeProvider from '@/components/layout/theme-provider';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
@@ -46,14 +45,9 @@ function BasicLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					disableTransitionOnChange
-				>
+				<Provider>
 					<AuthProvider>{children}</AuthProvider>
-				</ThemeProvider>
+				</Provider>
 			</body>
 		</html>
 	);
@@ -125,40 +119,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 			<html lang="en">
 				<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 					<Provider>
-						<ThemeProvider
-							attribute="class"
-							defaultTheme="system"
-							enableSystem
-							disableTransitionOnChange
-						>
-							<Background>
-								<AuthProvider>
-									<SidebarProvider>
-										<AppSidebar role={role} />
-										<SidebarInset className="w-full overflow-x-hidden">
-											<header
-												className="flex h-16 shrink-0 items-center gap-2 
+						<Background>
+							<AuthProvider>
+								<SidebarProvider>
+									<AppSidebar role={role} />
+									<SidebarInset className="w-full overflow-x-hidden">
+										<header
+											className="flex h-16 shrink-0 items-center gap-2 
                                 
                                 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 fixed top-0 w-full backdrop-blur-sm justify-bet"
-											>
-												<div className="flex items-center gap-2 px-4">
-													<SidebarTrigger className="-ml-1" />
-													<Separator
-														orientation="vertical"
-														className="mr-2 h-4 bg-secondary-foreground/30"
-													/>
-													<AppBreadcrumbs />
-												</div>
-											</header>
-											<AppHeader className="mt-16 mb-4 px-4" />
-											<div className="px-4 pb-6 h-full w-full">
-												{children}
+										>
+											<div className="flex items-center gap-2 px-4">
+												<SidebarTrigger className="-ml-1" />
+												<Separator
+													orientation="vertical"
+													className="mr-2 h-4 bg-secondary-foreground/30"
+												/>
+												<AppBreadcrumbs />
 											</div>
-										</SidebarInset>
-									</SidebarProvider>
-								</AuthProvider>
-							</Background>
-						</ThemeProvider>
+										</header>
+										<AppHeader className="mt-16 mb-4 px-4" />
+										<div className="px-4 pb-6 h-full w-full">{children}</div>
+									</SidebarInset>
+								</SidebarProvider>
+							</AuthProvider>
+						</Background>
 						<Toaster />
 					</Provider>
 				</body>
