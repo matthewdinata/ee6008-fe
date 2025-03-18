@@ -45,16 +45,10 @@ interface UserInfo {
 
 export default function NavUser({ user }: { user: UserInfo }) {
 	const { isMobile } = useSidebar();
-	const { systemTheme, theme, setTheme } = useTheme();
-	const currentTheme = theme === 'system' ? systemTheme : theme;
+	const { resolvedTheme, setTheme } = useTheme();
 	const router = useRouter();
 	const [mounted, setMounted] = useState(false);
-	const [directUser, setDirectUser] = useState<{
-		name: string;
-		email: string;
-		avatar: string;
-		role: string;
-	} | null>(null);
+	const [directUser, setDirectUser] = useState<UserInfo | null>(null);
 
 	// Set mounted flag to prevent hydration errors
 	useEffect(() => {
@@ -72,24 +66,27 @@ export default function NavUser({ user }: { user: UserInfo }) {
 			const cookieRole = getCookieValue('user-role');
 
 			if (cookieName || cookieEmail) {
-				setDirectUser({
-					name: cookieName || user.name,
-					email: cookieEmail || user.email,
-					role: cookieRole || user.role,
-					avatar: user.avatar,
-				});
-				console.log('📱 NavUser direct cookie check:', {
-					cookieName,
-					cookieEmail,
-					cookieRole,
-				});
+				// Only update state if values actually changed
+				if (
+					!directUser ||
+					cookieName !== directUser.name ||
+					cookieEmail !== directUser.email ||
+					cookieRole !== directUser.role
+				) {
+					setDirectUser({
+						name: cookieName || user.name,
+						email: cookieEmail || user.email,
+						role: cookieRole || user.role,
+						avatar: user.avatar,
+					});
+				}
 			}
 		} catch (e) {
 			console.error('Error in NavUser cookie check:', e);
 		}
-	}, [mounted, user]);
+	}, [mounted, user, directUser]);
 
-	// Skip rendering proper content during SSR to prevent hydration errors
+	// Skip rendering if not mounted
 	if (!mounted) {
 		return (
 			<div className="flex items-center h-10 px-2">
@@ -100,9 +97,6 @@ export default function NavUser({ user }: { user: UserInfo }) {
 
 	// Use direct cookie values if available, or fall back to passed props
 	const displayUser = directUser || user;
-
-	console.log('🔄 User:', displayUser);
-	console.log('🔄 Theme:', currentTheme);
 
 	return (
 		<SidebarMenu>
@@ -160,7 +154,7 @@ export default function NavUser({ user }: { user: UserInfo }) {
 							<DropdownMenuItem onClick={() => setTheme('light')}>
 								<SunIcon className="mr-2 h-4 w-4" />
 								<span>Light</span>
-								{currentTheme === 'light' && (
+								{resolvedTheme === 'light' && (
 									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
 										ON
 									</span>
@@ -169,7 +163,7 @@ export default function NavUser({ user }: { user: UserInfo }) {
 							<DropdownMenuItem onClick={() => setTheme('dark')}>
 								<MoonIcon className="mr-2 h-4 w-4" />
 								<span>Dark</span>
-								{currentTheme === 'dark' && (
+								{resolvedTheme === 'dark' && (
 									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
 										ON
 									</span>
