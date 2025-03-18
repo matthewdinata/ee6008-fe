@@ -3,6 +3,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 
+import { ProjectResponse } from '@/utils/actions/student/get-active-projects';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -12,9 +14,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { Project } from './types';
-
-export const columns: ColumnDef<Project>[] = [
+export const columns: ColumnDef<ProjectResponse>[] = [
 	{
 		id: 'select',
 		header: ({ table }) => (
@@ -53,12 +53,31 @@ export const columns: ColumnDef<Project>[] = [
 		},
 	},
 	{
-		accessorKey: 'faculty',
-		header: 'Faculty',
+		accessorKey: 'professor.name',
+		id: 'supervisor',
+		header: 'Supervisor',
+		meta: {
+			header: 'Supervisor',
+		},
 	},
 	{
-		accessorKey: 'programme',
-		header: 'Programme',
+		accessorKey: 'programme.name',
+		id: 'programme',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					className="px-0 hover:bg-transparent"
+				>
+					Programme
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
+		meta: {
+			header: 'Programme',
+		},
 	},
 	{
 		id: 'actions',

@@ -1,19 +1,17 @@
 'use client';
 
+import { useGetActiveProjects } from '@/utils/hooks/student/use-get-active-projects';
+
 import { DataTable } from '@/components/ui/data-table';
 
 import { columns } from './columns';
-import { Project } from './types';
 
-interface ProjectListDataTableProps {
-	data: Project[];
-}
-
-export function ProjectListDataTable({ data }: ProjectListDataTableProps) {
+export function ProjectListDataTable() {
+	const { data } = useGetActiveProjects();
 	return (
 		<DataTable
 			columns={columns}
-			data={data}
+			data={data ?? []}
 			filterBy="title"
 			pageSize={6}
 			showRowSelection={true}
