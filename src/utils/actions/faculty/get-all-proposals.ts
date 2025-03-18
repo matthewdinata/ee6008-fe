@@ -12,7 +12,7 @@ export type ProposalResponse = Proposal & {
 	semester: {
 		id: number;
 		name: string;
-		academic_year: number;
+		academicYear: number;
 	};
 	venue: {
 		id: number;
