@@ -1,15 +1,9 @@
 'use client';
 
-import {
-	BadgeCheck,
-	Bell,
-	ChevronsUpDown,
-	CreditCard,
-	LogOut,
-	MoonIcon,
-	SunIcon,
-} from 'lucide-react';
+import { BadgeCheck, ChevronsUpDown, CreditCard, LogOut, MoonIcon, SunIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -28,88 +22,194 @@ import {
 	useSidebar,
 } from '@/components/ui/sidebar';
 
-export default function NavUser({
-	user,
-}: {
-	user: {
-		name: string;
-		email: string;
-		avatar: string;
-	};
-}) {
+// Helper function for direct cookie access - prevent duplication
+function getCookieValue(name: string): string {
+	if (typeof document === 'undefined') return '';
+
+	const value = `; ${document.cookie}`;
+	const parts = value.split(`; ${name}=`);
+	if (parts.length === 2) {
+		const cookieValue = parts.pop()?.split(';').shift();
+		return cookieValue ? decodeURIComponent(cookieValue) : '';
+	}
+	return '';
+}
+
+// Define interface for the user object
+interface UserInfo {
+	name: string;
+	email: string;
+	avatar: string;
+	role: string;
+}
+
+export default function NavUser({ user }: { user: UserInfo }) {
 	const { isMobile } = useSidebar();
 	const { systemTheme, theme, setTheme } = useTheme();
 	const currentTheme = theme === 'system' ? systemTheme : theme;
+	const router = useRouter();
+	const [mounted, setMounted] = useState(false);
+	const [directUser, setDirectUser] = useState<{
+		name: string;
+		email: string;
+		avatar: string;
+		role: string;
+	} | null>(null);
 
-	// TODO: update with real functionalities
+	// Set mounted flag to prevent hydration errors
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	// Direct cookie access as a fallback
+	useEffect(() => {
+		if (!mounted) return; // Skip during SSR
+
+		try {
+			// Get cookies directly
+			const cookieName = getCookieValue('user-name');
+			const cookieEmail = getCookieValue('user-email');
+			const cookieRole = getCookieValue('user-role');
+
+			if (cookieName || cookieEmail) {
+				setDirectUser({
+					name: cookieName || user.name,
+					email: cookieEmail || user.email,
+					role: cookieRole || user.role,
+					avatar: user.avatar,
+				});
+				console.log('📱 NavUser direct cookie check:', {
+					cookieName,
+					cookieEmail,
+					cookieRole,
+				});
+			}
+		} catch (e) {
+			console.error('Error in NavUser cookie check:', e);
+		}
+	}, [mounted, user]);
+
+	// Skip rendering proper content during SSR to prevent hydration errors
+	if (!mounted) {
+		return (
+			<div className="flex items-center h-10 px-2">
+				<span className="text-xs font-medium">Loading...</span>
+			</div>
+		);
+	}
+
+	// Use direct cookie values if available, or fall back to passed props
+	const displayUser = directUser || user;
+
+	console.log('🔄 User:', displayUser);
+	console.log('🔄 Theme:', currentTheme);
 
 	return (
 		<SidebarMenu>
-			<SidebarMenuItem>
+			<SidebarMenuItem className={isMobile ? 'w-full' : ''}>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<SidebarMenuButton
-							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-						>
-							<Avatar className="h-8 w-8 rounded-lg">
-								<AvatarImage src={user.avatar} alt={user.name} />
-								<AvatarFallback className="rounded-lg">CN</AvatarFallback>
-							</Avatar>
-							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-semibold">{user.name}</span>
-								<span className="truncate text-xs">{user.email}</span>
-							</div>
-							<ChevronsUpDown className="ml-auto size-4" />
-						</SidebarMenuButton>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-						side={isMobile ? 'bottom' : 'right'}
-						align="end"
-						sideOffset={4}
-					>
-						<DropdownMenuLabel className="p-0 font-normal">
-							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage src={user.avatar} alt={user.name} />
-									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
+						<SidebarMenuButton size="lg" className="justify-between w-full">
+							<div className="flex items-center gap-2 truncate">
+								<Avatar className="h-5 w-5">
+									<AvatarImage src={displayUser.avatar} />
+									<AvatarFallback className="text-xs">
+										{displayUser.name?.charAt(0) || 'U'}
+									</AvatarFallback>
 								</Avatar>
-								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-semibold">{user.name}</span>
-									<span className="truncate text-xs">{user.email}</span>
+								<div className="grid flex-1 gap-px truncate text-left text-xs leading-none">
+									<span className="truncate font-semibold">
+										{displayUser.name || 'User'}
+									</span>
+									<span className="truncate opacity-60">{displayUser.email}</span>
 								</div>
 							</div>
-						</DropdownMenuLabel>
+							<ChevronsUpDown className="size-3 shrink-0 opacity-50" />
+						</SidebarMenuButton>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent side="top" sideOffset={20} className="w-56">
+						<DropdownMenuLabel>My Account</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem
-								onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')}
-							>
-								<SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-								<MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-								Toggle theme
+							<DropdownMenuItem>
+								<BadgeCheck className="mr-2 h-4 w-4 text-blue-500" />
+								<span>Verified</span>
+								{displayUser.role === 'admin' && (
+									<span className="ml-auto rounded bg-red-500 px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										Admin
+									</span>
+								)}
+								{displayUser.role === 'faculty' && (
+									<span className="ml-auto rounded bg-orange-500 px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										Faculty
+									</span>
+								)}
+								{displayUser.role === 'student' && (
+									<span className="ml-auto rounded bg-green-500 px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										Student
+									</span>
+								)}
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => router.push(`/${user.role}`)}>
+								<CreditCard className="mr-2 h-4 w-4" />
+								<span>Account</span>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem>
-								<BadgeCheck />
-								Account
+							<DropdownMenuItem onClick={() => setTheme('light')}>
+								<SunIcon className="mr-2 h-4 w-4" />
+								<span>Light</span>
+								{currentTheme === 'light' && (
+									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										ON
+									</span>
+								)}
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<CreditCard />
-								Billing
-							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<Bell />
-								Notifications
+							<DropdownMenuItem onClick={() => setTheme('dark')}>
+								<MoonIcon className="mr-2 h-4 w-4" />
+								<span>Dark</span>
+								{currentTheme === 'dark' && (
+									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
+										ON
+									</span>
+								)}
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>
-							<LogOut />
-							Log out
+						<DropdownMenuItem
+							onClick={async () => {
+								try {
+									console.log('Starting sign out process...');
+
+									// Create a form to submit to /api/auth/signout - this will ensure server-side cleanup
+									const form = document.createElement('form');
+									form.method = 'POST';
+									form.action = '/api/auth/signout';
+									form.style.display = 'none';
+
+									// Add a timestamp to prevent caching
+									const timestampField = document.createElement('input');
+									timestampField.type = 'hidden';
+									timestampField.name = 'timestamp';
+									timestampField.value = Date.now().toString();
+									form.appendChild(timestampField);
+
+									// Add the form to the document body and submit it
+									document.body.appendChild(form);
+									form.submit();
+
+									// Don't use client-side redirect - let the server handle it
+								} catch (error) {
+									console.error('Error during sign out process:', error);
+									// Fallback in case the form submission fails - redirect to current origin
+									const currentOrigin = window.location.origin;
+									window.location.href = `${currentOrigin}/signin?error=signout_failed`;
+								}
+							}}
+						>
+							<LogOut className="mr-2 h-4 w-4" />
+							<span>Sign out</span>
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

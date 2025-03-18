@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use server';
+
+import { getServerActionSession } from './actions/admin/upload';
 
 type FetcherOptions = {
 	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -14,6 +14,14 @@ type NextFetchRequestConfig = {
 	tags?: string[];
 };
 
+/**
+ * Fetcher function to make authenticated requests to the backend API
+ * @param path The API path to request
+ * @param options The fetch options
+ * @param data The request data
+ */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export async function fetcherFn<T = any>(
 	path: string,
 	options: FetcherOptions,
@@ -26,11 +34,13 @@ export async function fetcherFn<T = any>(
 
 	const { method, headers = {}, cache, next } = options;
 
+	const session = await getServerActionSession();
+
 	const fetchOptions: RequestInit & { next?: NextFetchRequestConfig } = {
 		method: method,
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${process.env.BACKEND_API_KEY}`,
+			Authorization: `Bearer ${session.accessToken}`,
 			...headers,
 		},
 		cache: cache,

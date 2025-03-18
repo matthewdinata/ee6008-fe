@@ -11,11 +11,19 @@ import {
 import { NavMainItemsConfig } from '@/components/layout/nav-main';
 
 // TODO: use dynamic user config
-export const userConfig = {
-	name: 'shadcn',
-	email: 'm@example.com',
-	avatar: '/avatars/shadcn.jpg',
+// Remove static userConfig and create a type for user session
+export type UserSession = {
+	name?: string;
+	email?: string;
+	avatar_url?: string;
 };
+
+// Function to generate user config from session
+export const getUserConfig = (session: UserSession) => ({
+	name: session.name || 'Anonymous User',
+	email: session.email || 'no-email@example.com',
+	avatar: session.avatar_url || '/avatars/default.jpg',
+});
 
 export const navConfig: NavMainItemsConfig = {
 	student: [
