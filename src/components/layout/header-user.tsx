@@ -149,23 +149,23 @@ export default function HeaderUser({ user }: { user: UserInfo }) {
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
-					<DropdownMenuItem onClick={() => setTheme('light')}>
-						<SunIcon className="mr-2 h-4 w-4" />
-						<span>Light</span>
-						{currentTheme === 'light' && (
-							<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
-								ON
-							</span>
+					<DropdownMenuItem
+						onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')}
+					>
+						{currentTheme === 'light' ? (
+							<>
+								<MoonIcon className="mr-2 h-4 w-4" />
+								<span>Dark</span>
+							</>
+						) : (
+							<>
+								<SunIcon className="mr-2 h-4 w-4" />
+								<span>Light</span>
+							</>
 						)}
-					</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => setTheme('dark')}>
-						<MoonIcon className="mr-2 h-4 w-4" />
-						<span>Dark</span>
-						{currentTheme === 'dark' && (
-							<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
-								ON
-							</span>
-						)}
+						<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
+							ON
+						</span>
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
