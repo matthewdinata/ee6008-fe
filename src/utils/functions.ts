@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use server';
 
+import { getServerActionSession } from './actions/admin/upload';
+
 type FetcherOptions = {
-	method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+	method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 	headers?: Record<string, string>;
 	cache?: RequestCache;
 	next?: NextFetchRequestConfig;
@@ -14,10 +14,18 @@ type NextFetchRequestConfig = {
 	tags?: string[];
 };
 
+/**
+ * Fetcher function to make authenticated requests to the backend API
+ * @param path The API path to request
+ * @param options The fetch options
+ * @param data The request data
+ */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export async function fetcherFn<T = any>(
 	path: string,
-	data?: any,
-	options: FetcherOptions = {}
+	options: FetcherOptions,
+	data?: any
 ): Promise<T> {
 	const apiUrl = process.env.BACKEND_API_URL;
 	if (!apiUrl) {
@@ -26,11 +34,13 @@ export async function fetcherFn<T = any>(
 
 	const { method, headers = {}, cache, next } = options;
 
+	const session = await getServerActionSession();
+
 	const fetchOptions: RequestInit & { next?: NextFetchRequestConfig } = {
 		method: method,
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${process.env.BACKEND_API_KEY}`,
+			Authorization: `Bearer ${session.accessToken}`,
 			...headers,
 		},
 		cache: cache,
@@ -46,17 +56,7 @@ export async function fetcherFn<T = any>(
 		const response = await fetch(`${apiUrl}/api/${path}`, fetchOptions);
 
 		if (!response.ok) {
-			// Try to get more detailed error information from the response
-			try {
-				const errorData = await response.json();
-				console.error('API error details:', errorData);
-				throw new Error(
-					`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`
-				);
-			} catch (parseError) {
-				// If we can't parse the error response as JSON, just throw the basic error
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
+			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
 		const rawResult = await response.json();

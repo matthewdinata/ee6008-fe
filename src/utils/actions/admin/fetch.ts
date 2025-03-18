@@ -62,7 +62,7 @@ export async function getSemesters(): Promise<ServerActionResponse<Semester[]>> 
 			};
 		}
 
-		const result = await fetcherFn('admin/semesters', null, {
+		const result = await fetcherFn('admin/semesters', {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -90,7 +90,7 @@ export async function getUsers(accessToken: string): Promise<ServerActionRespons
 	console.log('Server Action: Fetching all users');
 
 	try {
-		const result = await fetcherFn('admin/users', null, {
+		const result = await fetcherFn('admin/users', {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -118,7 +118,7 @@ export async function getUsers(accessToken: string): Promise<ServerActionRespons
  */
 export async function getFacultyUsers(accessToken: string): Promise<ServerActionResponse<User[]>> {
 	try {
-		const result = await fetcherFn('admin/users-faculty', null, {
+		const result = await fetcherFn('admin/users-faculty', {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -143,7 +143,7 @@ export async function getFacultyUsers(accessToken: string): Promise<ServerAction
  */
 export async function getStudentUsers(accessToken: string): Promise<ServerActionResponse<User[]>> {
 	try {
-		const result = await fetcherFn('admin/users-student', null, {
+		const result = await fetcherFn('admin/users-student', {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -172,7 +172,7 @@ export async function getUser(
 	accessToken: string
 ): Promise<ServerActionResponse<User>> {
 	try {
-		const result = await fetcherFn(`admin/users/${userId}`, null, {
+		const result = await fetcherFn(`admin/users/${userId}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -203,7 +203,7 @@ export async function deleteUser(
 	console.log('Server Action: Deleting user', userId);
 
 	try {
-		const result = await fetcherFn(`admin/users/${userId}`, null, {
+		const result = await fetcherFn(`admin/users/${userId}`, {
 			method: 'DELETE',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,

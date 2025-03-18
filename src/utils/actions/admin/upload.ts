@@ -1,23 +1,15 @@
-/* eslint-disable prettier/prettier */
 'use server';
 
-/* eslint-disable import/extensions */
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 import { fetcherFn } from '@/utils/functions';
 
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable prettier/prettier */
-
 /**
  * Gets a session from cookies for server actions
  * @returns The Supabase session
  */
-async function getServerActionSession() {
+export async function getServerActionSession() {
 	const cookieStore = cookies();
 	const accessToken = cookieStore.get('session-token')?.value;
 
@@ -49,7 +41,7 @@ async function getServerActionSession() {
 
 	// Create a session-like object to maintain compatibility
 	return {
-		access_token: accessToken,
+		accessToken: accessToken,
 		user: data.user,
 	};
 }
@@ -60,12 +52,16 @@ async function getServerActionSession() {
  * @param accessToken User's access token for authorization
  */
 export async function bulkUploadFaculty(formData: FormData, accessToken: string) {
-	return fetcherFn('admin/users/bulk-upload-faculty', formData, {
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${accessToken}`,
+	return fetcherFn(
+		'admin/users/bulk-upload-faculty',
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
 		},
-	});
+		formData
+	);
 }
 
 /**
@@ -79,12 +75,16 @@ export async function bulkUploadStudent(formData: FormData, semesterId: string) 
 	// Construct the URL with the semester_id parameter
 	const url = `admin/users/bulk-upload-student?semester_id=${encodeURIComponent(semesterId)}`;
 
-	return fetcherFn(url, formData, {
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${session.access_token}`,
+	return fetcherFn(
+		url,
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${session.accessToken}`,
+			},
 		},
-	});
+		formData
+	);
 }
 
 /**
@@ -94,12 +94,16 @@ export async function bulkUploadStudent(formData: FormData, semesterId: string) 
 export async function bulkUpload(formData: FormData) {
 	const session = await getServerActionSession();
 
-	return fetcherFn('admin/users/bulk-upload', formData, {
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${session.access_token}`,
+	return fetcherFn(
+		'admin/users/bulk-upload',
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${session.accessToken}`,
+			},
 		},
-	});
+		formData
+	);
 }
 
 /**
@@ -116,7 +120,7 @@ export async function fetchSemesters() {
 
 	const response = await fetch(`${apiUrl}/api/admin/semesters`, {
 		headers: {
-			Authorization: `Bearer ${session.access_token}`,
+			Authorization: `Bearer ${session.accessToken}`,
 		},
 	});
 
@@ -141,7 +145,7 @@ export async function fetchStudentUsers() {
 
 	const response = await fetch(`${apiUrl}/api/admin/users-student`, {
 		headers: {
-			Authorization: `Bearer ${session.access_token}`,
+			Authorization: `Bearer ${session.accessToken}`,
 			'Content-Type': 'application/json',
 		},
 	});
@@ -176,7 +180,7 @@ export async function createUser(userData: {
 	const response = await fetch(`${apiUrl}/api/admin/users`, {
 		method: 'POST',
 		headers: {
-			Authorization: `Bearer ${session.access_token}`,
+			Authorization: `Bearer ${session.accessToken}`,
 			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify(userData),
@@ -207,7 +211,7 @@ export async function deleteUser(userId: string) {
 	const response = await fetch(`${apiUrl}/api/admin/users/${userId}`, {
 		method: 'DELETE',
 		headers: {
-			Authorization: `Bearer ${session.access_token}`,
+			Authorization: `Bearer ${session.accessToken}`,
 			'Content-Type': 'application/json',
 		},
 	});
@@ -227,12 +231,16 @@ export async function deleteUser(userId: string) {
 export async function uploadFile(formData: FormData) {
 	const session = await getServerActionSession();
 
-	return fetcherFn('admin/upload', formData, {
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${session.access_token}`,
+	return fetcherFn(
+		'admin/upload',
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${session.accessToken}`,
+			},
 		},
-	});
+		formData
+	);
 }
 
 /**
