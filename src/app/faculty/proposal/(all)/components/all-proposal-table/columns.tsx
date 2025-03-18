@@ -26,8 +26,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-function ProjectDetails({ project }: { project: ProposalResponse }) {
-	if (!project) return <Skeleton className="h-48 w-full" />;
+function ProjectDetails({ proposal }: { proposal: ProposalResponse }) {
+	if (!proposal) return <Skeleton className="h-48 w-full" />;
 
 	const getBadgeVariant = (status: ProposalStatus) => {
 		if (status === ProposalStatus.APPROVED) {
@@ -45,25 +45,25 @@ function ProjectDetails({ project }: { project: ProposalResponse }) {
 			<div>
 				<h3 className="font-semibold">Professor</h3>
 				<p className="text-sm text-muted-foreground">
-					{project.professor?.name || 'Unknown Professor'}
+					{proposal.professor?.name || 'Unknown Professor'}
 				</p>
 			</div>
 
 			<div>
 				<h3 className="font-semibold">Programme</h3>
-				<p className="text-sm text-muted-foreground">{project.programme?.name}</p>
+				<p className="text-sm text-muted-foreground">{proposal.programme?.name}</p>
 			</div>
 
 			<div>
 				<h3 className="font-semibold">Semester & Year</h3>
 				<p className="text-sm text-muted-foreground">
-					{project.semester?.name}, {project.semester?.academicYear}
+					{proposal.semester?.name}, {proposal.semester?.academicYear}
 				</p>
 			</div>
 
 			<div>
 				<h3 className="font-semibold">Venue</h3>
-				<p className="text-sm text-muted-foreground">{project.venue?.name}</p>
+				<p className="text-sm text-muted-foreground">{proposal.venue?.name}</p>
 			</div>
 
 			<div>
@@ -72,13 +72,13 @@ function ProjectDetails({ project }: { project: ProposalResponse }) {
 					<div>
 						{/* TODO: check timezone */}
 						<p className="text-sm">
-							{new Date(project.createdAt).toLocaleDateString()}
+							{new Date(proposal.createdAt).toLocaleDateString()}
 						</p>
 						<p className="text-xs text-muted-foreground">Created</p>
 					</div>
 					<div>
 						<p className="text-sm">
-							{new Date(project.updatedAt).toLocaleDateString()}
+							{new Date(proposal.updatedAt).toLocaleDateString()}
 						</p>
 						<p className="text-xs text-muted-foreground">Updated</p>
 					</div>
@@ -87,15 +87,15 @@ function ProjectDetails({ project }: { project: ProposalResponse }) {
 
 			<div>
 				<h3 className="font-semibold">Status</h3>
-				<Badge variant={getBadgeVariant(project.status)} className="capitalize">
-					{project.status}
+				<Badge variant={getBadgeVariant(proposal.status)} className="capitalize">
+					{proposal.status}
 				</Badge>
 			</div>
 
 			<div>
 				<h3 className="font-semibold">Description</h3>
 				<div className="rounded-md bg-secondary p-3">
-					<p className="text-sm">{project.description}</p>
+					<p className="text-sm">{proposal.description}</p>
 				</div>
 			</div>
 		</div>
@@ -223,46 +223,50 @@ export const columns: ColumnDef<ProposalResponse>[] = [
 		id: 'actions',
 		enableHiding: false,
 		cell: ({ row }) => {
-			const project = row.original;
+			const proposal = row.original;
 
 			return (
-				<div className="flex">
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant="ghost"
-									className="h-8 w-8 p-0 hover:text-emerald-500"
-									onClick={() => {
-										/* handle approve */
-									}}
-								>
-									<Check />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Approve</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant="ghost"
-									className="h-8 w-8 p-0 hover:text-red-500"
-									onClick={() => {
-										/* handle reject */
-									}}
-								>
-									<X />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Reject</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
+				<div className="flex justify-end">
+					{proposal.status === ProposalStatus.PENDING && (
+						<>
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											variant="ghost"
+											className="h-8 w-8 p-0 hover:text-emerald-500"
+											onClick={() => {
+												// handle approve
+											}}
+										>
+											<Check />
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Approve</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											variant="ghost"
+											className="h-8 w-8 p-0 hover:text-red-500"
+											onClick={() => {
+												/* handle reject */
+											}}
+										>
+											<X />
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Reject</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						</>
+					)}
 					<Dialog>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
@@ -281,12 +285,12 @@ export const columns: ColumnDef<ProposalResponse>[] = [
 						</DropdownMenu>
 						<DialogContent className="sm:max-w-md">
 							<DialogHeader>
-								<DialogTitle>{project.title}</DialogTitle>
+								<DialogTitle>{proposal.title}</DialogTitle>
 								<DialogDescription>
 									Project details and information
 								</DialogDescription>
 							</DialogHeader>
-							<ProjectDetails project={project} />
+							<ProjectDetails proposal={proposal} />
 							<DialogClose asChild className="mt-4">
 								<Button>Close</Button>
 							</DialogClose>
