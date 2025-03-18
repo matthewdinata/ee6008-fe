@@ -207,7 +207,7 @@ export function AdminDashboard() {
 	}
 
 	return (
-		<div className="container mx-auto p-6 text-foreground">
+		<div className="container mx-auto text-foreground">
 			<div className="space-y-8">
 				{/* Welcome Section */}
 				<div className="bg-card rounded-lg shadow-sm p-6 border border-border">

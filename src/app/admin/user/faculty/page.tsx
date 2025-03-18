@@ -1,11 +1,11 @@
-import BulkUserUpload from '@/app/admin/upload/page';
+import BulkUserUpload from '@/app/admin/upload/components/bulk-user-upload';
 import UserTable from '@/app/admin/user/student/table';
 
 import { SingleUserAdd } from '../student/user';
 
 export default function FacultyUserPage() {
 	return (
-		<div className="container mx-auto p-6 text-foreground">
+		<div className="container mx-auto text-foreground">
 			<div className="space-y-8">
 				{/* Top Section - Upload Methods */}
 				<div className="grid md:grid-cols-2 gap-8">
