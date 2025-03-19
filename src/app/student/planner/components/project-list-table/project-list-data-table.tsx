@@ -3,11 +3,16 @@
 import { useGetActiveProjects } from '@/utils/hooks/student/use-get-active-projects';
 
 import { DataTable } from '@/components/ui/data-table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { columns } from './columns';
 
 export function ProjectListDataTable() {
-	const { data } = useGetActiveProjects();
+	const { data, isPending } = useGetActiveProjects();
+	if (isPending) {
+		return <Skeleton className="w-full h-64" />;
+	}
+
 	return (
 		<DataTable
 			columns={columns}

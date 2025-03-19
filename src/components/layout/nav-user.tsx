@@ -22,6 +22,8 @@ import {
 	useSidebar,
 } from '@/components/ui/sidebar';
 
+import { Skeleton } from '../ui/skeleton';
+
 // Helper function for direct cookie access - prevent duplication
 function getCookieValue(name: string): string {
 	if (typeof document === 'undefined') return '';
@@ -45,7 +47,8 @@ interface UserInfo {
 
 export default function NavUser({ user }: { user: UserInfo }) {
 	const { isMobile } = useSidebar();
-	const { resolvedTheme, setTheme } = useTheme();
+	const { systemTheme, theme, setTheme } = useTheme();
+	const currentTheme = theme === 'system' ? systemTheme : theme;
 	const router = useRouter();
 	const [mounted, setMounted] = useState(false);
 	const [directUser, setDirectUser] = useState<UserInfo | null>(null);
@@ -89,9 +92,13 @@ export default function NavUser({ user }: { user: UserInfo }) {
 	// Skip rendering if not mounted
 	if (!mounted) {
 		return (
-			<div className="flex items-center h-10 px-2">
-				<span className="text-xs font-medium">Loading...</span>
-			</div>
+			<SidebarMenu suppressHydrationWarning>
+				<SidebarMenuItem className={isMobile ? 'w-full' : ''}>
+					<SidebarMenuButton size="lg" className="justify-between w-full">
+						<Skeleton className="w-full h-12" />
+					</SidebarMenuButton>
+				</SidebarMenuItem>
+			</SidebarMenu>
 		);
 	}
 
@@ -99,7 +106,7 @@ export default function NavUser({ user }: { user: UserInfo }) {
 	const displayUser = directUser || user;
 
 	return (
-		<SidebarMenu>
+		<SidebarMenu suppressHydrationWarning>
 			<SidebarMenuItem className={isMobile ? 'w-full' : ''}>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
@@ -151,22 +158,21 @@ export default function NavUser({ user }: { user: UserInfo }) {
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem onClick={() => setTheme('light')}>
-								<SunIcon className="mr-2 h-4 w-4" />
-								<span>Light</span>
-								{resolvedTheme === 'light' && (
-									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
-										ON
-									</span>
-								)}
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => setTheme('dark')}>
-								<MoonIcon className="mr-2 h-4 w-4" />
-								<span>Dark</span>
-								{resolvedTheme === 'dark' && (
-									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
-										ON
-									</span>
+							<DropdownMenuItem
+								onClick={() =>
+									setTheme(currentTheme === 'light' ? 'dark' : 'light')
+								}
+							>
+								{currentTheme === 'light' ? (
+									<>
+										<MoonIcon className="mr-2 h-4 w-4" />
+										<span>Dark</span>
+									</>
+								) : (
+									<>
+										<SunIcon className="mr-2 h-4 w-4" />
+										<span>Light</span>
+									</>
 								)}
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
