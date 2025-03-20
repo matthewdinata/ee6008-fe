@@ -47,8 +47,7 @@ interface UserInfo {
 
 export default function NavUser({ user }: { user: UserInfo }) {
 	const { isMobile } = useSidebar();
-	const { systemTheme, theme, setTheme } = useTheme();
-	const currentTheme = theme === 'system' ? systemTheme : theme;
+	const { theme, setTheme } = useTheme();
 	const router = useRouter();
 	const [mounted, setMounted] = useState(false);
 	const [directUser, setDirectUser] = useState<UserInfo | null>(null);
@@ -158,19 +157,19 @@ export default function NavUser({ user }: { user: UserInfo }) {
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
 							<DropdownMenuItem
-								onClick={() =>
-									setTheme(currentTheme === 'light' ? 'dark' : 'light')
-								}
+								onClick={() => {
+									setTheme(theme === 'dark' ? 'light' : 'dark');
+								}}
 							>
-								{currentTheme === 'light' ? (
-									<>
-										<MoonIcon className="mr-2 h-4 w-4" />
-										<span>Dark</span>
-									</>
-								) : (
+								{theme === 'dark' ? (
 									<>
 										<SunIcon className="mr-2 h-4 w-4" />
 										<span>Light</span>
+									</>
+								) : (
+									<>
+										<MoonIcon className="mr-2 h-4 w-4" />
+										<span>Dark</span>
 									</>
 								)}
 							</DropdownMenuItem>

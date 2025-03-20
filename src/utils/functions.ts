@@ -35,6 +35,9 @@ export async function fetcherFn<T = any>(
 	const { method, headers = {}, cache, next } = options;
 
 	const session = await getServerActionSession();
+	if (process.env.NODE_ENV === 'development') {
+		console.debug('Session token:', session.accessToken);
+	}
 
 	const fetchOptions: RequestInit & { next?: NextFetchRequestConfig } = {
 		method: method,
