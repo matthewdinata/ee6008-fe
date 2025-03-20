@@ -19,7 +19,10 @@ import {
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+import { useRegisterProjects } from '@/utils/hooks/student/use-register-projects';
 
 import { Button } from '@/components/ui/button';
 
@@ -60,8 +63,15 @@ type ProjectSortablePriorityProps = {
 };
 
 const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityProps) => {
-	const [projects, setProjects] = useState(initialProjects);
+	const [projects, setProjects] = useState<Project[]>([]);
 	const [activeId, setActiveId] = useState<string | null>(null);
+	const { mutate: registerProjects, isPending } = useRegisterProjects();
+
+	useEffect(() => {
+		if (initialProjects && initialProjects.length > 0) {
+			setProjects(initialProjects);
+		}
+	}, [initialProjects]);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -86,6 +96,22 @@ const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityPro
 			});
 		}
 		setActiveId(null);
+	};
+
+	const handleSubmit = async () => {
+		const prioritizedProjects = projects.slice(0, NO_OF_ACTIVE_PROJECTS);
+
+		try {
+			await registerProjects(prioritizedProjects.map((project) => parseInt(project.id)));
+			toast.success('Projects registered', {
+				description: `You have successfully registered your top ${prioritizedProjects.length} project preferences.`,
+			});
+		} catch (error) {
+			toast.error('Registration failed', {
+				description:
+					'An error occurred while registering your project preferences. Please try again.',
+			});
+		}
 	};
 
 	const activeProject = activeId ? projects.find((p) => p.id === activeId) : null;
@@ -126,7 +152,13 @@ const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityPro
 			</DragOverlay>
 
 			<div className="flex justify-end mt-4">
-				<Button type="submit">Register</Button>
+				<Button
+					type="button"
+					onClick={handleSubmit}
+					disabled={projects.length === 0 || isPending}
+				>
+					Register
+				</Button>
 			</div>
 		</DndContext>
 	);

@@ -43,7 +43,8 @@ const AuthPage = () => {
 					// User is already logged in, redirect to dashboard
 					console.log('User already logged in, redirecting to dashboard');
 					addDebugMessage('User already logged in, redirecting to dashboard');
-					router.push('/dashboard');
+
+					router.push(`/${session?.user?.role?.toLowerCase}/`);
 				}
 			} catch (err) {
 				console.error('Session check exception:', err);
@@ -184,10 +185,10 @@ const AuthPage = () => {
 									<p
 										className={`text-sm ${
 											message.type === 'success'
-												? 'text-green-800'
+												? 'text-green-800 dark:text-green-400'
 												: message.type === 'error'
-													? 'text-red-800'
-													: 'text-blue-800'
+													? 'text-red-800 dark:text-red-400'
+													: 'text-blue-800 dark:text-blue-400'
 										}`}
 									>
 										{message.text}

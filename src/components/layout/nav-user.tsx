@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -21,6 +21,8 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from '@/components/ui/sidebar';
+
+import { Skeleton } from '../ui/skeleton';
 
 // Helper function for direct cookie access - prevent duplication
 function getCookieValue(name: string): string {
@@ -45,7 +47,7 @@ interface UserInfo {
 
 export default function NavUser({ user }: { user: UserInfo }) {
 	const { isMobile } = useSidebar();
-	const { resolvedTheme, setTheme } = useTheme();
+	const { theme, setTheme } = useTheme();
 	const router = useRouter();
 	const [mounted, setMounted] = useState(false);
 	const [directUser, setDirectUser] = useState<UserInfo | null>(null);
@@ -89,9 +91,13 @@ export default function NavUser({ user }: { user: UserInfo }) {
 	// Skip rendering if not mounted
 	if (!mounted) {
 		return (
-			<div className="flex items-center h-10 px-2">
-				<span className="text-xs font-medium">Loading...</span>
-			</div>
+			<SidebarMenu suppressHydrationWarning>
+				<SidebarMenuItem className={isMobile ? 'w-full' : ''}>
+					<SidebarMenuButton size="lg" className="justify-between w-full">
+						<Skeleton className="w-full h-12" />
+					</SidebarMenuButton>
+				</SidebarMenuItem>
+			</SidebarMenu>
 		);
 	}
 
@@ -99,14 +105,13 @@ export default function NavUser({ user }: { user: UserInfo }) {
 	const displayUser = directUser || user;
 
 	return (
-		<SidebarMenu>
+		<SidebarMenu suppressHydrationWarning>
 			<SidebarMenuItem className={isMobile ? 'w-full' : ''}>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton size="lg" className="justify-between w-full">
 							<div className="flex items-center gap-2 truncate">
-								<Avatar className="h-5 w-5">
-									<AvatarImage src={displayUser.avatar} />
+								<Avatar className="h-5 w-5 text-primary">
 									<AvatarFallback className="text-xs">
 										{displayUser.name?.charAt(0) || 'U'}
 									</AvatarFallback>
@@ -151,22 +156,21 @@ export default function NavUser({ user }: { user: UserInfo }) {
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem onClick={() => setTheme('light')}>
-								<SunIcon className="mr-2 h-4 w-4" />
-								<span>Light</span>
-								{resolvedTheme === 'light' && (
-									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
-										ON
-									</span>
-								)}
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => setTheme('dark')}>
-								<MoonIcon className="mr-2 h-4 w-4" />
-								<span>Dark</span>
-								{resolvedTheme === 'dark' && (
-									<span className="ml-auto rounded-full bg-black px-1.5 text-[0.625rem] font-medium uppercase text-white">
-										ON
-									</span>
+							<DropdownMenuItem
+								onClick={() => {
+									setTheme(theme === 'dark' ? 'light' : 'dark');
+								}}
+							>
+								{theme === 'dark' ? (
+									<>
+										<SunIcon className="mr-2 h-4 w-4" />
+										<span>Light</span>
+									</>
+								) : (
+									<>
+										<MoonIcon className="mr-2 h-4 w-4" />
+										<span>Dark</span>
+									</>
 								)}
 							</DropdownMenuItem>
 						</DropdownMenuGroup>

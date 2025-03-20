@@ -42,7 +42,7 @@ export async function updateProposalStatus(
 
 		return response;
 	} catch (error) {
-		console.error('Error in updateProposal:', error);
+		console.error('Error in updateProposalStatus:', error);
 		return null;
 	}
 }

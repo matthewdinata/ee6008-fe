@@ -1,4 +1,3 @@
-// app/layout.tsx
 import { createClient } from '@supabase/supabase-js';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';

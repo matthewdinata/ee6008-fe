@@ -1,5 +1,8 @@
-import { GripVertical } from 'lucide-react';
+import { GripVertical, MonitorCog, UserSearch } from 'lucide-react';
 
+import { useGetRegistrationIds } from '@/utils/hooks/student/use-get-registration-ids';
+
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 
 import { INACTIVE_OPACITY, NO_OF_ACTIVE_PROJECTS } from './project-sortable-priority';
@@ -23,9 +26,12 @@ const ProjectCard = ({
 	isDragOverlay = false,
 }: ProjectCardProps) => {
 	const isActive = index < NO_OF_ACTIVE_PROJECTS;
+	const { data: registeredProjects } = useGetRegistrationIds();
+
+	const projectPriority = registeredProjects?.[parseInt(project.id)];
+	const isRegistered = projectPriority !== undefined;
 
 	return (
-		// TODO: fix cursor grab issue
 		<Card
 			className={`mb-2 cursor-grab ${isDragOverlay ? 'border-ring border shadow-lg' : ''}`}
 			style={{
@@ -34,13 +40,24 @@ const ProjectCard = ({
 			{...dragHandleProps}
 		>
 			<CardContent className="flex items-center justify-between p-3 text-sm space-x-2">
-				<div>
-					<div className="font-bold">{project.title}</div>
-					<div className="text-muted-foreground text-sm">
-						{project.faculty} &nbsp;|&nbsp; {project.programme}
+				<div className="space-y-1">
+					<div className="font-bold flex items-center gap-2">{project.title}</div>
+					<div className="text-muted-foreground text-sm flex gap-1 items-center">
+						<UserSearch size="16" />
+						<span>{project.faculty}</span>
+						<span className="mx-2">|</span>
+						<MonitorCog size="16" />
+						<span>{project.programme}</span>
 					</div>
 				</div>
-				<GripVertical className="text-muted-foreground" size={16} />
+				<div className="flex items-center gap-3">
+					{isRegistered && (
+						<Badge variant="secondary" className="border-muted-foreground bg-accent">
+							Registered (#{projectPriority})
+						</Badge>
+					)}
+					<GripVertical className="text-muted-foreground" size={16} />
+				</div>
 			</CardContent>
 		</Card>
 	);
