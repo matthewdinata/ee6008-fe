@@ -1,4 +1,4 @@
-import { GripVertical } from 'lucide-react';
+import { GripVertical, MonitorCog, UserSearch } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -34,10 +34,14 @@ const ProjectCard = ({
 			{...dragHandleProps}
 		>
 			<CardContent className="flex items-center justify-between p-3 text-sm space-x-2">
-				<div>
+				<div className="space-y-1">
 					<div className="font-bold">{project.title}</div>
-					<div className="text-muted-foreground text-sm">
-						{project.faculty} &nbsp;|&nbsp; {project.programme}
+					<div className="text-muted-foreground text-sm flex gap-1 items-center">
+						<UserSearch size="16" />
+						<span>{project.faculty}</span>
+						<span className="mx-2">|</span>
+						<MonitorCog size="16" />
+						<span>{project.programme}</span>
 					</div>
 				</div>
 				<GripVertical className="text-muted-foreground" size={16} />

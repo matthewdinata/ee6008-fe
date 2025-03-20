@@ -176,13 +176,14 @@ export function DataTable<TData, TValue>({
 									? true
 									: false
 							}
-							onClick={() =>
+							onClick={() => {
 								onSelectionButtonClick(
 									table
 										.getFilteredSelectedRowModel()
 										.rows.map((row) => row.original)
-								)
-							}
+								);
+								setRowSelection({});
+							}}
 						>
 							{selectionButtonText}
 						</Button>
