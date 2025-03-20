@@ -36,11 +36,6 @@ async function AllocatedProject() {
 					<div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
 						<div>
 							<h2 className="text-xl font-bold">{data.project.title}</h2>
-							<p className="text-sm text-muted-foreground">
-								{data.project.professor
-									? `Supervised by ${data.project.professor.name}`
-									: 'No supervisor assigned'}
-							</p>
 						</div>
 						<div className="sm:flex-shrink-0">
 							{data.project.programme && <Badge>{data.project.programme.name}</Badge>}
@@ -51,6 +46,32 @@ async function AllocatedProject() {
 				<CardContent className="space-y-6">
 					{/* Project Details */}
 					<div className="space-y-4">
+						<div>
+							<p className="text-sm text-muted-foreground">
+								{data.project.professor ? (
+									<>
+										Supervised by{' '}
+										<span className="font-semibold">
+											{data.project.professor.name}
+										</span>
+									</>
+								) : (
+									'No supervisor assigned'
+								)}
+							</p>
+							<p className="text-sm text-muted-foreground">
+								{data.project.moderator ? (
+									<>
+										Moderated by{' '}
+										<span className="font-semibold">
+											{data.project.moderator.name}
+										</span>
+									</>
+								) : (
+									'No moderator assigned'
+								)}
+							</p>
+						</div>
 						<div className="flex items-center gap-2 text-sm text-muted-foreground">
 							<CalendarIcon size={16} />
 							<span>{academicPeriod}</span>

@@ -28,6 +28,11 @@ export type AllocatedProjectResponse = {
 			name: string;
 			email: string;
 		};
+		moderator?: {
+			id: number;
+			name: string;
+			email: string;
+		};
 	};
 	priority: number;
 	allocationId: number;

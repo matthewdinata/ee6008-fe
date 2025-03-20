@@ -28,7 +28,7 @@ export async function registerProjects(
 			data
 		);
 
-		revalidateTag('registrations');
+		revalidateTag('get-registrations');
 
 		return response;
 	} catch (error) {
