@@ -185,10 +185,10 @@ const AuthPage = () => {
 									<p
 										className={`text-sm ${
 											message.type === 'success'
-												? 'text-green-800'
+												? 'text-green-800 dark:text-green-400'
 												: message.type === 'error'
-													? 'text-red-800'
-													: 'text-blue-800'
+													? 'text-red-800 dark:text-red-400'
+													: 'text-blue-800 dark:text-blue-400'
 										}`}
 									>
 										{message.text}
