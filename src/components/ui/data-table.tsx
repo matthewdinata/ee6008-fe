@@ -58,6 +58,7 @@ interface DataTableProps<TData, TValue> {
 	pageSize?: number;
 	showRowSelection?: boolean;
 	selectionButtonText?: string;
+	disableSelectionButton?: boolean;
 	onSelectionButtonClick?: (selectedRows: TData[]) => void;
 	columnDisplayNames?: Record<string, string>;
 }
@@ -70,6 +71,7 @@ export function DataTable<TData, TValue>({
 	pageSize = 10,
 	showRowSelection,
 	selectionButtonText,
+	disableSelectionButton,
 	onSelectionButtonClick,
 	columnDisplayNames = {},
 }: DataTableProps<TData, TValue>) {
@@ -169,7 +171,10 @@ export function DataTable<TData, TValue>({
 					{showRowSelection && selectionButtonText && onSelectionButtonClick && (
 						<Button
 							disabled={
-								table.getFilteredSelectedRowModel().rows.length === 0 ? true : false
+								table.getFilteredSelectedRowModel().rows.length === 0 ||
+								disableSelectionButton
+									? true
+									: false
 							}
 							onClick={() =>
 								onSelectionButtonClick(

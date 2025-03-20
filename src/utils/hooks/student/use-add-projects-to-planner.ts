@@ -81,12 +81,8 @@ export const useAddProjectsToPlanner = () => {
 			return successfulProjects;
 		},
 		onSuccess: () => {
-			// Invalidate relevant queries
 			queryClient.invalidateQueries({
-				queryKey: ['planner'],
-			});
-			queryClient.invalidateQueries({
-				queryKey: ['plans'],
+				queryKey: ['get-planned-projects'],
 			});
 		},
 	});

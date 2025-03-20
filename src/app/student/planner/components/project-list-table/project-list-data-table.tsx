@@ -60,7 +60,9 @@ export function ProjectListDataTable() {
 							) {
 								toast.error(`"${projectTitle}" is already in your plan`);
 							} else {
-								toast.error(`Failed to add "${projectTitle}"`);
+								toast.error(
+									`Failed to add "${projectTitle}". Check if project is already in your plan.`
+								);
 							}
 						} else {
 							// Multiple projects failed
@@ -105,6 +107,7 @@ export function ProjectListDataTable() {
 			pageSize={6}
 			showRowSelection={true}
 			selectionButtonText={isAddingToPlanner ? 'Adding...' : 'Add to plan'}
+			disableSelectionButton={isAddingToPlanner}
 			onSelectionButtonClick={handleAddToPlanner}
 		/>
 	);

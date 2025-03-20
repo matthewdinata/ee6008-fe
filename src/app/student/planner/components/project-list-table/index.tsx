@@ -3,14 +3,23 @@
 import { BookOpen, BookmarkCheck } from 'lucide-react';
 import { useState } from 'react';
 
+import { useGetPlannedProjects } from '@/utils/hooks/student/use-get-planned-projects';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DataTable } from '@/components/ui/data-table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { plannedColumns } from './planned-columns';
 import { ProjectListDataTable } from './project-list-data-table';
 
 export default function ProjectListTable() {
 	const [activeTab, setActiveTab] = useState('all');
+	const { data: plannedProjects, isPending } = useGetPlannedProjects();
+
+	const hasPlannedProjects = plannedProjects && plannedProjects.length > 0;
+
 	return (
 		<div className="space-y-6">
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -37,24 +46,36 @@ export default function ProjectListTable() {
 
 				<TabsContent value="planned" className="mt-4">
 					<Card>
-						<CardContent className="p-0 py-10">
-							<div className="flex flex-col items-center justify-center text-center p-6">
-								<BookmarkCheck className="h-12 w-12 text-muted-foreground" />
-								<h3 className="mt-4 text-lg font-medium">
-									No projects on your plan yet
-								</h3>
-								<p className="mt-2 text-sm text-muted-foreground max-w-sm">
-									You haven&apos;t planned for any projects yet. Start exploring
-									projects and add projects that spark your interest.
-								</p>
-								<Button
-									className="mt-4"
-									variant="outline"
-									onClick={() => setActiveTab('all')}
-								>
-									Explore projects
-								</Button>
-							</div>
+						<CardContent className="p-6">
+							{isPending ? (
+								<Skeleton className="w-full h-64" />
+							) : !hasPlannedProjects ? (
+								<div className="flex flex-col items-center justify-center text-center p-6">
+									<BookmarkCheck className="h-12 w-12 text-muted-foreground" />
+									<h3 className="mt-4 text-lg font-medium">
+										No projects on your plan yet
+									</h3>
+									<p className="mt-2 text-sm text-muted-foreground max-w-sm">
+										You haven&apos;t planned for any projects yet. Start
+										exploring projects and add projects that spark your
+										interest.
+									</p>
+									<Button
+										className="mt-4"
+										variant="outline"
+										onClick={() => setActiveTab('all')}
+									>
+										Explore projects
+									</Button>
+								</div>
+							) : (
+								<DataTable
+									columns={plannedColumns}
+									data={plannedProjects || []}
+									filterBy="title"
+									pageSize={6}
+								/>
+							)}
 						</CardContent>
 					</Card>
 				</TabsContent>

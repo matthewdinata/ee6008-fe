@@ -43,6 +43,7 @@ const AuthPage = () => {
 					// User is already logged in, redirect to dashboard
 					console.log('User already logged in, redirecting to dashboard');
 					addDebugMessage('User already logged in, redirecting to dashboard');
+					// TODO: Replace the following line with the correct redirect path
 					router.push('/dashboard');
 				}
 			} catch (err) {
