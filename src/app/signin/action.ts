@@ -43,6 +43,6 @@ export async function login(formData: FormData) {
 	}
 
 	return {
-		success: `✓Link sent! Check your email ${email} to sign in. The link will expire in 1 hour.`,
+		success: `✓ Link sent! Check your email ${email} to sign in. The link will expire in 1 hour.`,
 	};
 }

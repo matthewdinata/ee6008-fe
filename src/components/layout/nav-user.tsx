@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -112,8 +112,7 @@ export default function NavUser({ user }: { user: UserInfo }) {
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton size="lg" className="justify-between w-full">
 							<div className="flex items-center gap-2 truncate">
-								<Avatar className="h-5 w-5">
-									<AvatarImage src={displayUser.avatar} />
+								<Avatar className="h-5 w-5 text-primary">
 									<AvatarFallback className="text-xs">
 										{displayUser.name?.charAt(0) || 'U'}
 									</AvatarFallback>
