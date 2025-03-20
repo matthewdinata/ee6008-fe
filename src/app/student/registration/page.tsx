@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 
 import { useGetPlannedProjects } from '@/utils/hooks/student/use-get-planned-projects';
-import { useGetRegistrations } from '@/utils/hooks/student/use-get-registrations';
+import { useGetRegistrationIds } from '@/utils/hooks/student/use-get-registration-ids';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ const ProjectRegistration = () => {
 		isPending: isGettingPlannedProjects,
 		error,
 	} = useGetPlannedProjects();
-	const { data: registeredProjects, isPending: isGettingRegistrations } = useGetRegistrations();
+	const { data: registeredProjects, isPending: isGettingRegistrations } = useGetRegistrationIds();
 
 	const router = useRouter();
 	// Transform planned projects to match the format expected by ProjectSortablePriority

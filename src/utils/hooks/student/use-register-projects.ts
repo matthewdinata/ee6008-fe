@@ -9,6 +9,9 @@ export const useRegisterProjects = () => {
 		mutationFn: (projectIds: number[]) => registerProjects(projectIds),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
+				queryKey: ['get-registration-ids'],
+			});
+			queryClient.invalidateQueries({
 				queryKey: ['get-registrations'],
 			});
 		},

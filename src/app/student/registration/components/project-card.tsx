@@ -1,6 +1,6 @@
 import { GripVertical, MonitorCog, UserSearch } from 'lucide-react';
 
-import { useGetRegistrations } from '@/utils/hooks/student/use-get-registrations';
+import { useGetRegistrationIds } from '@/utils/hooks/student/use-get-registration-ids';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,7 +26,7 @@ const ProjectCard = ({
 	isDragOverlay = false,
 }: ProjectCardProps) => {
 	const isActive = index < NO_OF_ACTIVE_PROJECTS;
-	const { data: registeredProjects } = useGetRegistrations();
+	const { data: registeredProjects } = useGetRegistrationIds();
 
 	const projectPriority = registeredProjects?.[parseInt(project.id)];
 	const isRegistered = projectPriority !== undefined;

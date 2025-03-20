@@ -6,13 +6,5 @@ export const useGetRegistrations = () => {
 	return useQuery({
 		queryKey: ['get-registrations'],
 		queryFn: () => getRegistrations(),
-		select: (data) =>
-			data?.projects.reduce(
-				(acc, project) => {
-					acc[project.id] = project.priority;
-					return acc;
-				},
-				{} as Record<number, number>
-			) || {},
 	});
 };

@@ -3,7 +3,7 @@
 import { fetcherFn } from '../../functions';
 
 // Define the response structure
-interface RegisteredProject {
+export type RegisteredProject = {
 	id: number;
 	title: string;
 	description: string;
@@ -14,18 +14,18 @@ interface RegisteredProject {
 	professorName: string;
 	moderatorId: number;
 	moderatorName: string;
-}
+};
 
-interface RegistrationsResponse {
+export type RegistrationsResponse = {
 	studentId: number;
 	studentName: string;
 	semesterId: number;
 	semesterName: string;
 	academicYear: number;
 	projects: RegisteredProject[];
-}
+} | null;
 
-export async function getRegistrations(): Promise<RegistrationsResponse | null> {
+export async function getRegistrations(): Promise<RegistrationsResponse> {
 	try {
 		const result = await fetcherFn<RegistrationsResponse>(
 			'student/registrations',
@@ -33,7 +33,7 @@ export async function getRegistrations(): Promise<RegistrationsResponse | null> 
 				method: 'GET',
 			},
 			{
-				next: { tags: ['get-registrations'] },
+				next: { tags: ['registrations'] },
 			}
 		);
 
