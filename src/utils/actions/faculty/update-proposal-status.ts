@@ -7,6 +7,7 @@ import { fetcherFn } from '../../functions';
 export type UpdateProposalStatusData = {
 	proposalId: number;
 	status: 'approved' | 'rejected';
+	reason?: string;
 };
 
 export type UpdateProposalStatusResponseData = {
@@ -22,6 +23,7 @@ export type UpdateProposalStatusResponseData = {
 		updatedAt: string;
 		venueId: number;
 		programmeId: number;
+		reason: string;
 	};
 } | null;
 

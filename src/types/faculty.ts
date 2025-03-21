@@ -15,6 +15,7 @@ export type Proposal = {
 	status: ProposalStatus;
 	createdAt: Date;
 	updatedAt: Date;
+	reason: string;
 };
 
 export type Venue = {
