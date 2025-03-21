@@ -94,7 +94,7 @@ export function AllocationResults({ data, isGenerating }: AllocationResultsProps
 			<CardHeader>
 				<CardTitle>Allocation Results</CardTitle>
 			</CardHeader>
-			{/* TODO: Implement the allocation results */}
+
 			<CardContent>
 				{isGenerating ? (
 					<Skeleton className="w-full h-96" />

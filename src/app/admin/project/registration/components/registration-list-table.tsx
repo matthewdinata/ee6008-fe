@@ -14,15 +14,5 @@ export function RegistrationListDataTable() {
 		return <Skeleton className="h-96 w-full" />;
 	}
 
-	return (
-		data && (
-			<DataTable
-				columns={columns}
-				data={data}
-				filterBy="title"
-				pageSize={6}
-				// TODO: handle dynamic data
-			/>
-		)
-	);
+	return data && <DataTable columns={columns} data={data} filterBy="title" pageSize={6} />;
 }

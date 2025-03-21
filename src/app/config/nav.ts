@@ -10,8 +10,6 @@ import {
 
 import { NavMainItemsConfig } from '@/components/layout/nav-main';
 
-// TODO: use dynamic user config
-// Remove static userConfig and create a type for user session
 export type UserSession = {
 	name?: string;
 	email?: string;

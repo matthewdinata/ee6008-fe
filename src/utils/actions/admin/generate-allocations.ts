@@ -41,7 +41,6 @@ export async function generateAllocations(
 			data
 		);
 
-		// TODO: check valid revalidation
 		revalidateTag('allocations-by-semester');
 
 		return {

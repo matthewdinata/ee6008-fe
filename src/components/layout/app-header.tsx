@@ -47,7 +47,6 @@ export default function AppHeader({ className }: { className?: string }) {
 		// Check if the path is valid
 		const isPathValid = isValidPath(config, pathname);
 		if (!isPathValid) {
-			// TODO: update title and subtitle
 			return {};
 		}
 
