@@ -10,6 +10,9 @@ export const useCreateProposal = () => {
 			queryClient.invalidateQueries({
 				queryKey: ['proposals'],
 			});
+			queryClient.invalidateQueries({
+				queryKey: ['get-my-proposals'],
+			});
 		},
 	});
 };

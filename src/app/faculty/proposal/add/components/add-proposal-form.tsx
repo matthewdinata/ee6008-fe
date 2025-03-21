@@ -78,27 +78,21 @@ export function AddProposalForm() {
 	};
 
 	function onSubmit(values: z.infer<typeof formSchema>) {
-		const professorId = 56; // TODO: replace with actual professor ID
 		try {
-			if (professorId) {
-				createProposal(
-					{
-						title: values.title,
-						description: values.description,
-						professorId,
-						venueId: values.venueId,
-						programmeId: values.programmeId,
+			createProposal(
+				{
+					title: values.title,
+					description: values.description,
+					venueId: values.venueId,
+					programmeId: values.programmeId,
+				},
+				{
+					onSuccess: () => {
+						setShowSuccessModal(true);
+						form.reset();
 					},
-					{
-						onSuccess: () => {
-							setShowSuccessModal(true);
-							form.reset();
-						},
-					}
-				);
-			} else {
-				console.error('No professor ID found');
-			}
+				}
+			);
 		} catch (error) {
 			console.error('Failed to create proposal:', error);
 		}

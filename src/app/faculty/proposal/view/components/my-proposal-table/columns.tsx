@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 
 import { ProposalStatus } from '@/types/faculty';
-import { ProposalResponse } from '@/utils/actions/faculty/get-proposals-by-faculty-id';
+import { ProposalResponse } from '@/utils/actions/faculty/get-my-proposals';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

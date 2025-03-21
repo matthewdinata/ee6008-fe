@@ -24,25 +24,23 @@ export type ProposalResponse = Proposal & {
 	};
 };
 
-export type GetProposalsByFacultyIdResponseData = ProposalResponse[] | null;
+export type GetMyProposalsResponseData = ProposalResponse[] | null;
 
-export async function getProposalsByFacultyId(
-	facultyId: number
-): Promise<GetProposalsByFacultyIdResponseData> {
+export async function getMyProposals(): Promise<GetMyProposalsResponseData> {
 	try {
-		const result = await fetcherFn<GetProposalsByFacultyIdResponseData>(
-			`faculty/proposals/${facultyId}`,
+		const result = await fetcherFn<GetMyProposalsResponseData>(
+			`faculty/proposals/me`,
 			{
 				method: 'GET',
 			},
 			{
-				next: { tags: ['proposals', facultyId] },
+				next: { tags: ['proposals'] },
 			}
 		);
 
 		return result ?? [];
 	} catch (error) {
-		console.error('Error in getProposalsByFacultyId:', error);
+		console.error('Error in getMyProposals:', error);
 		return null;
 	}
 }
