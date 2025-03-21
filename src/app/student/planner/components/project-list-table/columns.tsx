@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, BookOpen, MapPin, MoreHorizontal, User } from 'lucide-react';
 
 import { ProjectResponse } from '@/utils/actions/student/get-active-projects';
+import { useGetRegistrationsByProject } from '@/utils/hooks/student/use-get-registrations-by-project';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,6 +30,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function ProjectDetails({ project }: { project: ProjectResponse }) {
+	const { data, isPending } = useGetRegistrationsByProject(project.id);
+
 	if (!project) return <Skeleton className="h-48 w-full" />;
 
 	return (
@@ -78,7 +81,7 @@ function ProjectDetails({ project }: { project: ProjectResponse }) {
 						<div>
 							<p className="text-sm text-muted-foreground mb-2">Description</p>
 							{project.description ? (
-								<ScrollArea className="h-64 rounded-md border p-4 bg-background">
+								<ScrollArea className="max-h-64 overflow-y-auto rounded-md border p-4 bg-background">
 									<p className="text-sm leading-relaxed">{project.description}</p>
 								</ScrollArea>
 							) : (
@@ -97,12 +100,6 @@ function ProjectDetails({ project }: { project: ProjectResponse }) {
 									<div className="h-5 w-5 flex items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5">
 										<CheckIcon className="h-3 w-3" />
 									</div>
-									<span>Prior knowledge of relevant field</span>
-								</li>
-								<li className="flex items-start gap-2">
-									<div className="h-5 w-5 flex items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5">
-										<CheckIcon className="h-3 w-3" />
-									</div>
 									<span>Commitment to project timeline</span>
 								</li>
 								<li className="flex items-start gap-2">
@@ -112,6 +109,12 @@ function ProjectDetails({ project }: { project: ProjectResponse }) {
 									<span>Ability to work in a team environment</span>
 								</li>
 							</ul>
+						</div>
+						<Separator />
+
+						<div>
+							<h3 className="text-sm font-medium">Current No. of Registrations</h3>
+							<div>{isPending ? '...' : data?.students?.length || '0'}</div>
 						</div>
 					</CardContent>
 				</Card>

@@ -91,6 +91,17 @@ function ProjectDetails({ project }: { project: ProposalResponse }) {
 			</div>
 
 			<div>
+				{project.status === ProposalStatus.REJECTED && (
+					<div className="mt-2">
+						<h3 className="font-semibold">Rejection Reason</h3>
+						<p className="text-sm text-muted-foreground">
+							{project.reason || 'Not specified'}
+						</p>
+					</div>
+				)}
+			</div>
+
+			<div>
 				<h3 className="font-semibold">Description</h3>
 				<div className="rounded-md bg-secondary p-3">
 					<p className="text-sm">{project.description}</p>

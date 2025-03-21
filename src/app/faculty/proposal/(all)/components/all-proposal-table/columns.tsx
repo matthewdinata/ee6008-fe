@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, Check, Loader2, MoreHorizontal, X } from 'lucide-react';
+import { useState } from 'react';
 
 import { ProposalStatus } from '@/types/faculty';
 import { ProposalResponse } from '@/utils/actions/faculty/get-all-proposals';
@@ -13,6 +14,7 @@ import {
 	DialogClose,
 	DialogContent,
 	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
@@ -23,7 +25,9 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function ProjectDetails({ proposal }: { proposal: ProposalResponse }) {
@@ -93,6 +97,17 @@ function ProjectDetails({ proposal }: { proposal: ProposalResponse }) {
 			</div>
 
 			<div>
+				{proposal.status === ProposalStatus.REJECTED && (
+					<div className="mt-2">
+						<h3 className="font-semibold">Rejection Reason</h3>
+						<p className="text-sm text-muted-foreground">
+							{proposal.reason || 'Not specified'}
+						</p>
+					</div>
+				)}
+			</div>
+
+			<div>
 				<h3 className="font-semibold">Description</h3>
 				<div className="rounded-md bg-secondary p-3">
 					<p className="text-sm">{proposal.description}</p>
@@ -102,9 +117,136 @@ function ProjectDetails({ proposal }: { proposal: ProposalResponse }) {
 	);
 }
 
+// Approval Dialog Component
+function ApprovalDialog({
+	proposal,
+	onApprove,
+	disabled,
+}: {
+	proposal: ProposalResponse;
+	onApprove: (proposalId: number) => void;
+	disabled: boolean;
+}) {
+	const [open, setOpen] = useState(false);
+
+	const handleApprove = () => {
+		onApprove(proposal.id);
+		setOpen(false);
+	};
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button
+					variant="ghost"
+					className="h-8 w-8 p-0 hover:text-emerald-500"
+					disabled={disabled}
+				>
+					<Check className="h-4 w-4" />
+				</Button>
+			</DialogTrigger>
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle>Approve Proposal</DialogTitle>
+					<DialogDescription>
+						Are you sure you want to approve this proposal?
+						<br />
+						This will create a new project titled{' '}
+						<span className="font-medium">{proposal.title}</span>.
+					</DialogDescription>
+				</DialogHeader>
+				<DialogFooter>
+					<DialogClose asChild>
+						<Button variant="secondary">Cancel</Button>
+					</DialogClose>
+					<Button onClick={handleApprove} variant="default">
+						Approve
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+// Rejection Dialog Component
+function RejectionDialog({
+	proposal,
+	onReject,
+	disabled,
+}: {
+	proposal: ProposalResponse;
+	onReject: (proposalId: number, reason: string) => void;
+	disabled: boolean;
+}) {
+	const [open, setOpen] = useState(false);
+	const [reason, setReason] = useState('');
+	const [error, setError] = useState('');
+
+	const handleReject = () => {
+		if (!reason.trim()) {
+			setError('Please provide a reason for rejection');
+			return;
+		}
+
+		onReject(proposal.id, reason);
+		setOpen(false);
+		setReason('');
+		setError('');
+	};
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button
+					variant="ghost"
+					className="h-8 w-8 p-0 hover:text-red-500"
+					disabled={disabled}
+				>
+					<X className="h-4 w-4" />
+				</Button>
+			</DialogTrigger>
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle>Reject Proposal</DialogTitle>
+					<DialogDescription>
+						Please provide a reason for rejecting{' '}
+						<span className="font-medium">{proposal.title}</span>
+					</DialogDescription>
+				</DialogHeader>
+				<div className="space-y-2">
+					<div className="grid gap-2">
+						<Label htmlFor="reason" className="text-left">
+							Reason <span className="text-red-500">*</span>
+						</Label>
+						<Textarea
+							id="reason"
+							placeholder="Enter reason for rejection"
+							value={reason}
+							onChange={(e) => {
+								setReason(e.target.value);
+								if (e.target.value.trim()) setError('');
+							}}
+							className={error ? 'border-red-500' : ''}
+						/>
+						{error && <p className="text-red-500 text-sm">{error}</p>}
+					</div>
+				</div>
+				<DialogFooter>
+					<DialogClose asChild>
+						<Button variant="secondary">Cancel</Button>
+					</DialogClose>
+					<Button onClick={handleReject} variant="destructive">
+						Reject
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
 export const createColumns = (
 	onApprove: (proposalId: number) => void,
-	onReject: (proposalId: number) => void,
+	onReject: (proposalId: number, reason: string) => void,
 	isProcessing: boolean,
 	processingId: number | null
 ): ColumnDef<ProposalResponse>[] => {
@@ -246,19 +388,18 @@ export const createColumns = (
 										</span>
 									</div>
 								) : (
-									// Show buttons for other proposals (disabled during any processing)
+									// Show dialog-triggered buttons for other proposals (disabled during any processing)
 									<>
 										<TooltipProvider>
 											<Tooltip>
 												<TooltipTrigger asChild>
-													<Button
-														variant="ghost"
-														className="h-8 w-8 p-0 hover:text-emerald-500"
-														onClick={() => onApprove(proposal.id)}
-														disabled={isProcessing}
-													>
-														<Check className="h-4 w-4" />
-													</Button>
+													<div>
+														<ApprovalDialog
+															proposal={proposal}
+															onApprove={onApprove}
+															disabled={isProcessing}
+														/>
+													</div>
 												</TooltipTrigger>
 												<TooltipContent>
 													{isProcessing
@@ -270,14 +411,13 @@ export const createColumns = (
 										<TooltipProvider>
 											<Tooltip>
 												<TooltipTrigger asChild>
-													<Button
-														variant="ghost"
-														className="h-8 w-8 p-0 hover:text-red-500"
-														onClick={() => onReject(proposal.id)}
-														disabled={isProcessing}
-													>
-														<X className="h-4 w-4" />
-													</Button>
+													<div>
+														<RejectionDialog
+															proposal={proposal}
+															onReject={onReject}
+															disabled={isProcessing}
+														/>
+													</div>
 												</TooltipTrigger>
 												<TooltipContent>
 													{isProcessing

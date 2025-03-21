@@ -55,7 +55,7 @@ export default function AllProposalTable() {
 		);
 	};
 
-	const handleReject = (proposalId: number) => {
+	const handleReject = (proposalId: number, reason: string) => {
 		if (isProcessing) return;
 
 		// Set our local processing state
@@ -66,6 +66,7 @@ export default function AllProposalTable() {
 			{
 				proposalId,
 				status: 'rejected',
+				reason: reason,
 			},
 			{
 				onSuccess: () => {
@@ -78,7 +79,7 @@ export default function AllProposalTable() {
 				},
 				onError: (error) => {
 					toast.error(
-						error instanceof Error ? error.message : 'Failed to approve proposal'
+						error instanceof Error ? error.message : 'Failed to reject proposal'
 					);
 				},
 				onSettled: () => {
