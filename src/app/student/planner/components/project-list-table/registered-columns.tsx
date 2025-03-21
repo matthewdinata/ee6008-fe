@@ -75,7 +75,7 @@ export const registeredColumns: ColumnDef<RegisteredProject>[] = [
 		header: 'Moderator',
 		cell: ({ row }) => {
 			const moderator = row.getValue('moderatorName') as string;
-			return <div className="max-w-[200px] truncate">{moderator}</div>;
+			return <div className="max-w-[200px] truncate">{moderator || 'Unassigned'}</div>;
 		},
 	},
 ];
