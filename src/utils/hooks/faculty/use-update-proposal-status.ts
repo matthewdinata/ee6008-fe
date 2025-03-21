@@ -13,6 +13,9 @@ export const useUpdateProposalStatus = () => {
 			queryClient.invalidateQueries({
 				queryKey: ['proposals'],
 			});
+			queryClient.invalidateQueries({
+				queryKey: ['get-my-proposals'],
+			});
 		},
 	});
 };

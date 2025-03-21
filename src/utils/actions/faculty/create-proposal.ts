@@ -7,9 +7,9 @@ import { fetcherFn } from '../../functions';
 export type CreateProposalData = {
 	title: string;
 	description: string;
-	professorId: number;
 	venueId: number;
 	programmeId: number;
+	professorId?: number;
 };
 
 export type CreateProposalResponseData = {
