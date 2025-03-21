@@ -33,8 +33,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 function ProjectDetails({ proposal }: { proposal: ProposalResponse }) {
 	if (!proposal) return <Skeleton className="h-48 w-full" />;
 
-	console.log(proposal);
-
 	const getBadgeVariant = (status: ProposalStatus) => {
 		if (status === ProposalStatus.APPROVED) {
 			return 'outlineSuccess';
