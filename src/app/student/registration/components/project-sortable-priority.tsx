@@ -35,11 +35,13 @@ export const INACTIVE_OPACITY = 0.4;
 type SortableItemProps = {
 	project: Project;
 	index: number;
+	isDisabled?: boolean;
 };
 
-const SortableItem = ({ project, index }: SortableItemProps) => {
+const SortableItem = ({ project, index, isDisabled }: SortableItemProps) => {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: project.id,
+		disabled: isDisabled,
 	});
 
 	const style = {
@@ -52,7 +54,8 @@ const SortableItem = ({ project, index }: SortableItemProps) => {
 			<ProjectCard
 				project={project}
 				index={index}
-				dragHandleProps={{ ...attributes, ...listeners }}
+				dragHandleProps={isDisabled ? {} : { ...attributes, ...listeners }}
+				isDraggable={!isDisabled}
 			/>
 		</div>
 	);
@@ -60,9 +63,13 @@ const SortableItem = ({ project, index }: SortableItemProps) => {
 
 type ProjectSortablePriorityProps = {
 	initialProjects: Project[];
+	isDisabled?: boolean;
 };
 
-const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityProps) => {
+const ProjectSortablePriority = ({
+	initialProjects,
+	isDisabled = false,
+}: ProjectSortablePriorityProps) => {
 	const [projects, setProjects] = useState<Project[]>([]);
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const { mutate: registerProjects, isPending } = useRegisterProjects();
@@ -81,11 +88,15 @@ const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityPro
 	);
 
 	const handleDragStart = (event: DragStartEvent) => {
+		if (isDisabled) return;
+
 		const { active } = event;
 		setActiveId(active.id.toString());
 	};
 
 	const handleDragEnd = (event: DragEndEvent) => {
+		if (isDisabled) return;
+
 		const { active, over } = event;
 
 		if (active.id !== over?.id && over) {
@@ -99,6 +110,13 @@ const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityPro
 	};
 
 	const handleSubmit = async () => {
+		if (isDisabled) {
+			toast.error('Registration is currently disabled', {
+				description: 'Project registration is not available at this time.',
+			});
+			return;
+		}
+
 		const prioritizedProjects = projects.slice(0, NO_OF_ACTIVE_PROJECTS);
 
 		try {
@@ -129,7 +147,7 @@ const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityPro
 				strategy={verticalListSortingStrategy}
 			>
 				{projects.map((project, index) => (
-					<div key={project.id} className="flex items-center w-full">
+					<div key={project.id} className="flex items-center w-full !mt-1">
 						<div
 							className="w-8 pl-2 text-sm sm:text-base"
 							style={{
@@ -139,15 +157,20 @@ const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityPro
 							{index + 1}
 						</div>
 						<div className="flex-1">
-							<SortableItem project={project} index={index} />
+							<SortableItem project={project} index={index} isDisabled={isDisabled} />
 						</div>
 					</div>
 				))}
 			</SortableContext>
 
 			<DragOverlay>
-				{activeProject && activeIndex >= 0 ? (
-					<ProjectCard project={activeProject} index={activeIndex} isDragOverlay={true} />
+				{activeProject && activeIndex >= 0 && !isDisabled ? (
+					<ProjectCard
+						project={activeProject}
+						index={activeIndex}
+						isDragOverlay={true}
+						isDraggable={!isDisabled}
+					/>
 				) : null}
 			</DragOverlay>
 
@@ -155,9 +178,9 @@ const ProjectSortablePriority = ({ initialProjects }: ProjectSortablePriorityPro
 				<Button
 					type="button"
 					onClick={handleSubmit}
-					disabled={projects.length === 0 || isPending}
+					disabled={projects.length === 0 || isPending || isDisabled}
 				>
-					Register
+					{isDisabled ? 'Registration Closed' : 'Register'}
 				</Button>
 			</div>
 		</DndContext>

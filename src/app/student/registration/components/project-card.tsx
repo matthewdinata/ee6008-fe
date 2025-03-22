@@ -17,6 +17,7 @@ type ProjectCardProps = {
 	index: number;
 	dragHandleProps?: DragHandleProps;
 	isDragOverlay?: boolean;
+	isDraggable?: boolean;
 };
 
 const ProjectCard = ({
@@ -24,6 +25,7 @@ const ProjectCard = ({
 	index,
 	dragHandleProps = {},
 	isDragOverlay = false,
+	isDraggable = true,
 }: ProjectCardProps) => {
 	const isActive = index < NO_OF_ACTIVE_PROJECTS;
 	const { data: registeredProjects } = useGetRegistrationIds();
@@ -33,7 +35,7 @@ const ProjectCard = ({
 
 	return (
 		<Card
-			className={`mb-2 cursor-grab ${isDragOverlay ? 'border-ring border shadow-lg' : ''}`}
+			className={`mb-2 ${isDraggable ? 'cursor-grab' : 'cursor-default'} ${isDragOverlay ? 'border-ring border shadow-lg' : ''}`}
 			style={{
 				opacity: isActive || isDragOverlay ? 1 : INACTIVE_OPACITY,
 			}}
@@ -56,7 +58,7 @@ const ProjectCard = ({
 							Registered (#{projectPriority})
 						</Badge>
 					)}
-					<GripVertical className="text-muted-foreground" size={16} />
+					{isDraggable && <GripVertical className="text-muted-foreground" size={16} />}
 				</div>
 			</CardContent>
 		</Card>
