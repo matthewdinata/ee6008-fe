@@ -74,16 +74,16 @@ function AllProposals() {
 	}
 
 	return (
-		<div className="mb-8">
-			<div className="mb-4 rounded-md bg-chart-2/10 p-4">
-				<div className="flex items-center">
-					<Shield className="mr-3 h-5 w-5 text-chart-3" />
-					<h2 className="font-semibold text-chart-3">Course Coordinator View</h2>
-				</div>
-				<p className="mt-1 text-chart-3">
+		<div className="mb-8 space-y-4">
+			<Alert className="bg-chart-2/10">
+				<Shield className="h-4 w-4" />
+				<AlertTitle className="font-semibold text-chart-3">
+					Course Coordinator View
+				</AlertTitle>
+				<AlertDescription className="mt-1 text-chart-3">
 					You have access to view and manage all proposals in your course.
-				</p>
-			</div>
+				</AlertDescription>
+			</Alert>
 			<AllProposalTable />
 		</div>
 	);
