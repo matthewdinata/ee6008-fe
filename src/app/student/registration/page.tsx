@@ -1,9 +1,10 @@
 'use client';
 
-import { Terminal } from 'lucide-react';
+import { AlertCircle, Terminal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { useGetActiveSemesterTimeline } from '@/utils/hooks/student/use-get-active-semester-timeline';
 import { useGetPlannedProjects } from '@/utils/hooks/student/use-get-planned-projects';
 import { useGetRegistrationIds } from '@/utils/hooks/student/use-get-registration-ids';
 
@@ -20,8 +21,42 @@ const ProjectRegistration = () => {
 		error,
 	} = useGetPlannedProjects();
 	const { data: registeredProjects, isPending: isGettingRegistrations } = useGetRegistrationIds();
+	const { data: semesterTimeline, isPending: isLoadingSemesterTimeline } =
+		useGetActiveSemesterTimeline();
+
+	const [isWithinRegistrationPeriod, setIsWithinRegistrationPeriod] = useState(false);
+	const [timeMessage, setTimeMessage] = useState('');
 
 	const router = useRouter();
+
+	// Check if current time is within the student registration period
+	useEffect(() => {
+		if (semesterTimeline) {
+			const now = new Date();
+			const startDate = new Date(semesterTimeline.studentRegistrationStart);
+			const endDate = new Date(semesterTimeline.studentRegistrationEnd);
+
+			if (now < startDate) {
+				setIsWithinRegistrationPeriod(false);
+				const formattedStartDate = new Intl.DateTimeFormat('en-US', {
+					dateStyle: 'full',
+					timeStyle: 'long',
+				}).format(startDate);
+				setTimeMessage(`Registration will open on ${formattedStartDate}`);
+			} else if (now > endDate) {
+				setIsWithinRegistrationPeriod(false);
+				setTimeMessage('The registration period has ended.');
+			} else {
+				setIsWithinRegistrationPeriod(true);
+				const formattedEndDate = new Intl.DateTimeFormat('en-US', {
+					dateStyle: 'full',
+					timeStyle: 'long',
+				}).format(endDate);
+				setTimeMessage(`Registration closes on ${formattedEndDate}`);
+			}
+		}
+	}, [semesterTimeline]);
+
 	// Transform planned projects to match the format expected by ProjectSortablePriority
 	const transformedProjects = React.useMemo(() => {
 		if (!plannedProjects) return [];
@@ -46,17 +81,39 @@ const ProjectRegistration = () => {
 		router.push('/student/planner');
 	};
 
+	if (isGettingPlannedProjects || isGettingRegistrations || isLoadingSemesterTimeline) {
+		return (
+			<div className="space-y-4">
+				<Skeleton className="h-24 w-full" />
+				<Skeleton className="h-48 w-full" />
+			</div>
+		);
+	}
+
 	return (
-		<div>
-			<p className="text-muted-foreground mb-4 text-sm">
+		<div className="space-y-6">
+			{/* Time restriction alert */}
+			<Alert
+				className={`${isWithinRegistrationPeriod ? 'bg-blue-200/20' : 'bg-amber-200/20'}`}
+			>
+				<AlertCircle
+					className={`h-4 w-4 ${isWithinRegistrationPeriod ? 'text-blue-600' : 'text-amber-600'}`}
+				/>
+				<AlertTitle>
+					{isWithinRegistrationPeriod
+						? 'Registration Period Active'
+						: 'Registration Period Inactive'}
+				</AlertTitle>
+				<AlertDescription>{timeMessage}</AlertDescription>
+			</Alert>
+
+			<p className="text-muted-foreground text-sm !mb-6">
 				Select up to 5 projects in order of preference.
 				<br />
 				Click and drag any project card to reorder priorities.
 			</p>
 
-			{isGettingPlannedProjects || isGettingRegistrations ? (
-				<Skeleton className="w-full h-32" />
-			) : error ? (
+			{error ? (
 				<div>
 					<Alert variant="destructive">
 						<Terminal className="h-4 w-4" />
@@ -95,7 +152,10 @@ const ProjectRegistration = () => {
 					</Alert>
 				</div>
 			) : (
-				<ProjectSortablePriority initialProjects={transformedProjects} />
+				<ProjectSortablePriority
+					initialProjects={transformedProjects}
+					isDisabled={!isWithinRegistrationPeriod}
+				/>
 			)}
 		</div>
 	);
