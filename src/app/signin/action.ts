@@ -27,10 +27,18 @@ export async function login(formData: FormData) {
 		};
 	}
 
+	const getBaseUrl = () => {
+		if (process.env.NODE_ENV === 'development') {
+			return `${process.env.NEXT_PUBLIC_SITE_URL}`;
+		}
+
+		return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+	};
+
 	const { error } = await supabase.auth.signInWithOtp({
 		email,
 		options: {
-			emailRedirectTo: process.env.NEXT_PUBLIC_VERCEL_URL ?? process.env.NEXT_PUBLIC_SITE_URL,
+			emailRedirectTo: getBaseUrl(),
 			shouldCreateUser: true,
 		},
 	});
