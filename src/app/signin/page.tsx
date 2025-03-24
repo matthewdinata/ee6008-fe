@@ -208,11 +208,11 @@ const AuthPage = () => {
 
 							{message.text && (
 								<Alert
-									className={`${
+									className={`text-foreground ${
 										message.type === 'success'
 											? 'text-green-800 dark:text-green-400 bg-green-100 dark:bg-green-950'
 											: message.type === 'error'
-												? 'text-destructive-foreground bg-destructive/10'
+												? 'bg-destructive/20'
 												: 'text-blue-800 dark:text-blue-400 bg-blue-100 dark:bg-blue-950'
 									}`}
 								>
@@ -251,11 +251,11 @@ const AuthPage = () => {
 
 							{message.text && (
 								<Alert
-									className={`${
+									className={`text-foreground ${
 										message.type === 'success'
 											? 'text-green-800 dark:text-green-400 bg-green-100 dark:bg-green-950'
 											: message.type === 'error'
-												? 'text-destructive-foreground bg-destructive/10'
+												? 'bg-destructive/20'
 												: 'text-blue-800 dark:text-blue-400 bg-blue-100 dark:bg-blue-950'
 									}`}
 								>
