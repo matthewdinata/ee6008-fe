@@ -30,7 +30,7 @@ export async function login(formData: FormData) {
 	const { error } = await supabase.auth.signInWithOtp({
 		email,
 		options: {
-			emailRedirectTo: process.env.NEXT_PUBLIC_VERCEL_URL ?? process.env.PUBLIC_SITE_URL,
+			emailRedirectTo: process.env.NEXT_PUBLIC_VERCEL_URL ?? process.env.NEXT_PUBLIC_SITE_URL,
 			shouldCreateUser: true,
 		},
 	});
