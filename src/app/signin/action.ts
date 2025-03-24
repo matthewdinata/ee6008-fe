@@ -27,13 +27,18 @@ export async function login(formData: FormData) {
 		};
 	}
 
+	const getBaseUrl = () => {
+		if (process.env.NODE_ENV === 'development') {
+			return `${process.env.NEXT_PUBLIC_SITE_URL}`;
+		}
+
+		return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+	};
+
 	const { error } = await supabase.auth.signInWithOtp({
 		email,
 		options: {
-			emailRedirectTo:
-				process.env.NODE_ENV === 'development'
-					? `${process.env.PUBLIC_SITE_URL}/auth/callback`
-					: `https://ee6008ntu.netlify.app/auth/callback`,
+			emailRedirectTo: getBaseUrl(),
 			shouldCreateUser: true,
 		},
 	});
