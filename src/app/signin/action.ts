@@ -30,10 +30,7 @@ export async function login(formData: FormData) {
 	const { error } = await supabase.auth.signInWithOtp({
 		email,
 		options: {
-			emailRedirectTo:
-				process.env.NODE_ENV === 'development'
-					? `${process.env.PUBLIC_SITE_URL}/auth/callback`
-					: `https://ee6008ntu.netlify.app/auth/callback`,
+			emailRedirectTo: process.env.NEXT_PUBLIC_VERCEL_URL ?? process.env.PUBLIC_SITE_URL,
 			shouldCreateUser: true,
 		},
 	});
