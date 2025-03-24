@@ -32,7 +32,7 @@ export async function login(formData: FormData) {
 			return `${process.env.NEXT_PUBLIC_SITE_URL}`;
 		}
 
-		return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+		return `https://${process.env.VERCEL_URL}`;
 	};
 
 	const { error } = await supabase.auth.signInWithOtp({
