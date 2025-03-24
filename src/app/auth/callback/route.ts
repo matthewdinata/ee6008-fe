@@ -53,7 +53,7 @@ export async function GET(request: Request) {
 		}
 
 		// Determine redirect URL based on role
-		let redirectUrl = '/dashboard'; // Default fallback
+		let redirectUrl = '/'; // Default fallback
 
 		if (userData?.role) {
 			switch (userData.role.toLowerCase()) {
@@ -67,7 +67,7 @@ export async function GET(request: Request) {
 					redirectUrl = '/faculty';
 					break;
 				default:
-					redirectUrl = '/dashboard';
+					redirectUrl = '/';
 			}
 		}
 
