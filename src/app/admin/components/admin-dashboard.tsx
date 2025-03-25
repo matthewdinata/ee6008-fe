@@ -126,20 +126,20 @@ export function AdminDashboard() {
 		}
 	}, [checkTokenStatus]);
 
-	const handleLogout = async () => {
-		try {
-			// Use form submission for server-side logout
-			const form = document.createElement('form');
-			form.method = 'POST';
-			form.action = '/api/auth/signout';
-			document.body.appendChild(form);
-			form.submit();
-		} catch (error) {
-			console.error('Error signing out:', error);
-			// Fallback to client-side cleanup and redirect
-			router.push('/signin');
-		}
-	}, [supabase, checkAndRefreshToken]);
+	// const handleLogout = async () => {
+	// 	try {
+	// 		// Use form submission for server-side logout
+	// 		const form = document.createElement('form');
+	// 		form.method = 'POST';
+	// 		form.action = '/api/auth/signout';
+	// 		document.body.appendChild(form);
+	// 		form.submit();
+	// 	} catch (error) {
+	// 		console.error('Error signing out:', error);
+	// 		// Fallback to client-side cleanup and redirect
+	// 		router.push('/signin');
+	// 	}
+	// }, [supabase, checkAndRefreshToken];
 
 	const fetchUserData = useCallback(async () => {
 		try {
@@ -248,10 +248,7 @@ export function AdminDashboard() {
 									{user?.role}
 								</p>
 							</div>
-							<button
-								onClick={handleLogout}
-								className="mt-4 flex items-center space-x-2 px-4 py-2 bg-destructive text-destructive-foreground rounded hover:bg-destructive/90 transition-colors"
-							>
+							<button className="mt-4 flex items-center space-x-2 px-4 py-2 bg-destructive text-destructive-foreground rounded hover:bg-destructive/90 transition-colors">
 								<LogOut className="h-4 w-4" />
 								<span>Logout</span>
 							</button>

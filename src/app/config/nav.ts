@@ -172,6 +172,12 @@ export const navConfig: NavMainItemsConfig = {
 					headerSubtitle: 'View all approved project proposals',
 				},
 				{
+					title: 'Project Grade Analytics',
+					url: '/admin/project/grade/evaluation',
+					headerTitle: 'Project Grade Analytics',
+					headerSubtitle: 'View and manage project grades',
+				},
+				{
 					title: 'Student registrations',
 					url: '/admin/project/registration',
 					headerTitle: 'Project Registrations',

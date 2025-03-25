@@ -3,10 +3,7 @@
 import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 
-// Import types from fetch.ts for API responses and data models
-import { User as ApiUser } from '@/utils/actions/admin/fetch';
-import { deleteUser, getUsers } from '@/utils/actions/admin/fetch';
-import { getSessionFromClient } from '@/utils/actions/admin/user';
+import { User, deleteUser, fetchStudentUsers } from '@/utils/actions/admin/user';
 
 import {
 	AlertDialog,
@@ -37,17 +34,17 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
-// Define the User interface used in the component
-interface User {
-	id: number;
-	user_id: number;
-	email: string;
-	name: string;
-	is_course_coordinator: boolean;
+// Extended user interface to include semester information
+interface StudentUser extends User {
+	semester?: {
+		id: number;
+		academicYear: number;
+		name: string;
+	};
 }
 
 export function StudentTable() {
-	const [allUsers, setAllUsers] = useState<User[]>([]); // Store all fetched users
+	const [allUsers, setAllUsers] = useState<StudentUser[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 	const [searchQuery, setSearchQuery] = useState('');
@@ -78,36 +75,12 @@ export function StudentTable() {
 			setIsLoading(true);
 			setError(null);
 
-			// Use the server-side function instead of client component
-			try {
-				const session = await getSessionFromClient();
-				console.log('Fetching users with token:', session.access_token);
+			// Use utility function to fetch student users (server-side)
+			const formattedData = await fetchStudentUsers();
+			setAllUsers(formattedData);
 
-				const response = await getUsers(session.access_token);
-
-				if (!response.success) {
-					setError(response.error || 'Failed to fetch users');
-					throw new Error(response.error || 'Failed to fetch users');
-				}
-
-				const data = response.data as ApiUser[];
-				console.log('Fetched users:', data);
-				const formattedData = data.map((userData) => ({
-					id: userData.id,
-					user_id: userData.id,
-					email: userData.email,
-					name: userData.name,
-					is_course_coordinator: Boolean(userData.is_course_coordinator),
-				}));
-
-				setAllUsers(formattedData);
-
-				setCurrentPage(1); // Reset to first page when new data is fetched
-				setSearchQuery(''); // Clear search when new data is fetched
-			} catch (sessionError) {
-				console.error('Session error:', sessionError);
-				setError('Authentication error. Please sign in again.');
-			}
+			setCurrentPage(1); // Reset to first page when new data is fetched
+			setSearchQuery(''); // Clear search when new data is fetched
 		} catch (error) {
 			console.error('Error fetching users:', error);
 			setError(error instanceof Error ? error.message : 'An unexpected error occurred');
@@ -120,17 +93,8 @@ export function StudentTable() {
 		try {
 			setDeleteLoading(userId);
 
-			// Use the server-side function to get the session
-			const session = await getSessionFromClient();
-
-			if (!session) {
-				throw new Error('No session found');
-			}
-			const response = await deleteUser(userId, session.access_token);
-
-			if (!response.success) {
-				throw new Error(response.error || 'Failed to delete user');
-			}
+			// Use utility function to delete a user
+			await deleteUser(userId);
 
 			// Remove the deleted user from the local state
 			setAllUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
@@ -147,6 +111,12 @@ export function StudentTable() {
 		}
 	};
 
+	// Format semester display for readability
+	const formatSemester = (user: StudentUser) => {
+		if (!user.semester) return 'N/A';
+		return `Year ${user.semester.academicYear} ${user.semester.name}`;
+	};
+
 	useEffect(() => {
 		fetchUsers();
 	}, []);
@@ -155,7 +125,7 @@ export function StudentTable() {
 		<div className="container mx-auto p-6 text-foreground">
 			<div className="flex flex-col space-y-4">
 				<div className="flex justify-between items-center">
-					<h2 className="text-2xl font-bold text-foreground">User List</h2>
+					<h2 className="text-2xl font-bold text-foreground">Student List</h2>
 					<Button
 						onClick={fetchUsers}
 						disabled={isLoading}
@@ -169,7 +139,7 @@ export function StudentTable() {
 						) : (
 							<>
 								<RefreshCw className="h-4 w-4" />
-								Get Users
+								Get Students
 							</>
 						)}
 					</Button>
@@ -207,13 +177,13 @@ export function StudentTable() {
 							<span className="text-sm text-muted-foreground">Show:</span>
 							<Select
 								value={pageSize}
-								onValueChange={(val) => {
-									setPageSize(val);
+								onValueChange={(value) => {
+									setPageSize(value);
 									setCurrentPage(1); // Reset to first page when changing page size
 								}}
 							>
-								<SelectTrigger className="w-20">
-									<SelectValue placeholder="10" />
+								<SelectTrigger className="w-[100px]">
+									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="10">10</SelectItem>
@@ -226,92 +196,64 @@ export function StudentTable() {
 					</div>
 				)}
 
-				{/* Users Table */}
-				<div className="rounded-md border">
+				<div className="rounded-md border border-border bg-card">
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead className="w-[50px]">ID</TableHead>
+								<TableHead className="w-[100px]">ID</TableHead>
 								<TableHead>Name</TableHead>
 								<TableHead>Email</TableHead>
-								<TableHead className="w-[150px]">Course Coordinator</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
+								<TableHead>Semester Academic Year</TableHead>
+								<TableHead className="w-[100px]">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{isLoading ? (
 								<TableRow>
-									<TableCell colSpan={5} className="text-center py-10">
-										<div className="flex flex-col items-center justify-center">
-											<div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
-											<span className="text-muted-foreground">
-												Loading users...
-											</span>
-										</div>
-									</TableCell>
-								</TableRow>
-							) : allUsers.length === 0 ? (
-								<TableRow>
-									<TableCell colSpan={5} className="text-center py-10">
-										<div className="flex flex-col items-center justify-center">
-											<span className="text-muted-foreground mb-2">
-												No users found.
-											</span>
-											<span className="text-sm text-muted-foreground">
-												Click &quot;Get Users&quot; to load faculty members.
-											</span>
+									<TableCell colSpan={5} className="text-center py-8">
+										<div className="flex justify-center">
+											<div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
 										</div>
 									</TableCell>
 								</TableRow>
 							) : currentUsers.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={5} className="text-center py-10">
-										<div className="flex flex-col items-center justify-center">
-											<span className="text-muted-foreground">
-												No matching results for &quot;{searchQuery}&quot;
-											</span>
-										</div>
+									<TableCell colSpan={5} className="text-center py-8">
+										{allUsers.length === 0
+											? 'Click "Get Students" to load data'
+											: 'No students found'}
 									</TableCell>
 								</TableRow>
 							) : (
 								currentUsers.map((user) => (
-									<TableRow key={user.id}>
+									<TableRow key={user.email}>
 										<TableCell className="font-medium">
 											{user.user_id}
 										</TableCell>
 										<TableCell>{user.name}</TableCell>
 										<TableCell>{user.email}</TableCell>
+										<TableCell>{formatSemester(user)}</TableCell>
 										<TableCell>
-											{user.is_course_coordinator ? 'Yes' : 'No'}
-										</TableCell>
-										<TableCell className="text-right">
 											<AlertDialog>
 												<AlertDialogTrigger asChild>
 													<Button
-														variant="ghost"
-														className="h-8 w-8 p-0 text-destructive hover:text-destructive/90"
-														disabled={deleteLoading === user.id}
+														variant="outline"
+														size="icon"
+														className="h-8 w-8 text-red-600 hover:text-red-700"
 													>
-														{deleteLoading === user.id ? (
-															<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-														) : (
-															<Trash2 className="h-4 w-4" />
-														)}
-														<span className="sr-only">Delete</span>
+														<Trash2 className="h-4 w-4" />
 													</Button>
 												</AlertDialogTrigger>
 												<AlertDialogContent>
 													<AlertDialogHeader>
 														<AlertDialogTitle>
-															Are you absolutely sure?
+															Are you sure you want to delete this
+															user?
 														</AlertDialogTitle>
 														<AlertDialogDescription>
 															This action cannot be undone. This will
-															permanently delete the user{' '}
-															<span className="font-semibold">
-																{user.name} ({user.email})
-															</span>{' '}
-															and remove their data from the system.
+															permanently delete the user account and
+															remove their data from the servers.
 														</AlertDialogDescription>
 													</AlertDialogHeader>
 													<AlertDialogFooter>
@@ -319,11 +261,13 @@ export function StudentTable() {
 															Cancel
 														</AlertDialogCancel>
 														<AlertDialogAction
-															onClick={() =>
-																handleDelete(user.user_id)
-															}
-															className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+															onClick={() => handleDelete(user.id)}
+															className="bg-red-600 hover:bg-red-700 text-white"
+															disabled={deleteLoading === user.id}
 														>
+															{deleteLoading === user.id && (
+																<div className="mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+															)}
 															Delete
 														</AlertDialogAction>
 													</AlertDialogFooter>
@@ -337,58 +281,38 @@ export function StudentTable() {
 					</Table>
 				</div>
 
-				{/* Pagination */}
-				{allUsers.length > 0 && (
-					<div className="flex items-center justify-between space-x-6 lg:space-x-8">
-						<div className="flex items-center space-x-2">
-							<p className="text-sm font-medium">
-								Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{' '}
-								{totalItems}
-							</p>
+				{/* Pagination controls */}
+				{allUsers.length > 0 && totalPages > 1 && (
+					<div className="flex justify-between items-center">
+						<div className="text-sm text-muted-foreground">
+							Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{' '}
+							{totalItems} results
 						</div>
-						<div className="flex items-center space-x-2">
+						<div className="flex gap-1">
 							<Button
 								variant="outline"
-								className="hidden h-8 w-8 p-0 lg:flex"
-								onClick={() => handlePageChange(1)}
-								disabled={currentPage === 1}
-							>
-								<span className="sr-only">Go to first page</span>
-								<ChevronLeft className="h-4 w-4" />
-								<ChevronLeft className="h-4 w-4" />
-							</Button>
-							<Button
-								variant="outline"
-								className="h-8 w-8 p-0"
+								size="icon"
 								onClick={() => handlePageChange(currentPage - 1)}
 								disabled={currentPage === 1}
 							>
-								<span className="sr-only">Go to previous page</span>
 								<ChevronLeft className="h-4 w-4" />
 							</Button>
-							<div className="flex items-center justify-center text-sm font-medium">
-								<span className="px-0.5">Page</span>
-								<span className="px-0.5">{currentPage}</span>
-								<span className="px-0.5">of</span>
-								<span className="px-0.5">{totalPages || 1}</span>
-							</div>
+							{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+								<Button
+									key={page}
+									variant={currentPage === page ? 'default' : 'outline'}
+									className="h-8 w-8"
+									onClick={() => handlePageChange(page)}
+								>
+									{page}
+								</Button>
+							))}
 							<Button
 								variant="outline"
-								className="h-8 w-8 p-0"
+								size="icon"
 								onClick={() => handlePageChange(currentPage + 1)}
-								disabled={currentPage >= totalPages}
+								disabled={currentPage === totalPages}
 							>
-								<span className="sr-only">Go to next page</span>
-								<ChevronRight className="h-4 w-4" />
-							</Button>
-							<Button
-								variant="outline"
-								className="hidden h-8 w-8 p-0 lg:flex"
-								onClick={() => handlePageChange(totalPages)}
-								disabled={currentPage >= totalPages}
-							>
-								<span className="sr-only">Go to last page</span>
-								<ChevronRight className="h-4 w-4" />
 								<ChevronRight className="h-4 w-4" />
 							</Button>
 						</div>
