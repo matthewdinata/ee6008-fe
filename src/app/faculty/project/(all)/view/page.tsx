@@ -56,8 +56,31 @@ export default function FacultyProjectsPage() {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [isCourseCoordinator, setIsCourseCoordinator] = useState(false);
 
-	// Fixed faculty email for testing - replace with actual faculty email as needed
-	const facultyEmail = 'vsetiawa001@e.ntu.edu.sg';
+	// Get user email from cookies
+	const facultyEmail = useMemo(() => {
+		if (typeof document !== 'undefined') {
+			const cookies = document.cookie.split(';');
+
+			// Try to find the user-email cookie first
+			let email = '';
+			for (const cookie of cookies) {
+				const [key, value] = cookie.trim().split('=');
+				if (key === 'user-email') {
+					email = decodeURIComponent(value);
+					break;
+				}
+				// Also check for just 'email' cookie
+				if (key === 'email') {
+					email = decodeURIComponent(value);
+					break;
+				}
+			}
+			2222;
+
+			return email;
+		}
+		return '';
+	}, []);
 
 	// Only log in development, with reduced frequency
 	useMemo(() => {
@@ -120,7 +143,7 @@ export default function FacultyProjectsPage() {
 			console.log('Projects data is empty or undefined');
 			setLoading(false);
 		}
-	}, [projectsData, isProjectsLoading, programmes, semesterId]);
+	}, [projectsData, isProjectsLoading, programmes, semesterId, facultyEmail]);
 
 	// Set default semester when semesters are loaded
 	useEffect(() => {

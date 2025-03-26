@@ -44,7 +44,7 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 		data: allProjectGrades,
 		isLoading: isGradesLoading,
 		error,
-	} = useGetAllProjectGrades(semesterId);
+	} = useGetAllProjectGrades(semesterId !== null ? semesterId.toString() : null);
 
 	// Search functionality
 	const filteredProjects = useMemo(() => {

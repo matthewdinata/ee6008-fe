@@ -107,7 +107,7 @@ export default function AdminProjectGradingPage() {
 		// Update URL without refreshing the page
 		const params = new URLSearchParams(searchParams.toString());
 		params.set('tab', value);
-		router.push(`/admin/project/grade/evaluation?${params.toString()}`, { scroll: false });
+		router.push(`/admin/grade/evaluation?${params.toString()}`, { scroll: false });
 	};
 
 	// Show loading state but don't block rendering

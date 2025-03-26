@@ -1,6 +1,4 @@
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,129 +36,67 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
+/* eslint-disable prettier/prettier, import/extensions */
 
 interface VenueAddDialogProps {
 	semesters: Semester[];
@@ -235,6 +171,12 @@ export function VenueAddDialog({
 		} finally {
 			setIsSubmitting(false);
 		}
+	};
+
+	// Helper function to format semester display
+	const formatSemesterDisplay = (semester: Semester): string => {
+		const activeStatus = semester.isActive ? ' (Active)' : '';
+		return `AY ${semester.academicYear} - ${semester.name}${activeStatus}`;
 	};
 
 	return (
@@ -313,8 +255,7 @@ export function VenueAddDialog({
 													key={semester.id}
 													value={semester.id.toString()}
 												>
-													{semester.academicYear} {semester.name}
-													{semester.active ? ' (Active)' : ''}
+													{formatSemesterDisplay(semester)}
 												</SelectItem>
 											))}
 										</SelectContent>

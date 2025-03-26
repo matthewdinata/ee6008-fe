@@ -2,11 +2,13 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, Pencil, RefreshCw, Search, Trash2 } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Semester } from '@/utils/actions/admin/types';
 import { Venue, deleteVenue } from '@/utils/actions/admin/venue';
 import { useGetSemesters } from '@/utils/hooks/admin/use-get-semesters';
-import { useGetVenues } from '@/utils/hooks/admin/use-get-venues';
+import { useGetVenuesBySemester } from '@/utils/hooks/admin/use-get-venues-by-semester';
 
 import {
 	AlertDialog,
@@ -82,18 +84,19 @@ import { VenueEditDialog } from './venue-edit-dialog';
 
 /* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
 export function VenueTable() {
-	// Use React Query hooks instead of manual fetching
-	const {
-		data: allVenues = [],
-		isLoading: venuesLoading,
-		error: venuesError,
-		refetch: refetchVenues,
-	} = useGetVenues();
+	const _router = useRouter();
+	const searchParams = useSearchParams();
+
+	// Get semesterId from URL if available
+	const semesterIdFromUrl = searchParams.get('semesterId');
+
+	// Update URL with semester ID
+	const updateUrlWithSemesterId = useCallback((semesterId: number) => {
+		const url = new URL(window.location.href);
+		url.searchParams.set('semesterId', semesterId.toString());
+		window.history.replaceState({}, '', url.toString());
+	}, []);
 
 	// Fetch semesters
 	const {
@@ -114,37 +117,62 @@ export function VenueTable() {
 		}));
 	}, [semestersData]);
 
-	const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
+	const formatSemesterDisplay = (semester: Semester): string => {
+		const activeStatus = semester.isActive ? ' (Active)' : '';
+		return `AY ${semester.academicYear} - ${semester.name}${activeStatus}`;
+	};
+
+	const [selectedSemester, setSelectedSemester] = useState<number | null>(
+		semesterIdFromUrl ? parseInt(semesterIdFromUrl) : null
+	);
 	const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
-	const [pageSize, setPageSize] = useState('10');
+	const [pageSize, _setPageSize] = useState('10');
 	const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
 	// Set selected semester when semesters data is loaded
-	useMemo(() => {
+	useEffect(() => {
 		if (semesters.length > 0 && !selectedSemester) {
 			// Find active semester or use the first one
 			const activeSemester = semesters.find((sem) => sem.isActive);
 			if (activeSemester) {
 				setSelectedSemester(activeSemester.id);
+				updateUrlWithSemesterId(activeSemester.id);
 			} else {
 				setSelectedSemester(semesters[0].id);
+				updateUrlWithSemesterId(semesters[0].id);
 			}
 		}
-	}, [semesters, selectedSemester]);
+	}, [semesters, selectedSemester, updateUrlWithSemesterId]);
+
+	// Use React Query hooks to fetch venues by semester
+	const {
+		data: venuesBySemester = [],
+		isLoading: venuesLoading,
+		error: venuesError,
+		refetch: refetchVenues,
+	} = useGetVenuesBySemester(selectedSemester);
+
+	// Handle semester change
+	const handleSemesterChange = (semesterId: string) => {
+		const id = parseInt(semesterId);
+		setSelectedSemester(id);
+		updateUrlWithSemesterId(id);
+		setCurrentPage(1); // Reset to first page when changing semester
+	};
 
 	// Filter venues based on search query
 	const filteredVenues = useMemo(() => {
-		return allVenues.filter((venue) => {
+		return venuesBySemester.filter((venue) => {
 			const searchLower = searchQuery.toLowerCase();
 			return (
 				venue.name.toLowerCase().includes(searchLower) ||
 				venue.location.toLowerCase().includes(searchLower)
 			);
 		});
-	}, [allVenues, searchQuery]);
+	}, [venuesBySemester, searchQuery]);
 
 	// Calculate pagination
 	const totalItems = filteredVenues.length;
@@ -176,7 +204,7 @@ export function VenueTable() {
 		setEditingVenue(venue);
 	};
 
-	const handleAdd = () => {
+	const _handleAdd = () => {
 		setIsAddDialogOpen(true);
 	};
 
@@ -202,54 +230,69 @@ export function VenueTable() {
 	const error = venuesError || semestersError ? `Error: ${venuesError || semestersError}` : null;
 
 	// Combined loading state
-	const isLoading = venuesLoading || isSemestersLoading;
+	const _isLoading = venuesLoading || isSemestersLoading;
+
+	// Render loading state
+	if (venuesLoading || isSemestersLoading) {
+		return (
+			<div className="flex justify-center items-center h-64">
+				<div className="flex flex-col items-center gap-2">
+					<RefreshCw className="h-8 w-8 animate-spin text-primary" />
+					<p className="text-sm text-muted-foreground">Loading venues...</p>
+				</div>
+			</div>
+		);
+	}
+
+	// Render error state
+	if (venuesError || semestersError) {
+		return (
+			<div className="flex justify-center items-center h-64">
+				<div className="text-center">
+					<p className="text-red-500 mb-2">
+						{venuesError instanceof Error
+							? venuesError.message
+							: 'Failed to load venues data'}
+					</p>
+					<Button onClick={() => refetchVenues()} variant="outline">
+						<RefreshCw className="h-4 w-4 mr-2" />
+						Try Again
+					</Button>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-4">
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-				<div className="flex items-center gap-2">
-					<h2 className="text-2xl font-bold tracking-tight">Venue Management</h2>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => refetchVenues()}
-						disabled={isLoading}
-					>
-						<RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-					</Button>
-					<Button variant="default" size="sm" onClick={handleAdd}>
-						Add Venue
-					</Button>
-				</div>
-
-				<div className="flex flex-col gap-2 sm:flex-row">
-					<div className="relative">
-						<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-						<Input
-							type="search"
-							placeholder="Search venues..."
-							className="w-full pl-8 sm:w-[250px]"
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-						/>
-					</div>
-
+			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+				<div className="w-full sm:w-auto">
 					<Select
-						value={pageSize}
-						onValueChange={(value) => {
-							setPageSize(value);
-							setCurrentPage(1);
-						}}
+						value={selectedSemester?.toString() || ''}
+						onValueChange={handleSemesterChange}
 					>
-						<SelectTrigger className="w-[120px]">
-							<SelectValue placeholder="10 per page" />
+						<SelectTrigger className="w-full sm:w-[200px]">
+							<SelectValue placeholder="Select a semester" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="10">10 per page</SelectItem>
-							<SelectItem value="20">20 per page</SelectItem>
-							<SelectItem value="50">50 per page</SelectItem>
+							{semesters.map((semester) => (
+								<SelectItem key={semester.id} value={semester.id.toString()}>
+									{formatSemesterDisplay(semester)}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
+				</div>
+				<div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+					<div className="relative w-full sm:w-auto">
+						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+						<Input
+							placeholder="Search venues..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="pl-8 w-full sm:w-[300px]"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -271,13 +314,7 @@ export function VenueTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{isLoading ? (
-							<TableRow>
-								<TableCell colSpan={6} className="h-24 text-center">
-									Loading...
-								</TableCell>
-							</TableRow>
-						) : currentVenues.length === 0 ? (
+						{currentVenues.length === 0 ? (
 							<TableRow>
 								<TableCell colSpan={6} className="h-24 text-center">
 									No venues found.
@@ -290,7 +327,7 @@ export function VenueTable() {
 									(sem) => sem.id === venue.semesterId
 								);
 								const semesterDisplay = semester
-									? `${semester.academicYear} ${semester.name}`
+									? formatSemesterDisplay(semester)
 									: 'Unknown';
 
 								return (

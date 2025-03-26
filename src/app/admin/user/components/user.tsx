@@ -58,7 +58,8 @@ export function SingleUserAdd({ defaultRole = 'student' }: SingleUserAddProps) {
 
 	// Format semester display text
 	const formatSemesterDisplay = (semester: Semester) => {
-		return `Year ${semester.academicYear} ${semester.name}${semester.isActive ? ' (Current)' : ''}`;
+		const activeStatus = semester.isActive ? ' (Active)' : '';
+		return `AY ${semester.academicYear} - Semester ${semester.name}${activeStatus}`;
 	};
 
 	// Function to validate form fields

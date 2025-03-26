@@ -1,8 +1,6 @@
+/* eslint-disable prettier/prettier, import/extensions */
+
 /* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-'use client';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -37,116 +35,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-/* eslint-disable import/extensions */
-
-/* eslint-disable prettier/prettier */
-
-// eslint-disable-next-line prettier/prettier
 
 export interface VenueEditDialogProps {
 	venue: Venue;
@@ -190,6 +78,12 @@ export function VenueEditDialog({
 			semester_id: venue.semesterId,
 		},
 	});
+
+	// Helper function to format semester display
+	const formatSemesterDisplay = (semester: Semester): string => {
+		const activeStatus = semester.isActive ? ' (Active)' : '';
+		return `AY ${semester.academicYear} - ${semester.name}${activeStatus}`;
+	};
 
 	const onSubmit = async (data: VenueFormValues) => {
 		try {
@@ -286,8 +180,7 @@ export function VenueEditDialog({
 													key={semester.id}
 													value={semester.id.toString()}
 												>
-													{semester.academicYear} {semester.name}{' '}
-													{semester.active ? '(Active)' : ''}
+													{formatSemesterDisplay(semester)}
 												</SelectItem>
 											))}
 										</SelectContent>

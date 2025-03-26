@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, CheckCircle2, Info, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Eye, Info, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useGetProjectDetails } from '@/utils/hooks/faculty/use-faculty-get-project-details';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -499,28 +500,121 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 					{/* Assessment Timeline */}
 					<div className="mb-6">
 						<h3 className="text-lg font-medium mb-2">Assessment Timeline</h3>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<div className="flex items-center gap-2">
-								<Badge
-									variant={summary.supervisor_graded_at ? 'default' : 'outline'}
-								>
-									{summary.supervisor_graded_at ? 'Completed' : 'Pending'}
-								</Badge>
-								<span className="font-medium">Supervisor Assessment:</span>
-								{summary.supervisor_graded_at
-									? new Date(summary.supervisor_graded_at).toLocaleDateString()
-									: 'Not yet submitted'}
+						<div className="space-y-4">
+							{/* Supervisor Assessment */}
+							<div className="flex items-start justify-between border-b pb-4">
+								<div>
+									<div className="flex items-center gap-2">
+										<h4 className="font-medium">Supervisor Assessment</h4>
+										{summary.supervisor_graded_at &&
+											summary.supervisor_graded_at !== null &&
+											!isNaN(
+												new Date(summary.supervisor_graded_at).getTime()
+											) &&
+											new Date(summary.supervisor_graded_at).getFullYear() >
+												1970 && (
+												<Badge
+													variant="outline"
+													className="bg-green-50 text-green-700"
+												>
+													Graded
+												</Badge>
+											)}
+									</div>
+									<p className="text-sm text-muted-foreground">
+										Supervisor: {summary.supervisor_name}
+									</p>
+									{summary.supervisor_graded_at &&
+										summary.supervisor_graded_at !== null &&
+										!isNaN(new Date(summary.supervisor_graded_at).getTime()) &&
+										new Date(summary.supervisor_graded_at).getFullYear() >
+											1970 && (
+											<p className="text-xs text-muted-foreground mt-1">
+												Graded on:{' '}
+												{new Date(
+													summary.supervisor_graded_at
+												).toLocaleString()}
+											</p>
+										)}
+								</div>
+								<div className="flex items-center gap-2">
+									{summary.supervisor_graded_at &&
+										summary.supervisor_graded_at !== null &&
+										!isNaN(new Date(summary.supervisor_graded_at).getTime()) &&
+										new Date(summary.supervisor_graded_at).getFullYear() >
+											1970 &&
+										userRole.isSupervisor && (
+											<Button
+												variant="outline"
+												size="sm"
+												className="border-green-500 hover:bg-green-50 dark:border-green-600 dark:hover:bg-green-900/20"
+												onClick={() =>
+													(window.location.href = `/faculty/grade/evaluation/${projectId}/graded-components?role=supervisor`)
+												}
+											>
+												<Eye className="h-4 w-4 mr-1" />
+												View Graded Components
+											</Button>
+										)}
+								</div>
 							</div>
-							<div className="flex items-center gap-2">
-								<Badge
-									variant={summary.moderator_graded_at ? 'default' : 'outline'}
-								>
-									{summary.moderator_graded_at ? 'Completed' : 'Pending'}
-								</Badge>
-								<span className="font-medium">Moderator Assessment:</span>
-								{summary.moderator_graded_at
-									? new Date(summary.moderator_graded_at).toLocaleDateString()
-									: 'Not yet submitted'}
+
+							{/* Moderator Assessment */}
+							<div className="flex items-start justify-between">
+								<div>
+									<div className="flex items-center gap-2">
+										<h4 className="font-medium">Moderator Assessment</h4>
+										{summary.moderator_graded_at &&
+											summary.moderator_graded_at !== null &&
+											!isNaN(
+												new Date(summary.moderator_graded_at).getTime()
+											) &&
+											new Date(summary.moderator_graded_at).getFullYear() >
+												1970 && (
+												<Badge
+													variant="outline"
+													className="bg-green-50 text-green-700"
+												>
+													Graded
+												</Badge>
+											)}
+									</div>
+									<p className="text-sm text-muted-foreground">
+										Moderator: {summary.moderator_name}
+									</p>
+									{summary.moderator_graded_at &&
+										summary.moderator_graded_at !== null &&
+										!isNaN(new Date(summary.moderator_graded_at).getTime()) &&
+										new Date(summary.moderator_graded_at).getFullYear() >
+											1970 && (
+											<p className="text-xs text-muted-foreground mt-1">
+												Graded on:{' '}
+												{new Date(
+													summary.moderator_graded_at
+												).toLocaleString()}
+											</p>
+										)}
+								</div>
+								<div className="flex items-center gap-2">
+									{summary.moderator_graded_at &&
+										summary.moderator_graded_at !== null &&
+										!isNaN(new Date(summary.moderator_graded_at).getTime()) &&
+										new Date(summary.moderator_graded_at).getFullYear() >
+											1970 &&
+										userRole.isModerator && (
+											<Button
+												variant="outline"
+												size="sm"
+												className="border-green-500 hover:bg-green-50 dark:border-green-600 dark:hover:bg-green-900/20"
+												onClick={() =>
+													(window.location.href = `/faculty/grade/evaluation/${projectId}/graded-components?role=moderator`)
+												}
+											>
+												<Eye className="h-4 w-4 mr-1" />
+												View Graded Components
+											</Button>
+										)}
+								</div>
 							</div>
 						</div>
 					</div>
@@ -731,10 +825,11 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 																				Weighted:{' '}
 																				<span>
 																					{(
-																						(component.score ||
+																						((component.score ||
 																							0) *
-																						(component.weighting ||
-																							0)
+																							(component.weighting ||
+																								0)) /
+																						100
 																					).toFixed(1)}
 																				</span>
 																			</p>

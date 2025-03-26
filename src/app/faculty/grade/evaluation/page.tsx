@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { GradedComponentsView } from './components/graded-components-view';
 import ModeratorGradingForm from './components/moderator-grading-form';
 import { PeerReviewTab } from './components/peer-review-tab';
 import ProjectGradesSummary from './components/project-grades-sumary';
@@ -319,6 +320,7 @@ export default function ProjectGradingPage() {
 							<TabsTrigger value="supervisor">Supervisor Assessment</TabsTrigger>
 							<TabsTrigger value="moderator">Moderator Assessment</TabsTrigger>
 							<TabsTrigger value="peerReview">Peer Reviews</TabsTrigger>
+							<TabsTrigger value="gradedComponents">Graded Components</TabsTrigger>
 							<TabsTrigger value="summary">Assessment Summary</TabsTrigger>
 						</TabsList>
 
@@ -367,6 +369,24 @@ export default function ProjectGradingPage() {
 									<AlertDescription>
 										You need to be a supervisor or moderator to view peer
 										reviews for this project.
+									</AlertDescription>
+								</Alert>
+							)}
+						</TabsContent>
+
+						<TabsContent value="gradedComponents" className="space-y-4">
+							{isSupervisor || isModerator ? (
+								<GradedComponentsView
+									projectId={selectedProjectId}
+									role={isSupervisor ? 'supervisor' : 'moderator'}
+								/>
+							) : (
+								<Alert className="max-w-2xl mx-auto my-8">
+									<AlertCircle className="h-4 w-4" />
+									<AlertTitle>Access Restricted</AlertTitle>
+									<AlertDescription>
+										You need to be a supervisor or moderator to view graded
+										components for this project.
 									</AlertDescription>
 								</Alert>
 							)}

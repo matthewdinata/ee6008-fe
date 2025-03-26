@@ -40,6 +40,7 @@ interface StudentUser extends User {
 		id: number;
 		academicYear: number;
 		name: string;
+		isActive: boolean;
 	};
 }
 
@@ -77,7 +78,19 @@ export function StudentTable() {
 
 			// Use utility function to fetch student users (server-side)
 			const formattedData = await fetchStudentUsers();
-			setAllUsers(formattedData);
+
+			// Add isActive property to each student's semester object
+			const studentsWithIsActive = formattedData.map((student) => ({
+				...student,
+				semester: student.semester
+					? {
+							...student.semester,
+							isActive: true, // Default to true as this data isn't provided by the API
+						}
+					: undefined,
+			}));
+
+			setAllUsers(studentsWithIsActive);
 
 			setCurrentPage(1); // Reset to first page when new data is fetched
 			setSearchQuery(''); // Clear search when new data is fetched
@@ -114,7 +127,8 @@ export function StudentTable() {
 	// Format semester display for readability
 	const formatSemester = (user: StudentUser) => {
 		if (!user.semester) return 'N/A';
-		return `Year ${user.semester.academicYear} ${user.semester.name}`;
+		const activeStatus = user.semester.isActive ? ' (Active)' : '';
+		return `AY ${user.semester.academicYear} - ${user.semester.name}${activeStatus}`;
 	};
 
 	useEffect(() => {

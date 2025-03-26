@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -25,7 +25,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import AssignModeratorDialog from '@/app/admin/project/all/components/assign-moderator-dialog';
 import { EnhancedProject, ProjectStatus } from '@/app/admin/project/all/components/columns';
 
-import { PeerReviewModal } from './peer-review-modal';
 import { ProjectDetailsModal } from './project-detail-modals';
 
 interface ProjectListProps {
@@ -62,8 +61,8 @@ function ProjectList(props: ProjectListProps) {
 	const [viewDescriptionProject, setViewDescriptionProject] = useState<EnhancedProject | null>(
 		null
 	);
-	const [isPeerReviewModalOpen, setIsPeerReviewModalOpen] = useState(false);
-	const [selectedPeerReviewProjectId, setSelectedPeerReviewProjectId] = useState<number | null>(
+	const [_isPeerReviewModalOpen, setIsPeerReviewModalOpen] = useState(false);
+	const [_selectedPeerReviewProjectId, setSelectedPeerReviewProjectId] = useState<number | null>(
 		null
 	);
 
@@ -168,7 +167,7 @@ function ProjectList(props: ProjectListProps) {
 	}, []);
 
 	// Function to handle view peer reviews button click
-	const handleViewPeerReviews = useCallback((projectId: number) => {
+	const _handleViewPeerReviews = useCallback((projectId: number) => {
 		setSelectedPeerReviewProjectId(projectId);
 		setIsPeerReviewModalOpen(true);
 	}, []);
@@ -215,7 +214,7 @@ function ProjectList(props: ProjectListProps) {
 
 	// Use stable references for dialog state changes
 	const handleCloseDetailsModal = useCallback(() => setIsDetailsModalOpen(false), []);
-	const handleClosePeerReviewModal = useCallback(() => setIsPeerReviewModalOpen(false), []);
+	const _handleClosePeerReviewModal = useCallback(() => setIsPeerReviewModalOpen(false), []);
 	const _handleCloseDescriptionDialog = useCallback(() => setViewDescriptionProject(null), []);
 
 	const handleDialogOpenChange = useCallback((open: boolean) => {
@@ -339,17 +338,6 @@ function ProjectList(props: ProjectListProps) {
 											View Details
 										</Button>
 
-										{/* View Peer Reviews button */}
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => handleViewPeerReviews(project.id)}
-											className="flex items-center"
-										>
-											<BarChart className="w-4 h-4 mr-1" />
-											Peer Reviews
-										</Button>
-
 										{/* Course coordinator actions */}
 										{isCourseCoordinator && (
 											<>
@@ -388,11 +376,6 @@ function ProjectList(props: ProjectListProps) {
 				projectId={selectedProjectId}
 				isOpen={isDetailsModalOpen}
 				onClose={handleCloseDetailsModal}
-			/>
-			<PeerReviewModal
-				projectId={selectedPeerReviewProjectId}
-				isOpen={isPeerReviewModalOpen}
-				onClose={handleClosePeerReviewModal}
 			/>
 
 			{/* Dialog for viewing full project description */}

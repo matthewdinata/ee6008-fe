@@ -38,12 +38,8 @@ export default function BulkStudentUpload(): React.ReactElement {
 
 	// Format semester display text
 	const formatSemesterDisplay = (semester: Semester) => {
-		// Debug: Log the semester object to see its structure
-		console.log('Semester object:', semester);
-		const year = semester.academicYear;
-		console.log('Academic year value:', year);
-		const activeStatus = semester.isActive ? ' (Current)' : '';
-		return `Year ${year} ${semester.name}${activeStatus}`;
+		const activeStatus = semester.isActive ? ' (Active)' : '';
+		return `AY ${semester.academicYear} - ${semester.name}${activeStatus}`;
 	};
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

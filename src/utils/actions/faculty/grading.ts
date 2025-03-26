@@ -4,6 +4,7 @@ import { fetcherFn } from '@/utils/functions';
 
 // Interfaces for grading components
 export interface GradingComponent {
+	isTeamBased: boolean;
 	id: number;
 	name: string;
 	description: string;
@@ -68,6 +69,21 @@ export interface FinalProjectGrade {
 	supervisor_score: number;
 	moderator_score: number;
 	grade: string;
+}
+
+// Interface for supervisor grade update
+export interface SupervisorGradeUpdate {
+	component_id: number;
+	student_id?: number; // Optional: null for team grades
+	score: number;
+	comments?: string;
+}
+
+// Interface for moderator grade update
+export interface ModeratorGradeUpdate {
+	component_id: number;
+	score: number;
+	comments?: string;
 }
 
 /**
@@ -165,6 +181,45 @@ export async function gradeProjectAsModerator(
 }
 
 /**
+ * Update specific grade components for supervisor
+ */
+export async function updateSupervisorGradeComponents(
+	projectId: number,
+	updates: SupervisorGradeUpdate[]
+): Promise<boolean> {
+	const response = await fetcherFn<{ success: boolean }>(
+		`faculty/projects/${projectId}/grade/supervisor`,
+		{
+			method: 'PATCH',
+			cache: 'no-store',
+		},
+		{ updates }
+	);
+
+	return response.success;
+}
+
+/**
+ * Update specific grade components for moderator
+ */
+export async function updateModeratorGradeComponents(
+	projectId: number,
+	updates: ModeratorGradeUpdate[],
+	feedback?: string
+): Promise<boolean> {
+	const response = await fetcherFn<{ success: boolean }>(
+		`faculty/projects/${projectId}/grade/moderator`,
+		{
+			method: 'PATCH',
+			cache: 'no-store',
+		},
+		{ updates, feedback }
+	);
+
+	return response.success;
+}
+
+/**
  * Client-side functions
  */
 
@@ -255,4 +310,35 @@ export async function gradeProjectAsModeratorClient(
 	);
 
 	return true;
+}
+
+/**
+ * Update specific grade components for supervisor (client)
+ */
+export async function updateSupervisorGradeComponentsClient(
+	projectId: number,
+	updates: SupervisorGradeUpdate[]
+): Promise<boolean> {
+	try {
+		return await updateSupervisorGradeComponents(projectId, updates);
+	} catch (error) {
+		console.error('Error updating supervisor grade components:', error);
+		throw error;
+	}
+}
+
+/**
+ * Update specific grade components for moderator (client)
+ */
+export async function updateModeratorGradeComponentsClient(
+	projectId: number,
+	updates: ModeratorGradeUpdate[],
+	feedback?: string
+): Promise<boolean> {
+	try {
+		return await updateModeratorGradeComponents(projectId, updates, feedback);
+	} catch (error) {
+		console.error('Error updating moderator grade components:', error);
+		throw error;
+	}
 }
