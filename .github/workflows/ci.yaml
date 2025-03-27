@@ -1,5 +1,4 @@
 name: CI
-
 on:
     push:
         branches:
@@ -7,26 +6,23 @@ on:
     pull_request:
         branches:
             - '*'
-
 jobs:
     lint-and-typecheck:
         runs-on: ubuntu-latest
-
         steps:
             - name: Checkout code
               uses: actions/checkout@v2
-
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v1
+              with:
+                bun-version: latest
             - name: Install dependencies
-              run: npm install
-
+              run: bun install
             - name: Run linting
-              run: npm run lint
-
+              run: bun run lint
             - name: Set lint success
               run: echo "lint_success=true" >> $GITHUB_OUTPUT
-
             - name: Run typechecking
-              run: npm run typecheck
-
+              run: bun run typecheck
             - name: Set typechecking success
               run: echo "typechecking_success=true" >> $GITHUB_OUTPUT
