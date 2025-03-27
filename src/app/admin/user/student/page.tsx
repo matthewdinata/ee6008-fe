@@ -1,7 +1,7 @@
-import BulkStudentUpload from '@/app/admin/user/student/components/bulk-upload';
+import BulkStudentUpload from '@/app/admin/user/student/components/student-bulk-upload';
 import { StudentTable } from '@/app/admin/user/student/components/student-table';
 
-import { SingleUserAdd } from '../student/user';
+import { SingleUserAdd } from '../components/user';
 
 export default function StudentUserPage() {
 	return (

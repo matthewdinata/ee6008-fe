@@ -1,5 +1,7 @@
 import { BookMarked, BookOpenCheck, GraduationCap } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function NotFound() {
 	return (
 		<div className="flex flex-col items-center justify-center h-full space-y-6 pb-4 px-12">

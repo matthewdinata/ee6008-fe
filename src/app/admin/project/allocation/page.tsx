@@ -10,6 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import AllocationContainer from './components/allocation-container';
 import { GeneratedAllocationData } from './types';
 
+export const dynamic = 'force-dynamic';
+
 async function AllocationData() {
 	const activeSemester = await getActiveSemester();
 	const selectedAllocationData = activeSemester?.id

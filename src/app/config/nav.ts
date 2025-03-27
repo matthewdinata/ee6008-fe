@@ -58,6 +58,28 @@ export const navConfig: NavMainItemsConfig = {
 					url: '/student/peer-review',
 					headerTitle: 'Project Peer Review',
 					headerSubtitle: 'Review and provide feedback on peers',
+					excludeChildrenFromNav: true,
+					children: [
+						{
+							title: 'Edit Review',
+							url: '/student/peer-review/edit/[id]',
+							headerTitle: 'Edit Peer Review',
+							headerSubtitle: 'Update your feedback for team members',
+							dynamic: true,
+						},
+						{
+							title: 'New Review',
+							url: '/student/peer-review/new',
+							headerTitle: 'New Peer Review',
+							headerSubtitle: 'Provide feedback for team members',
+						},
+						{
+							title: 'View Review',
+							url: '/student/peer-review/view',
+							headerTitle: 'View Peer Review',
+							headerSubtitle: 'View your submitted feedback',
+						},
+					],
 				},
 			],
 		},
@@ -182,6 +204,24 @@ export const navConfig: NavMainItemsConfig = {
 					url: '/admin/project/allocation',
 					headerTitle: 'Project Allocation',
 					headerSubtitle: 'Generate and manage project allocations',
+				},
+			],
+		},
+		{
+			title: 'Grade',
+			icon: SquareRadical,
+			items: [
+				{
+					title: 'Project',
+					url: '/admin/grade/evaluation',
+					headerTitle: 'Project Evaluation',
+					headerSubtitle: 'Grade and provide feedback on student projects',
+				},
+				{
+					title: 'Analytics',
+					url: '/admin/grade/analytics',
+					headerTitle: 'Grade Analytics',
+					headerSubtitle: 'View statistical analysis of project grades',
 				},
 			],
 		},

@@ -69,6 +69,9 @@ export async function getSemesters(): Promise<ServerActionResponse<Semester[]>> 
 			},
 		});
 
+		// Debug the raw API response to check academic_year field
+		console.log('Raw API response for semesters:', JSON.stringify(result, null, 2));
+
 		return {
 			success: true,
 			data: result,

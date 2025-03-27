@@ -19,6 +19,9 @@ export type NavSubItem = {
 	url: string;
 	headerTitle?: string;
 	headerSubtitle?: string;
+	children?: NavSubItem[];
+	excludeChildrenFromNav?: boolean;
+	dynamic?: boolean;
 };
 
 export type NavItem = {

@@ -10,7 +10,32 @@ import { NavItem, NavSubItem } from '@/components/layout/nav-main';
 import { navConfig } from '@/app/config/nav';
 
 function findSubItemByUrl(items: NavSubItem[], url: string): NavSubItem | undefined {
-	return items.find((item) => item.url === url);
+	// First try exact match
+	const exactMatch = items.find((item) => item.url === url);
+	if (exactMatch) return exactMatch;
+
+	// Then try dynamic routes
+	for (const item of items) {
+		// Check if this is a dynamic route and if the URL matches the pattern
+		if (item.dynamic && item.url) {
+			// Convert dynamic route pattern to regex
+			// e.g., '/student/peer-review/edit/[id]' -> /^\/student\/peer-review\/edit\/[^\/]+$/
+			const pattern = item.url.replace(/\[\w+\]/g, '[^/]+');
+			const regex = new RegExp(`^${pattern.replace(/\//g, '\\/')}$`);
+
+			if (regex.test(url)) {
+				return item;
+			}
+		}
+
+		// Check children if they exist
+		if (item.children) {
+			const childMatch = findSubItemByUrl(item.children, url);
+			if (childMatch) return childMatch;
+		}
+	}
+
+	return undefined;
 }
 
 function findItemByUrl(items: NavItem[], url: string): NavSubItem | undefined {
@@ -26,7 +51,22 @@ function isValidPath(config: NavItem[], fullPath: string): boolean {
 	if (fullPath.split('/').filter(Boolean).length === 1) {
 		return true;
 	}
-	return findItemByUrl(config, fullPath) !== undefined;
+	const _pathSegments = fullPath.split('/').filter(Boolean);
+	for (const item of config) {
+		const found = findSubItemByUrl(item.items, fullPath);
+		if (found) return true;
+		if (item.items.some((subItem) => subItem.dynamic)) {
+			const dynamicPath = item.items.find((subItem) => subItem.dynamic)?.url;
+			if (dynamicPath) {
+				const pattern = dynamicPath.replace(/\[\w+\]/g, '[^/]+');
+				const regex = new RegExp(`^${pattern.replace(/\//g, '\\/')}$`);
+				if (regex.test(fullPath)) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 export default function AppHeader({ className }: { className?: string }) {

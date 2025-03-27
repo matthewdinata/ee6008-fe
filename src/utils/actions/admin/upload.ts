@@ -5,6 +5,8 @@ import { cookies } from 'next/headers';
 
 import { fetcherFn } from '@/utils/functions';
 
+/* eslint-disable prettier/prettier */
+
 /**
  * Gets a session from cookies for server actions
  * @returns The Supabase session
@@ -92,6 +94,25 @@ export async function bulkUploadStudent(formData: FormData, semesterId: string) 
  * @param formData Form data containing the file and other required parameters
  */
 export async function bulkUpload(formData: FormData) {
+	const session = await getServerActionSession();
+
+	return fetcherFn(
+		'admin/users/bulk-upload',
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${session.accessToken}`,
+			},
+		},
+		formData
+	);
+}
+
+/**
+ * Server action to handle faculty bulk upload
+ * @param formData Form data containing the faculty CSV file
+ */
+export async function facultyBulkUpload(formData: FormData) {
 	const session = await getServerActionSession();
 
 	return fetcherFn(
@@ -241,12 +262,4 @@ export async function uploadFile(formData: FormData) {
 		},
 		formData
 	);
-}
-
-/**
- * Server action to handle file upload
- * @param formData Form data containing the file to upload
- */
-export async function fileUpload(formData: FormData) {
-	return uploadFile(formData);
 }
