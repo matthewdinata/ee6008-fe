@@ -151,7 +151,7 @@ export default function NavUser({ user }: { user: UserInfo }) {
 							</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => router.push(`/${user.role}`)}>
 								<CreditCard className="mr-2 h-4 w-4" />
-								<span>Account</span>
+								<span>Account Dashboard</span>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
