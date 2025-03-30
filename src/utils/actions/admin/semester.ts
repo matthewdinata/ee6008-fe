@@ -883,6 +883,7 @@ function mapToProgramme(data: Record<string, unknown>): Programme {
 	// Create a properly structured Programme object
 	return {
 		id: typeof data.id === 'string' ? parseInt(data.id, 10) : (data.id as number),
+		ProgrammeID: typeof data.id === 'string' ? parseInt(data.id, 10) : (data.id as number),
 		semester_id:
 			typeof data.semesterId === 'string'
 				? parseInt(data.semesterId, 10)
@@ -912,6 +913,7 @@ function mapToProgramme(data: Record<string, unknown>): Programme {
 function mapApiResponseToProgramme(data: Record<string, unknown>): Programme {
 	return {
 		id: typeof data.id === 'string' ? parseInt(data.id, 10) : (data.id as number),
+		ProgrammeID: typeof data.id === 'string' ? parseInt(data.id, 10) : (data.id as number),
 		semester_id: (data.semester_id as number) || (data.semesterId as number),
 		name: (data.name as string) || '',
 		programme_code: (data.programme_code as string) || (data.programmeCode as string),

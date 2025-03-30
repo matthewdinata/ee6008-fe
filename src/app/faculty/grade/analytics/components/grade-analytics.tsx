@@ -20,7 +20,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import GradeDistributionChart from '@/app/faculty/grade/analytics/components/grade-distribution-chart';
+import _GradeDistributionChart from '@/app/faculty/grade/analytics/components/grade-distribution-chart';
 import ProjectGradesTable from '@/app/faculty/grade/analytics/components/project-grades-table';
 
 export default function GradeAnalytics() {
@@ -72,7 +72,7 @@ export default function GradeAnalytics() {
 	);
 
 	// Calculate grade statistics
-	const gradeStats = useMemo(() => {
+	const _gradeStats = useMemo(() => {
 		if (!projectGrades.length) return null;
 
 		const allStudents = projectGrades.flatMap((project) => project.students || []);
@@ -169,8 +169,8 @@ export default function GradeAnalytics() {
 					</Alert>
 				) : (
 					<div className="space-y-6">
-						{/* Overview Cards */}
-						{gradeStats && (
+						{/* Overview Cards
+						{_gradeStats && (
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 								<Card>
 									<CardHeader className="pb-2">
@@ -180,7 +180,7 @@ export default function GradeAnalytics() {
 									</CardHeader>
 									<CardContent>
 										<div className="text-2xl font-bold">
-											{gradeStats.average}
+											{_gradeStats.average}
 										</div>
 									</CardContent>
 								</Card>
@@ -191,7 +191,7 @@ export default function GradeAnalytics() {
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">{gradeStats.max}</div>
+										<div className="text-2xl font-bold">{_gradeStats.max}</div>
 									</CardContent>
 								</Card>
 								<Card>
@@ -201,7 +201,7 @@ export default function GradeAnalytics() {
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">{gradeStats.min}</div>
+										<div className="text-2xl font-bold">{_gradeStats.min}</div>
 									</CardContent>
 								</Card>
 								<Card>
@@ -211,14 +211,14 @@ export default function GradeAnalytics() {
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">{gradeStats.count}</div>
+										<div className="text-2xl font-bold">{_gradeStats.count}</div>
 									</CardContent>
 								</Card>
 							</div>
-						)}
+						)} */}
 
-						{/* Grade Distribution */}
-						{gradeStats && (
+						{/* Grade Distribution
+						{_gradeStats && (
 							<Card>
 								<CardHeader>
 									<CardTitle>Grade Distribution</CardTitle>
@@ -228,13 +228,13 @@ export default function GradeAnalytics() {
 								</CardHeader>
 								<CardContent>
 									<div className="h-[300px]">
-										<GradeDistributionChart
-											data={gradeStats.letterGradeCounts}
+										<_GradeDistributionChart
+											data={_gradeStats.letterGradeCounts}
 										/>
 									</div>
 								</CardContent>
 							</Card>
-						)}
+						)} */}
 
 						{/* Projects Tabs */}
 						<Card>

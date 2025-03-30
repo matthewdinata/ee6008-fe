@@ -22,9 +22,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PeerReviewTabProps {
 	projectId: number;
+	disabled?: boolean;
 }
 
-export function PeerReviewTab({ projectId }: PeerReviewTabProps) {
+export function PeerReviewTab({ projectId, disabled = false }: PeerReviewTabProps) {
 	const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
 	const { data: peerReviewData, isLoading, error } = useGetProjectPeerReviews(projectId);
 
@@ -202,6 +203,7 @@ export function PeerReviewTab({ projectId }: PeerReviewTabProps) {
 												}
 												size="sm"
 												onClick={() => setSelectedStudent(member.id)}
+												disabled={disabled}
 											>
 												View Details
 											</Button>

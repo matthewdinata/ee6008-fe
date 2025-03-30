@@ -202,6 +202,9 @@ export async function removeProjectModerator(
 ): Promise<{ message: string; project: Project }> {
 	const session = await getServerActionSession();
 
+	// Log the request
+	console.log('Remove moderator request for project:', projectId);
+
 	try {
 		const result = await fetcherFn(`admin/projects/${projectId}/moderator`, {
 			method: 'DELETE',

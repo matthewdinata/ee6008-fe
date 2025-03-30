@@ -44,26 +44,34 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 interface GradedComponentsViewProps {
 	projectId: number;
 	role: 'supervisor' | 'moderator';
+	disabled?: boolean;
 }
 
 interface GradingComponent {
+	isTeamBased: boolean;
 	id: number;
 	name: string;
 	description: string;
+	weight: number;
 	max_score: number;
-	weight?: number;
-	weighting?: number;
+	component_type: string;
 	is_team_based?: boolean;
-	component_type?: string;
 }
 
-interface GradedComponent extends GradingComponent {
-	grades?: {
-		score: number;
-		feedback?: string;
-		gradedAt?: string;
-		updatedAt?: string;
-	};
+interface GradeItem {
+	componentId: number;
+	studentId?: number;
+	score: number;
+	feedback?: string;
+	gradedAt?: string;
+}
+
+interface StructuredGrades {
+	studentGrades?: GradeItem[];
+	teamGrades?: GradeItem[];
+	feedback?: string;
+	gradedAt?: string;
+	gradingCompleted?: boolean;
 }
 
 // Loading state component
@@ -80,7 +88,11 @@ const componentGradeSchema = z.object({
 	comments: z.string().optional(),
 });
 
-export function GradedComponentsView({ projectId, role }: GradedComponentsViewProps) {
+export function GradedComponentsView({
+	projectId,
+	role,
+	disabled = false,
+}: GradedComponentsViewProps) {
 	const router = useRouter();
 	const { toast: _toast } = useToast();
 	const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -94,23 +106,34 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 	// Fetch project details
 	const { data: projectDetails, isLoading: isLoadingProject } = useGetProjectDetails(projectId);
 
-	// Initialize hooks for both supervisor and moderator data regardless of role
-	// This avoids conditional hook calls which violate React rules
+	// Initialize hooks with conditional fetching based on role
 	const { data: supervisorComponents = [], isLoading: isLoadingSupervisorComponents } =
-		useGetSupervisorGradingComponents();
+		useGetSupervisorGradingComponents({
+			enabled: role === 'supervisor',
+		});
 
 	const { data: moderatorComponents = [], isLoading: isLoadingModeratorComponents } =
-		useGetModeratorGradingComponents();
+		useGetModeratorGradingComponents({
+			enabled: role === 'moderator',
+		});
 
-	const { data: supervisorGrades, isLoading: isLoadingSupervisorGrades } =
-		useGetSupervisorGrades(projectId);
+	// Only fetch supervisor grades if the role is supervisor
+	const { data: supervisorGrades, isLoading: isLoadingSupervisorGrades } = useGetSupervisorGrades(
+		role === 'supervisor' ? projectId : null
+	);
 
-	const { data: moderatorGrades, isLoading: isLoadingModeratorGrades } =
-		useGetModeratorGrades(projectId);
+	// Only fetch moderator grades if the role is moderator
+	const { data: moderatorGrades, isLoading: isLoadingModeratorGrades } = useGetModeratorGrades(
+		role === 'moderator' ? projectId : null
+	);
 
 	// Use the appropriate data based on role
 	const components = role === 'supervisor' ? supervisorComponents : moderatorComponents;
-	const grades = role === 'supervisor' ? supervisorGrades : moderatorGrades;
+	// Type cast the data to match the structured grades interface
+	const grades: StructuredGrades =
+		role === 'supervisor'
+			? (supervisorGrades as unknown as StructuredGrades)
+			: (moderatorGrades as unknown as StructuredGrades);
 	const _isLoadingComponents =
 		role === 'supervisor' ? isLoadingSupervisorComponents : isLoadingModeratorComponents;
 	const _isLoadingGrades =
@@ -164,64 +187,29 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 		(role === 'supervisor' && (isLoadingSupervisorComponents || isLoadingSupervisorGrades)) ||
 		(role === 'moderator' && (isLoadingModeratorComponents || isLoadingModeratorGrades));
 
-	// Helper type for structured grades
-	interface StructuredGrades {
-		studentGrades?: Array<{
-			componentId: number;
-			studentId: number;
-			score: number;
-			feedback?: string;
-			gradedAt?: string;
-		}>;
-		teamGrades?: Array<{
-			componentId: number;
-			score: number;
-			feedback?: string;
-			gradedAt?: string;
-		}>;
-		gradedAt?: string;
-	}
-
 	// Function to find the grade for a specific component and student
 	const findGrade = (componentId: number, studentId?: number) => {
 		if (!grades) return undefined;
 
-		// Transform the grades into structured format for easier access
-		const structuredGrades: StructuredGrades = {
-			studentGrades: grades
-				.filter((g) => g.student_id !== undefined)
-				.map((g) => ({
-					componentId: g.component_id,
-					studentId: g.student_id as number,
-					score: g.score,
-					feedback: g.feedback,
-					gradedAt: g.graded_at,
-				})),
-			teamGrades: grades
-				.filter((g) => g.student_id === undefined)
-				.map((g) => ({
-					componentId: g.component_id,
-					score: g.score,
-					feedback: g.feedback,
-					gradedAt: g.graded_at,
-				})),
-			gradedAt: grades[0]?.graded_at,
-		};
-
-		// Handle the different data structure
 		if (studentId) {
 			// For individual components, look in studentGrades
-			return structuredGrades.studentGrades?.find(
-				(grade) => grade.componentId === componentId && grade.studentId === studentId
+			return grades.studentGrades?.find(
+				(grade: GradeItem) =>
+					grade.componentId === componentId && grade.studentId === studentId
 			);
 		} else {
 			// For team components, look in teamGrades
-			return structuredGrades.teamGrades?.find((grade) => grade.componentId === componentId);
+			return grades.teamGrades?.find((grade: GradeItem) => grade.componentId === componentId);
 		}
 	};
 
+	// Function to check if grades exist
+	const checkIfGraded = () => {
+		return !!grades?.gradedAt;
+	};
+
 	// Function to handle edit button click
-	const handleEditClick = (component: GradedComponent, studentId?: number) => {
+	const handleEditClick = (component: GradingComponent, studentId?: number) => {
 		console.log('Edit button clicked for:', {
 			component_id: component.id,
 			student_id: studentId,
@@ -322,6 +310,38 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 		form.reset();
 	};
 
+	// Set grade update disabled status
+	const [isGradeUpdateDisabled, setIsGradeUpdateDisabled] = useState(false);
+
+	useEffect(() => {
+		// Disable grade updates if:
+		// 1. External disabled prop is true (grading period inactive)
+		// 2. Grades are locked/completed
+		// 3. Still loading components or grades
+		const isComponentsLoading =
+			role === 'supervisor' ? isLoadingSupervisorComponents : isLoadingModeratorComponents;
+		const isGradesLoading =
+			role === 'supervisor' ? isLoadingSupervisorGrades : isLoadingModeratorGrades;
+		const gradesData = role === 'supervisor' ? supervisorGrades : moderatorGrades;
+
+		// Check if grades are completed based on the first item's locked status or some other logic
+		const areGradesCompleted =
+			gradesData && gradesData.length > 0 ? gradesData[0]?.is_locked : false;
+
+		setIsGradeUpdateDisabled(
+			disabled || areGradesCompleted || false || isComponentsLoading || isGradesLoading
+		);
+	}, [
+		role,
+		isLoadingSupervisorComponents,
+		isLoadingModeratorComponents,
+		isLoadingSupervisorGrades,
+		isLoadingModeratorGrades,
+		supervisorGrades,
+		moderatorGrades,
+		disabled,
+	]);
+
 	// Return loading state if data is still loading
 	if (isLoading) {
 		return <LoadingState />;
@@ -355,13 +375,13 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 		}
 	}
 
-	// Get the last update timestamp
-	const getLastUpdateTimestamp = () => {
-		if (!grades) return null;
-		return grades[0]?.graded_at;
+	// Use the correct typing for gradedAt property
+	const formatGradedDate = () => {
+		if (!grades?.gradedAt) return 'Not graded yet';
+		return new Date(grades.gradedAt).toLocaleString();
 	};
 
-	const lastUpdateTimestamp = getLastUpdateTimestamp();
+	const lastUpdateTimestamp = formatGradedDate();
 
 	return (
 		<div className="space-y-8">
@@ -390,7 +410,7 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 				{lastUpdateTimestamp && (
 					<div className="text-sm text-muted-foreground flex items-center">
 						<Clock className="h-4 w-4 mr-1" />
-						Last updated: {new Date(lastUpdateTimestamp).toLocaleString()}
+						Last updated: {lastUpdateTimestamp}
 					</div>
 				)}
 			</div>
@@ -430,15 +450,15 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 							{teamComponents.map((component) => {
 								const grade = findGrade(component.id);
 								const isEditing = editingComponentId === `${component.id}`;
-								const isGraded = !!grade;
+								const hasGrade = checkIfGraded();
 								// Use weighting property if weight is not available
-								const weightValue = component.weight || component.weighting || 0;
+								const weightValue = component.weight || 0;
 
 								return (
 									<Card
 										key={component.id}
 										className={
-											isGraded
+											hasGrade
 												? 'border-2 border-green-500 dark:border-green-600'
 												: ''
 										}
@@ -447,7 +467,7 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 											<div className="flex justify-between items-start">
 												<CardTitle>
 													{component.name} ({weightValue}%)
-													{isGraded && (
+													{hasGrade && (
 														<Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 font-medium">
 															Graded
 														</Badge>
@@ -462,21 +482,25 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																	variant="outline"
 																	size="sm"
 																	className={
-																		isGraded
+																		hasGrade
 																			? 'border-green-500 hover:bg-green-50 dark:border-green-600 dark:hover:bg-green-900/20'
 																			: ''
 																	}
 																	onClick={() =>
 																		handleEditClick(component)
 																	}
+																	disabled={
+																		isGradeUpdateDisabled ||
+																		isUpdating
+																	}
 																>
 																	<Edit className="h-4 w-4 mr-1" />
-																	{isGraded ? 'Edit' : 'Grade'}
+																	{hasGrade ? 'Edit' : 'Grade'}
 																</Button>
 															</TooltipTrigger>
 															<TooltipContent>
 																<p>
-																	{isGraded
+																	{hasGrade
 																		? 'Edit this component grade'
 																		: 'Grade this component'}
 																</p>
@@ -559,7 +583,10 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 															</Button>
 															<Button
 																type="submit"
-																disabled={isUpdating}
+																disabled={
+																	isGradeUpdateDisabled ||
+																	isUpdating
+																}
 															>
 																{isUpdating && (
 																	<Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -571,19 +598,19 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 												</Form>
 											) : (
 												<div className="space-y-4">
-													{isGraded ? (
+													{hasGrade ? (
 														<>
 															<div>
 																<h3 className="text-sm font-medium mb-1">
 																	Score
 																</h3>
 																<p className="text-2xl font-bold">
-																	{grade?.score} /{' '}
+																	{grade?.score ?? 0} /{' '}
 																	{component.max_score || 100}
 																	<span className="text-base font-normal text-muted-foreground ml-2">
 																		(
 																		{(
-																			(grade?.score /
+																			((grade?.score ?? 0) /
 																				(component.max_score ||
 																					100)) *
 																			100
@@ -593,17 +620,12 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																</p>
 															</div>
 
-															{grades &&
-																grades[0] &&
-																grades[0].graded_at && (
-																	<div className="text-xs text-muted-foreground flex items-center mt-4 pt-4 border-t">
-																		<Clock className="h-3 w-3 mr-1" />
-																		Graded on{' '}
-																		{new Date(
-																			grades[0].graded_at
-																		).toLocaleString()}
-																	</div>
-																)}
+															{grades && grades.gradedAt && (
+																<div className="text-xs text-muted-foreground flex items-center mt-4 pt-4 border-t">
+																	<Clock className="h-3 w-3 mr-1" />
+																	Graded on {formatGradedDate()}
+																</div>
+															)}
 														</>
 													) : (
 														<div className="py-4 text-center text-muted-foreground">
@@ -617,6 +639,10 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																className="mt-2"
 																onClick={() =>
 																	handleEditClick(component)
+																}
+																disabled={
+																	isGradeUpdateDisabled ||
+																	isUpdating
 																}
 															>
 																<Edit className="h-4 w-4 mr-1" />
@@ -648,7 +674,7 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 						<div className="grid gap-6">
 							{individualComponents.map((component) => {
 								// Use weighting property if weight is not available
-								const weightValue = component.weight || component.weighting || 0;
+								const weightValue = component.weight || 0;
 
 								return (
 									<Card key={component.id}>
@@ -680,16 +706,14 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 															component.id,
 															studentId
 														);
-														const isGraded = !!grade;
+														const hasGrade = !!grade;
 														const compositeKey = `${component.id}-${studentId}`;
-														const isEditingThisStudent =
-															editingComponentId === compositeKey;
 
 														return (
 															<Card
 																key={`${component.id}-${studentId}`}
 																className={
-																	isGraded
+																	hasGrade
 																		? 'border-2 border-green-500 dark:border-green-600'
 																		: 'border border-gray-200 dark:border-gray-800'
 																}
@@ -704,14 +728,16 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																					student.matriculation_number
 																				}
 																			</div>
-																			{isGraded && (
+																			{hasGrade && (
 																				<Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 font-medium">
 																					Graded
 																				</Badge>
 																			)}
 																		</CardTitle>
 
-																		{!isEditingThisStudent && (
+																		{!editingComponentId ||
+																		editingComponentId !==
+																			compositeKey ? (
 																			<TooltipProvider>
 																				<Tooltip>
 																					<TooltipTrigger
@@ -721,7 +747,7 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																							variant="outline"
 																							size="sm"
 																							className={
-																								isGraded
+																								hasGrade
 																									? 'border-green-500 hover:bg-green-50 dark:border-green-600 dark:hover:bg-green-900/20'
 																									: ''
 																							}
@@ -731,28 +757,33 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																									studentId
 																								)
 																							}
+																							disabled={
+																								isGradeUpdateDisabled ||
+																								isUpdating
+																							}
 																						>
 																							<Edit className="h-4 w-4 mr-1" />
-																							{isGraded
+																							{hasGrade
 																								? 'Edit'
 																								: 'Grade'}
 																						</Button>
 																					</TooltipTrigger>
 																					<TooltipContent>
 																						<p>
-																							{isGraded
+																							{hasGrade
 																								? "Edit this student's grade"
 																								: 'Grade this student'}
 																						</p>
 																					</TooltipContent>
 																				</Tooltip>
 																			</TooltipProvider>
-																		)}
+																		) : null}
 																	</div>
 																</CardHeader>
 
 																<CardContent>
-																	{isEditingThisStudent ? (
+																	{editingComponentId ===
+																	compositeKey ? (
 																		<Form {...form}>
 																			<form
 																				onSubmit={form.handleSubmit(
@@ -853,6 +884,7 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																					<Button
 																						type="submit"
 																						disabled={
+																							isGradeUpdateDisabled ||
 																							isUpdating
 																						}
 																					>
@@ -866,23 +898,23 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																		</Form>
 																	) : (
 																		<div className="space-y-4">
-																			{isGraded ? (
+																			{hasGrade ? (
 																				<>
 																					<div>
 																						<h3 className="text-sm font-medium mb-1">
 																							Score
 																						</h3>
 																						<p className="text-2xl font-bold">
-																							{
-																								grade?.score
-																							}{' '}
+																							{grade?.score ??
+																								0}{' '}
 																							/{' '}
 																							{component.max_score ||
 																								100}
 																							<span className="text-base font-normal text-muted-foreground ml-2">
 																								(
 																								{(
-																									(grade?.score /
+																									((grade?.score ??
+																										0) /
 																										(component.max_score ||
 																											100)) *
 																									100
@@ -895,16 +927,12 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																					</div>
 
 																					{grades &&
-																						grades[0] &&
-																						grades[0]
-																							.graded_at && (
-																							<div className="text-xs text-muted-foreground flex items-center mt-4 pt-4 border-t">
+																						grades.gradedAt && (
+																							<div className="text-xs text-muted-foreground flex items-center mt-2">
 																								<Clock className="h-3 w-3 mr-1" />
 																								Graded
 																								on{' '}
-																								{new Date(
-																									grades[0].graded_at
-																								).toLocaleString()}
+																								{formatGradedDate()}
 																							</div>
 																						)}
 																				</>
@@ -927,6 +955,10 @@ export function GradedComponentsView({ projectId, role }: GradedComponentsViewPr
 																								component,
 																								studentId
 																							)
+																						}
+																						disabled={
+																							isGradeUpdateDisabled ||
+																							isUpdating
 																						}
 																					>
 																						<Edit className="h-4 w-4 mr-1" />

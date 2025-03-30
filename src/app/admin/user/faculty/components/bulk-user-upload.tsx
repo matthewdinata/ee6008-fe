@@ -31,19 +31,15 @@ export default function BulkUserUpload() {
 
 	const downloadTemplate = () => {
 		addDebugMessage('Initiating template download...');
-
-		// Create CSV content
 		const headers = ['Email', 'Name', 'IsCourseCoordinator'];
-		const exampleRows = [
-			['professor1@university.edu', 'Dr. Smith', 'true'],
-			['professor2@university.edu', 'Dr. Johnson', 'false'],
-			['professor3@university.edu', 'Dr. Williams', ''],
+		const templateRows = [
+			['professor1@e.edu.sg', 'Dr. Smith', 'true'],
+			['professor2@e.edu.sg', 'Dr. Johnson', 'false'],
+			['professor3@e.edu.sg', 'Dr. Williams', ''],
 		];
-		const csvContent = [headers.join(','), ...exampleRows.map((row) => row.join(','))].join(
+		const csvContent = [headers.join(','), ...templateRows.map((row) => row.join(','))].join(
 			'\n'
 		);
-
-		// Create blob and download
 		const blob = new Blob([csvContent], { type: 'text/csv' });
 		const url = window.URL.createObjectURL(blob);
 		const a = document.createElement('a');
@@ -75,7 +71,7 @@ export default function BulkUserUpload() {
 	};
 
 	return (
-		<div className="container mx-auto p-6">
+		<div className="mx-auto p-6">
 			<h1 className="text-2xl font-bold mb-4">Bulk Faculty Upload</h1>
 			<div className="space-y-4 max-w-lg">
 				{/* Template Download Button */}

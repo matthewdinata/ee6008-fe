@@ -226,9 +226,8 @@ export default function GradeAnalyticsDashboard() {
 		if (grade >= 65) return 'B-';
 		if (grade >= 60) return 'C+';
 		if (grade >= 55) return 'C';
-		if (grade >= 50) return 'C-';
-		if (grade >= 45) return 'D+';
-		if (grade >= 40) return 'D';
+		if (grade >= 50) return 'D+';
+		if (grade >= 45) return 'D';
 		return 'F';
 	}
 

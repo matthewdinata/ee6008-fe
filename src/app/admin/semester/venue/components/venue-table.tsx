@@ -84,6 +84,56 @@ import { VenueEditDialog } from './venue-edit-dialog';
 
 /* eslint-disable prettier/prettier, import/extensions */
 
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
 export function VenueTable() {
 	const _router = useRouter();
 	const searchParams = useSearchParams();

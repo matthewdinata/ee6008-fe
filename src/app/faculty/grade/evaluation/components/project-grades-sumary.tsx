@@ -46,8 +46,8 @@ interface StudentGrade {
 	supervisor_grade: number;
 	moderator_grade: number;
 	final_grade: number;
-	letter_grade: string;
 	component_grades: ComponentGrade[];
+	letter_grade?: string;
 }
 
 interface GradesSummary {
@@ -61,6 +61,7 @@ interface GradesSummary {
 	moderator_graded_at: string | null;
 	grading_completed: boolean;
 	student_grades: StudentGrade[];
+	team_grade: number;
 }
 
 interface ProjectGradesSummaryProps {
@@ -91,6 +92,7 @@ interface GradesDataWithStudentGrades {
 	supervisorGradedAt?: string | null;
 	moderatorGradedAt?: string | null;
 	gradingCompleted?: boolean;
+	teamGrade?: number;
 }
 
 type GradesDataArray = Array<{
@@ -109,6 +111,47 @@ type GradesDataArray = Array<{
 	componentGrades?: Array<ComponentGrade>;
 }>;
 
+const ModeratorGradeCell = ({ studentGrades }: { studentGrades: StudentGrade[] }) => {
+	// Get component grades from first student (they're the same for all students)
+	const componentGrades = studentGrades[0]?.component_grades || [];
+
+	// Filter for moderator components that are team-based
+	const moderatorComponents = componentGrades.filter((grade) => {
+		return grade.graded_by?.toLowerCase().includes('moderator') && grade.is_team_based;
+	});
+
+	// Calculate total weighted score
+	const totalWeightedScore = moderatorComponents.reduce(
+		(total, component) => total + ((component.score || 0) * (component.weighting || 0)) / 100,
+		0
+	);
+
+	// Calculate total weighting
+	const totalWeighting = moderatorComponents.reduce(
+		(total, component) => total + (component.weighting || 0),
+		0
+	);
+
+	// Calculate the overall grade
+	const calculatedGrade = totalWeighting > 0 ? (totalWeightedScore / totalWeighting) * 100 : 0;
+
+	// Calculate contribution to final grade
+	const moderatorContribution = (calculatedGrade * 30) / 100;
+
+	return (
+		<div className="flex flex-col gap-1">
+			<div>
+				<span className="font-bold">{calculatedGrade.toFixed(1)}</span>
+				<span className="text-sm text-muted-foreground ml-1">/ 100</span>
+			</div>
+			<Progress value={calculatedGrade} className="h-1" />
+			<div className="text-sm">
+				<span>{moderatorContribution.toFixed(1)}</span> of 30% total
+			</div>
+		</div>
+	);
+};
+
 export default function ProjectGradesSummary({ projectId }: ProjectGradesSummaryProps) {
 	const [summary, setSummary] = useState<GradesSummary | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -116,6 +159,22 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 		isSupervisor: false,
 		isModerator: false,
 	});
+
+	// Function to convert numeric grade to letter grade
+	const getLetterGrade = (score: number): string => {
+		if (score > 90) return 'A+';
+		if (score >= 85) return 'A';
+		if (score >= 80) return 'A-';
+		if (score >= 75) return 'B+';
+		if (score >= 70) return 'B';
+		if (score >= 65) return 'B-';
+		if (score >= 60) return 'C+';
+		if (score >= 55) return 'C';
+		if (score >= 50) return 'C-';
+		if (score >= 45) return 'D';
+		if (score >= 40) return 'D';
+		return 'F';
+	};
 
 	// Get user email from cookies
 	const userEmail = useMemo(() => {
@@ -328,10 +387,6 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 							supervisor_grade: grade.supervisorGrade || grade.supervisor_score || 0,
 							moderator_grade: grade.moderator_score || 0,
 							final_grade: grade.finalGrade || grade.final_score || 0,
-							letter_grade:
-								grade.letterGrade ||
-								grade.grade ||
-								getLetterGrade(grade.finalGrade || grade.final_score || 0),
 							component_grades: Array.isArray(grade.componentGrades)
 								? grade.componentGrades.map((component: ComponentGrade) => ({
 										component_id:
@@ -355,6 +410,7 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 						};
 					}
 				),
+				team_grade: (typedGradesData as GradesDataWithStudentGrades).teamGrade || 0,
 			};
 
 			console.log('Summary created successfully:', {
@@ -367,6 +423,7 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 		} else {
 			console.log('Cannot create summary, conditions not met:', {
 				gradesDataExists: !!gradesData,
+				gradesDataType: typeof gradesData,
 				isGradesArray,
 				hasStudentGradesProperty,
 				studentGradesCount: studentGradesArray.length,
@@ -408,21 +465,6 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 			setError(null);
 		}
 	}, [gradesError, detailsError]);
-
-	// Helper to get letter grade based on score
-	const getLetterGrade = (score: number): string => {
-		if (score >= 85) return 'A+';
-		if (score >= 80) return 'A';
-		if (score >= 75) return 'A-';
-		if (score >= 70) return 'B+';
-		if (score >= 65) return 'B';
-		if (score >= 60) return 'B-';
-		if (score >= 55) return 'C+';
-		if (score >= 50) return 'C';
-		if (score >= 45) return 'D+';
-		if (score >= 40) return 'D';
-		return 'F';
-	};
 
 	// Helper to get color class based on grade
 	const getGradeColor = (grade: number): string => {
@@ -627,19 +669,11 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 								<TableRow>
 									<TableHead>Student</TableHead>
 									<TableHead>Matric Number</TableHead>
-									{(userRole.isSupervisor ||
-										(!userRole.isSupervisor && !userRole.isModerator)) && (
+									{userRole.isSupervisor && (
 										<TableHead className="text-right">
 											Supervisor Grade
 										</TableHead>
 									)}
-									{(userRole.isModerator ||
-										(!userRole.isSupervisor && !userRole.isModerator)) && (
-										<TableHead className="text-right">
-											Moderator Grade
-										</TableHead>
-									)}
-									<TableHead className="text-center">Letter Grade</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -649,8 +683,7 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 											{student.student_name}
 										</TableCell>
 										<TableCell>{student.matric_number}</TableCell>
-										{(userRole.isSupervisor ||
-											(!userRole.isSupervisor && !userRole.isModerator)) && (
+										{userRole.isSupervisor && (
 											<TableCell className="text-right">
 												<div className="flex flex-col gap-1">
 													<span>
@@ -663,27 +696,23 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 												</div>
 											</TableCell>
 										)}
-										{(userRole.isModerator ||
-											(!userRole.isSupervisor && !userRole.isModerator)) && (
-											<TableCell className="text-right">
-												<div className="flex flex-col gap-1">
-													<span>
-														{student.moderator_grade.toFixed(1)}
+										<TableCell className="text-right">
+											{userRole.isModerator ? (
+												<ModeratorGradeCell
+													studentGrades={summary.student_grades}
+												/>
+											) : userRole.isSupervisor ? (
+												<div className="flex flex-col items-center justify-center"></div>
+											) : (
+												<div className="flex flex-col items-center justify-center">
+													<span className="text-lg font-bold">
+														{getLetterGrade(student.final_grade)}
 													</span>
-													<Progress
-														value={student.moderator_grade}
-														className="h-1"
-													/>
+													<p className="text-xs text-muted-foreground">
+														Final Grade
+													</p>
 												</div>
-											</TableCell>
-										)}
-										<TableCell className="text-center">
-											<Badge
-												variant="outline"
-												className={`font-bold ${getGradeColor(student.final_grade)}`}
-											>
-												{student.letter_grade}
-											</Badge>
+											)}
 										</TableCell>
 									</TableRow>
 								))}
@@ -691,278 +720,286 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 						</Table>
 					</div>
 
-					{/* Detailed Breakdown Accordion */}
-					<div>
-						<h3 className="text-lg font-medium mb-2">Detailed Breakdown</h3>
-						{/* For moderators who are not also supervisors, or for admins, show simplified view with just two components */}
-						{(userRole.isModerator && !userRole.isSupervisor) ||
-						(!userRole.isModerator && !userRole.isSupervisor) ? (
-							<Card className="mb-4">
-								<CardHeader>
-									<CardTitle className="text-base">
-										Team Grade Components
-									</CardTitle>
-									<CardDescription>
-										Overall team grade components assigned by moderator
-									</CardDescription>
-								</CardHeader>
-								<CardContent>
-									<div className="space-y-4">
-										{(() => {
-											// Get the first student's component grades
-											const componentGrades =
-												summary.student_grades[0]?.component_grades || [];
+					{/* Detailed Breakdown Accordion - Only visible to supervisors and moderators */}
+					{(userRole.isSupervisor || userRole.isModerator) && (
+						<div>
+							<h3 className="text-lg font-medium mb-2">Detailed Breakdown</h3>
+							{userRole.isModerator && !userRole.isSupervisor ? (
+								<Card className="mb-4">
+									<CardHeader>
+										<CardTitle className="text-base">
+											Team Grade Components
+										</CardTitle>
+										<CardDescription>
+											Overall team grade components assigned by moderator
+										</CardDescription>
+									</CardHeader>
+									<CardContent>
+										<div className="space-y-4">
+											{(() => {
+												// Get the first student's component grades
+												const componentGrades =
+													summary.student_grades[0]?.component_grades ||
+													[];
 
-											// Filter for moderator components
-											const moderatorComponents = componentGrades.filter(
-												(grade) =>
-													grade.graded_by
-														?.toLowerCase()
-														.includes('moderator') &&
-													grade.is_team_based
-											);
-
-											// If no moderator components found, show placeholder message
-											if (moderatorComponents.length === 0) {
-												return (
-													<div className="text-sm text-muted-foreground">
-														No moderator grade components found for this
-														project.
-													</div>
+												// Filter for moderator components
+												const moderatorComponents = componentGrades.filter(
+													(grade) => {
+														return (
+															grade.graded_by
+																?.toLowerCase()
+																.includes('moderator') &&
+															grade.is_team_based
+														);
+													}
 												);
-											}
 
-											// Calculate total weighted score (this is the sum of each component's weighted score)
-											const totalWeightedScore = moderatorComponents.reduce(
-												(total, component) =>
-													total +
-													((component.score || 0) *
-														(component.weighting || 0)) /
-														100,
-												0
-											);
+												// If no moderator components found, show placeholder message
+												if (moderatorComponents.length === 0) {
+													return (
+														<div className="text-sm text-muted-foreground">
+															No moderator grade components found for
+															this project.
+														</div>
+													);
+												}
 
-											// Calculate total weighting
-											const totalWeighting = moderatorComponents.reduce(
-												(total, component) =>
-													total + (component.weighting || 0),
-												0
-											);
+												// Calculate total weighted score
+												const totalWeightedScore =
+													moderatorComponents.reduce(
+														(total, component) =>
+															total +
+															((component.score || 0) *
+																(component.weighting || 0)) /
+																100,
+														0
+													);
 
-											// Calculate the overall grade out of 100 based on component scores
-											// This should match what's shown in your example: (100*15 + 30*15)/(15+15) = 65
-											const calculatedGrade =
-												totalWeighting > 0
-													? (totalWeightedScore / totalWeighting) * 100
-													: 0;
+												// Calculate total weighting
+												const totalWeighting = moderatorComponents.reduce(
+													(total, component) =>
+														total + (component.weighting || 0),
+													0
+												);
 
-											// Calculate what this contributes to the final grade (e.g., 65 * 30% = 19.5)
-											const moderatorContribution =
-												(calculatedGrade * 30) / 100;
+												// Calculate the overall grade out of 100 based on component scores
+												// This should match what's shown in your example: (100*15 + 30*15)/(15+15) = 65
+												const calculatedGrade =
+													totalWeighting > 0
+														? (totalWeightedScore / totalWeighting) *
+															100
+														: 0;
 
-											return (
-												<>
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-														{moderatorComponents.map((component) => {
-															// Calculate what percentage of the total moderator weight this component represents
-															const percentOfModeratorTotal =
-																totalWeighting > 0
-																	? ((component.weighting || 0) /
-																			totalWeighting) *
-																		30
-																	: 0;
+												// Calculate what this contributes to the final grade (e.g., 65 * 30% = 19.5)
+												const moderatorContribution =
+													(calculatedGrade * 30) / 100;
 
-															// Calculate the weighted score as a percentage of the total moderator weight
-															const weightedScoreOfTotal =
-																((component.score || 0) *
-																	percentOfModeratorTotal) /
-																100;
+												return (
+													<>
+														<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+															{moderatorComponents.map(
+																(component) => {
+																	// Calculate what percentage of the total moderator weight this component represents
+																	const percentOfModeratorTotal =
+																		totalWeighting > 0
+																			? ((component.weighting ||
+																					0) /
+																					totalWeighting) *
+																				30
+																			: 0;
 
-															return (
-																<div
-																	key={component.component_id}
-																	className="border rounded-lg p-4"
-																>
-																	<div className="flex justify-between items-center mb-2">
-																		<h4 className="font-medium">
-																			{
-																				component.component_name
+																	// Calculate the weighted score as a percentage of the total moderator weight
+																	const weightedScore =
+																		((component.score || 0) *
+																			percentOfModeratorTotal) /
+																		100;
+
+																	return (
+																		<div
+																			key={
+																				component.component_id
 																			}
-																		</h4>
-																		<div className="text-right">
-																			<span>
-																				{(
+																			className="border rounded-lg p-4"
+																		>
+																			<div className="flex justify-between items-center mb-2">
+																				<h4 className="font-medium">
+																					{
+																						component.component_name
+																					}
+																				</h4>
+																				<div className="text-right">
+																					<span>
+																						{(
+																							component.score ||
+																							0
+																						).toFixed(
+																							1
+																						)}
+																					</span>
+																					<span className="text-sm text-muted-foreground ml-1">
+																						/ 100
+																					</span>
+																				</div>
+																			</div>
+																			<Progress
+																				value={
 																					component.score ||
 																					0
-																				).toFixed(1)}
-																			</span>
-																			<span className="text-sm text-muted-foreground ml-1">
-																				/ 100
-																			</span>
-																		</div>
-																	</div>
-																	<Progress
-																		value={component.score || 0}
-																		className="h-2"
-																	/>
-																	<div className="flex flex-col space-y-1 mt-2">
-																		<div className="flex justify-between">
-																			<p className="text-sm text-muted-foreground">
-																				{
-																					component.weighting
 																				}
-																				% of overall grade
-																			</p>
-																			<p className="text-sm">
-																				{percentOfModeratorTotal.toFixed(
-																					1
-																				)}
-																				% of 30%
-																			</p>
+																				className="h-2"
+																			/>
+																			<div className="flex flex-col space-y-1 mt-2">
+																				<div className="flex justify-between">
+																					<p className="text-sm">
+																						Weighted:{' '}
+																						<span>
+																							{(
+																								((component.score ||
+																									0) *
+																									(component.weighting ||
+																										0)) /
+																								100
+																							).toFixed(
+																								1
+																							)}
+																						</span>
+																					</p>
+																					<p className="text-sm">
+																						<span>
+																							{weightedScore.toFixed(
+																								1
+																							)}
+																							%
+																						</span>{' '}
+																						of 30%
+																					</p>
+																				</div>
+																			</div>
 																		</div>
-																		<div className="flex justify-between">
-																			<p className="text-sm">
-																				Weighted:{' '}
-																				<span>
-																					{(
-																						((component.score ||
-																							0) *
-																							(component.weighting ||
-																								0)) /
-																						100
-																					).toFixed(1)}
-																				</span>
-																			</p>
-																			<p className="text-sm">
-																				<span>
-																					{weightedScoreOfTotal.toFixed(
-																						1
-																					)}
-																					%
-																				</span>{' '}
-																				of 30%
-																			</p>
-																		</div>
-																	</div>
-																</div>
-															);
-														})}
-													</div>
+																	);
+																}
+															)}
+														</div>
 
-													<div className="flex flex-col space-y-2">
-														<div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-															<h4 className="font-medium">
-																Overall Team Grade
-															</h4>
-															<div className="text-right">
-																<div>
-																	<span className="font-bold">
-																		{calculatedGrade.toFixed(1)}
-																	</span>
-																	<span className="text-sm text-muted-foreground ml-1">
-																		/ 100
-																	</span>
-																</div>
-																<div className="text-sm">
-																	<span>
-																		{moderatorContribution.toFixed(
-																			1
-																		)}
-																	</span>{' '}
-																	of 30% total
+														<div className="flex flex-col space-y-2">
+															<div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+																<h4 className="font-medium">
+																	Overall Team Grade
+																</h4>
+																<div className="text-right">
+																	<div>
+																		<span className="font-bold">
+																			{calculatedGrade.toFixed(
+																				1
+																			)}
+																		</span>
+																		<span className="text-sm text-muted-foreground ml-1">
+																			/ 100
+																		</span>
+																	</div>
+																	<div className="text-sm">
+																		<span>
+																			{moderatorContribution.toFixed(
+																				1
+																			)}
+																		</span>{' '}
+																		of 30% total
+																	</div>
 																</div>
 															</div>
 														</div>
-													</div>
-												</>
-											);
-										})()}
-									</div>
-								</CardContent>
-							</Card>
-						) : (
-							<Accordion type="single" collapsible className="w-full">
-								{summary.student_grades.map((student) => (
-									<AccordionItem
-										key={student.student_id}
-										value={`student-${student.student_id}`}
-									>
-										<AccordionTrigger>
-											{student.student_name} - Grade Breakdown
-										</AccordionTrigger>
-										<AccordionContent>
-											<Table>
-												<TableHeader>
-													<TableRow>
-														<TableHead>Component</TableHead>
-														<TableHead>Weighting</TableHead>
-														<TableHead>Score</TableHead>
-														<TableHead>Graded By</TableHead>
-														<TableHead>Type</TableHead>
-													</TableRow>
-												</TableHeader>
-												<TableBody>
-													{student.component_grades
-														.filter((grade) => {
-															// If user is both supervisor and moderator, show all components
-															if (
-																userRole.isSupervisor &&
-																userRole.isModerator
-															) {
-																return true;
-															}
+													</>
+												);
+											})()}
+										</div>
+									</CardContent>
+								</Card>
+							) : (
+								<Accordion type="single" collapsible className="w-full">
+									{summary.student_grades.map((student) => (
+										<AccordionItem
+											key={student.student_id}
+											value={`student-${student.student_id}`}
+										>
+											<AccordionTrigger>
+												{student.student_name} - Grade Breakdown
+											</AccordionTrigger>
+											<AccordionContent>
+												<Table>
+													<TableHeader>
+														<TableRow>
+															<TableHead>Component</TableHead>
+															<TableHead>Weighting</TableHead>
+															<TableHead>Score</TableHead>
+															<TableHead>Graded By</TableHead>
+															<TableHead>Type</TableHead>
+														</TableRow>
+													</TableHeader>
+													<TableBody>
+														{student.component_grades
+															.filter((grade) => {
+																// If user is both supervisor and moderator, show all components
+																if (
+																	userRole.isSupervisor &&
+																	userRole.isModerator
+																) {
+																	return true;
+																}
 
-															// Filter components based on user role
-															const gradedBySupervisor =
-																grade.graded_by?.toLowerCase() ===
-																'supervisor';
+																// Filter components based on user role
+																const gradedBySupervisor =
+																	grade.graded_by?.toLowerCase() ===
+																	'supervisor';
 
-															// Show only components graded by the supervisor
-															return (
-																userRole.isSupervisor &&
-																gradedBySupervisor
-															);
-														})
-														.map((grade) => (
-															<TableRow
-																key={`${student.student_id}-${grade.component_id}`}
-															>
-																<TableCell>
-																	{grade.component_name}
-																</TableCell>
-																<TableCell>
-																	{(grade.weighting || 0).toFixed(
-																		1
-																	)}
-																	%{' '}
-																</TableCell>
-																<TableCell
-																	className={getGradeColor(
-																		grade.score || 0
-																	)}
+																// Show only components graded by the supervisor
+																return (
+																	userRole.isSupervisor &&
+																	gradedBySupervisor
+																);
+															})
+															.map((grade) => (
+																<TableRow
+																	key={`${student.student_id}-${grade.component_id}`}
 																>
-																	{(grade.score || 0).toFixed(1)}
-																</TableCell>
-																<TableCell>
-																	{grade.graded_by}
-																</TableCell>
-																<TableCell>
-																	<Badge variant="outline">
-																		{grade.is_team_based
-																			? 'Team'
-																			: 'Individual'}
-																	</Badge>
-																</TableCell>
-															</TableRow>
-														))}
-												</TableBody>
-											</Table>
-										</AccordionContent>
-									</AccordionItem>
-								))}
-							</Accordion>
-						)}
-					</div>
+																	<TableCell>
+																		{grade.component_name}
+																	</TableCell>
+																	<TableCell>
+																		{(
+																			grade.weighting || 0
+																		).toFixed(1)}
+																		%{' '}
+																	</TableCell>
+																	<TableCell
+																		className={getGradeColor(
+																			grade.score || 0
+																		)}
+																	>
+																		{(grade.score || 0).toFixed(
+																			1
+																		)}
+																	</TableCell>
+																	<TableCell>
+																		{grade.graded_by}
+																	</TableCell>
+																	<TableCell>
+																		<Badge variant="outline">
+																			{grade.is_team_based
+																				? 'Team'
+																				: 'Individual'}
+																		</Badge>
+																	</TableCell>
+																</TableRow>
+															))}
+													</TableBody>
+												</Table>
+											</AccordionContent>
+										</AccordionItem>
+									))}
+								</Accordion>
+							)}
+						</div>
+					)}
 
 					{/* Feedback Section */}
 					<div className="mt-6 space-y-4">
@@ -1008,6 +1045,13 @@ export default function ProjectGradesSummary({ projectId }: ProjectGradesSummary
 					</div>
 				</CardContent>
 			</Card>
+			{!(userRole.isSupervisor || userRole.isModerator) && (
+				<div>
+					<div className="text-lg font-semibold">
+						Final Letter Grade: {summary?.student_grades?.[0]?.letter_grade || '—'}
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

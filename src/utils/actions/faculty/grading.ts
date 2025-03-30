@@ -48,6 +48,7 @@ export interface ModeratorGrade {
 
 // Interface for project grades
 export interface ProjectGrade {
+	is_locked: boolean | undefined;
 	project_id: number;
 	student_id?: number;
 	component_id: number;
@@ -58,6 +59,7 @@ export interface ProjectGrade {
 	feedback?: string;
 	graded_by: string;
 	graded_at: string;
+	gradingCompleted?: boolean;
 }
 
 // Interface for final project grades

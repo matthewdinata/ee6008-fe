@@ -36,10 +36,9 @@ export default function GradeDistributionChart({ data }: GradeDistributionChartP
 		'B-': 5,
 		'C+': 6,
 		C: 7,
-		'C-': 8,
-		'D+': 9,
-		D: 10,
-		F: 11,
+		'D+': 8,
+		D: 9,
+		F: 10,
 	};
 
 	chartData.sort((a, b) => {

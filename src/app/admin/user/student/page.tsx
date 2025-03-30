@@ -5,7 +5,7 @@ import { SingleUserAdd } from '../components/user';
 
 export default function StudentUserPage() {
 	return (
-		<div className="container mx-auto text-foreground">
+		<div className="mx-auto text-foreground">
 			<div className="space-y-8">
 				{/* Top Section - Upload Methods */}
 				<div className="grid md:grid-cols-2 gap-8">

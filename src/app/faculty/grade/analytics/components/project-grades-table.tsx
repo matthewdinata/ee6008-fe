@@ -31,7 +31,7 @@ export default function ProjectGradesTable({ projects, role }: ProjectGradesTabl
 	};
 
 	// Function to render letter grade with appropriate color
-	const renderLetterGrade = (grade: string) => {
+	const _renderLetterGrade = (grade: string) => {
 		let variant:
 			| 'default'
 			| 'destructive'
@@ -45,7 +45,7 @@ export default function ProjectGradesTable({ projects, role }: ProjectGradesTabl
 			variant = 'outlineSuccess';
 		} else if (grade === 'B+' || grade === 'B' || grade === 'B-') {
 			variant = 'secondary';
-		} else if (grade === 'C+' || grade === 'C' || grade === 'C-') {
+		} else if (grade === 'C+' || grade === 'C') {
 			variant = 'default';
 		} else if (grade === 'D+' || grade === 'D') {
 			variant = 'outline';
@@ -103,8 +103,6 @@ export default function ProjectGradesTable({ projects, role }: ProjectGradesTabl
 											{role === 'moderator' && (
 												<TableHead>Moderator Grade</TableHead>
 											)}
-											<TableHead>Final Grade</TableHead>
-											<TableHead>Letter Grade</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
@@ -124,14 +122,6 @@ export default function ProjectGradesTable({ projects, role }: ProjectGradesTabl
 												{role === 'moderator' && (
 													<TableCell>{student.moderatorGrade}</TableCell>
 												)}
-												<TableCell className="font-semibold">
-													{student.finalGrade}
-												</TableCell>
-												<TableCell>
-													{renderLetterGrade(
-														student.letterGrade || 'N/A'
-													)}
-												</TableCell>
 											</TableRow>
 										))}
 									</TableBody>

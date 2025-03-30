@@ -70,9 +70,11 @@ export interface UpdateTimelineParams {
 
 // Programme types
 export interface Programme {
+	ProgrammeID: number;
 	id: number;
 	semester_id: number;
 	name: string;
+	Name?: string;
 	programme_code: string;
 	description?: string;
 	coordinator_professor?: {
@@ -149,6 +151,7 @@ export interface Project {
 	proposal_id?: number;
 	title: string;
 	description: string;
+	status?: string;
 	created_at?: string;
 	updated_at?: string;
 	createdAt?: string;

@@ -50,7 +50,7 @@ export default function ProjectsTable({ projects, showAllData = false }: Project
 			variant = 'outlineSuccess';
 		} else if (grade === 'B+' || grade === 'B' || grade === 'B-') {
 			variant = 'secondary';
-		} else if (grade === 'C+' || grade === 'C' || grade === 'C-') {
+		} else if (grade === 'C+' || grade === 'C') {
 			variant = 'default';
 		} else if (grade === 'D+' || grade === 'D') {
 			variant = 'outline';

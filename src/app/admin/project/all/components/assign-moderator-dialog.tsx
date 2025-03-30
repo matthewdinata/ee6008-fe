@@ -3,11 +3,12 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { assignProjectModerator } from '@/utils/actions/admin/project';
+import { assignProjectModerator, removeProjectModerator } from '@/utils/actions/admin/project';
 import { AssignModeratorRequest, Project } from '@/utils/actions/admin/types';
 import { useGetFacultyUsers } from '@/utils/hooks/admin/use-get-facullty-users';
 import { useToast } from '@/utils/hooks/use-toast';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -41,7 +42,11 @@ export default function AssignModeratorDialog({
 }: AssignModeratorDialogProps) {
 	const [facultyId, setFacultyId] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isRemoving, setIsRemoving] = useState(false);
 	const { toast } = useToast();
+
+	// Check if project has a moderator
+	const hasModeratorAssigned = project && project.moderatorId && project.moderatorName;
 
 	// Use the custom hook for fetching faculty data with proper caching
 	const { data: faculty = [], isLoading: facultyLoading } = useGetFacultyUsers({
@@ -108,6 +113,36 @@ export default function AssignModeratorDialog({
 		}
 	};
 
+	const handleRemoveModerator = async () => {
+		if (!project || !project.id) return;
+
+		setIsRemoving(true);
+
+		try {
+			const result = await removeProjectModerator(project.id);
+
+			console.log('Removal result:', result);
+
+			toast({
+				title: 'Success',
+				description: 'Moderator removed successfully',
+			});
+
+			// Close the dialog and trigger refresh
+			onOpenChange(false);
+			onAssigned();
+		} catch (error) {
+			console.error('Error removing moderator:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to remove moderator',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsRemoving(false);
+		}
+	};
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[425px]">
@@ -124,63 +159,104 @@ export default function AssignModeratorDialog({
 								<p className="text-sm font-medium mb-2">Project: {project.title}</p>
 							</div>
 						)}
-						<div className="grid grid-cols-4 items-center gap-4">
-							<Label htmlFor="faculty" className="text-right">
-								Faculty
-							</Label>
-							<div className="col-span-3">
-								<Select value={facultyId} onValueChange={setFacultyId}>
-									<SelectTrigger className="w-full">
-										<SelectValue placeholder="Select a faculty member" />
-									</SelectTrigger>
-									<SelectContent
-										position="popper"
-										className="max-h-[200px] overflow-y-auto z-50"
+
+						{/* Current Moderator Alert */}
+						{hasModeratorAssigned && (
+							<Alert className="bg-muted">
+								<AlertDescription className="flex flex-col space-y-2">
+									<div className="text-sm">
+										<span className="font-medium">Current Moderator: </span>
+										{project.moderatorName}
+									</div>
+									<Button
+										variant="destructive"
+										size="sm"
+										onClick={handleRemoveModerator}
+										type="button"
+										disabled={isRemoving}
 									>
-										{!facultyLoading ? (
-											faculty && faculty.length > 0 ? (
-												faculty.map((user) => (
-													<SelectItem
-														key={`faculty-${user.id}`}
-														value={user.id.toString()}
-													>
-														{user.name} ({user.email})
-													</SelectItem>
-												))
+										{isRemoving ? (
+											<>
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												Removing...
+											</>
+										) : (
+											'Remove Moderator'
+										)}
+									</Button>
+								</AlertDescription>
+							</Alert>
+						)}
+
+						{!hasModeratorAssigned && (
+							<div className="grid grid-cols-4 items-center gap-4">
+								<Label htmlFor="faculty" className="text-right">
+									Faculty
+								</Label>
+								<div className="col-span-3">
+									<Select value={facultyId} onValueChange={setFacultyId}>
+										<SelectTrigger className="w-full">
+											<SelectValue placeholder="Select a faculty member" />
+										</SelectTrigger>
+										<SelectContent
+											position="popper"
+											className="max-h-[300px] overflow-y-auto z-50"
+										>
+											{!facultyLoading ? (
+												faculty && faculty.length > 0 ? (
+													faculty.map((user) => (
+														<SelectItem
+															key={`faculty-${user.id}`}
+															value={user.id.toString()}
+															className="py-3"
+														>
+															<div className="flex flex-col">
+																<span className="font-medium truncate">
+																	{user.name}
+																</span>
+																<span className="text-xs text-muted-foreground truncate">
+																	{user.email}
+																</span>
+															</div>
+														</SelectItem>
+													))
+												) : (
+													<div className="p-2 text-sm text-muted-foreground">
+														No faculty members available
+													</div>
+												)
 											) : (
 												<div className="p-2 text-sm text-muted-foreground">
-													No faculty members available
+													Loading faculty members...
 												</div>
-											)
-										) : (
-											<div className="p-2 text-sm text-muted-foreground">
-												Loading faculty members...
-											</div>
-										)}
-									</SelectContent>
-								</Select>
+											)}
+										</SelectContent>
+									</Select>
+								</div>
 							</div>
-						</div>
+						)}
 					</div>
 					<DialogFooter>
 						<Button
 							type="button"
 							variant="outline"
 							onClick={() => onOpenChange(false)}
-							disabled={isSubmitting}
+							disabled={isSubmitting || isRemoving}
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting}>
-							{isSubmitting ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Assigning...
-								</>
-							) : (
-								'Assign'
-							)}
-						</Button>
+						{!hasModeratorAssigned && (
+							<Button type="submit" disabled={isSubmitting}>
+								{isSubmitting ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Assigning...
+									</>
+								) : (
+									'Assign'
+								)}
+							</Button>
+						)}
 					</DialogFooter>
 				</form>
 			</DialogContent>

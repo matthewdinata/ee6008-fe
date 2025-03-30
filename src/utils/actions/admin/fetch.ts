@@ -241,76 +241,32 @@ export async function createUser(userData: {
 	isCoordinator?: boolean;
 }): Promise<ServerActionResponse<User>> {
 	try {
-		console.log('Creating user with data:', JSON.stringify(userData));
-		const accessToken = await getAccessToken();
-
-		if (!accessToken) {
-			return {
-				success: false,
-				error: 'Not authenticated',
-			};
-		}
-
-		// Convert the client-side data structure to match the API expectations
 		const requestData: Record<string, unknown> = {
 			email: userData.email,
 			name: userData.name,
 			role: userData.role,
 		};
-
-		// Add role-specific fields based on role
-		console.log(`Processing role-specific fields for role: "${userData.role}"`);
-
 		if (userData.role === 'student') {
-			// For students, always pass studentID if available
 			if (userData.studentID) {
 				requestData.studentID = userData.studentID;
 			}
-			// Pass semesterID directly to match backend's expected format
 			requestData.semesterID = userData.semesterID ? userData.semesterID : null;
-			console.log('Added student-specific fields:', JSON.stringify(requestData));
 		} else if (userData.role === 'faculty') {
-			// For faculty members, set is_coordinator and explicitly set semesterID to null to avoid backend validation
 			requestData.is_coordinator = Boolean(userData.isCoordinator);
 			requestData.semesterID = null;
-			console.log('Added faculty-specific fields:', JSON.stringify(requestData));
-		} else {
-			console.log(`Using default fields for role: ${userData.role}`);
 		}
-
-		const apiUrl = process.env.BACKEND_API_URL;
-		if (!apiUrl) {
-			throw new Error('Backend API URL is not defined');
-		}
-
-		console.log('Final request data:', JSON.stringify(requestData));
-
-		const response = await fetch(`${apiUrl}/api/admin/users`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${accessToken}`,
+		const responseData = await fetcherFn(
+			'admin/users',
+			{
+				method: 'POST',
 			},
-			body: JSON.stringify(requestData),
-		});
-
-		const responseData = await response.json();
-		console.log('Response from server:', JSON.stringify(responseData));
-
-		if (!response.ok) {
-			throw new Error(
-				responseData.details ||
-					responseData.message ||
-					'Unknown error occurred during user creation'
-			);
-		}
-
+			requestData
+		);
 		return {
 			success: true,
 			data: responseData,
 		};
 	} catch (error) {
-		console.error('Server Action: Error creating user:', error);
 		const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
 		return {
 			success: false,

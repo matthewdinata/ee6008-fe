@@ -60,7 +60,7 @@ export default function ProjectsTable({ projects, showAllData = false }: Project
 			badgeClass = 'bg-green-500 hover:bg-green-600';
 		} else if (grade === 'B+' || grade === 'B' || grade === 'B-') {
 			badgeClass = 'bg-blue-500 hover:bg-blue-600';
-		} else if (grade === 'C+' || grade === 'C' || grade === 'C-') {
+		} else if (grade === 'C+' || grade === 'C') {
 			badgeClass = '';
 		} else if (grade === 'D+' || grade === 'D') {
 			badgeClass = 'bg-orange-500 hover:bg-orange-600';

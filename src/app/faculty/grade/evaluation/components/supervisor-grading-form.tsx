@@ -58,6 +58,7 @@ interface StudentMember {
 interface SupervisorGradingFormProps {
 	projectId: number;
 	teamMembers: StudentMember[];
+	disabled?: boolean;
 }
 
 // Type definitions
@@ -482,7 +483,11 @@ function OverallFeedbackSection({ form }: { form: UseFormReturn<GradingFormValue
 }
 
 // Main component
-export function SupervisorGradingForm({ projectId, teamMembers }: SupervisorGradingFormProps) {
+export function SupervisorGradingForm({
+	projectId,
+	teamMembers,
+	disabled = false,
+}: SupervisorGradingFormProps) {
 	const router = useRouter();
 	const { toast } = useToast();
 	const [error, setError] = useState<string | null>(null);
@@ -507,7 +512,7 @@ export function SupervisorGradingForm({ projectId, teamMembers }: SupervisorGrad
 		data: gradesData,
 		isLoading: gradesLoading,
 		error: gradesError,
-		refetch: _refetch,
+		refetch: _refetchGrades,
 	} = useGetSupervisorGrades(projectId);
 
 	// Check assessment period
@@ -547,10 +552,53 @@ export function SupervisorGradingForm({ projectId, teamMembers }: SupervisorGrad
 		},
 	});
 
-	// Initialize form values
-	const initializeFormValues = useCallback(
-		(teamComps: GradingComponent[], individualComps: GradingComponent[]) => {
-			// Initialize team grades
+	// Process components when loaded
+	useEffect(() => {
+		if (gradingComponents && gradingComponents.length > 0 && teamMembers.length > 0) {
+			// Set components
+			setComponents(gradingComponents);
+
+			// Separate team and individual components based on isTeamBased property
+			// Check which property name is used for team-based flag
+			const hasIsTeamBased =
+				gradingComponents.length > 0 &&
+				('isTeamBased' in gradingComponents[0] || 'is_team_based' in gradingComponents[0]);
+
+			let teamComps: GradingComponent[] = [];
+			let individualComps: GradingComponent[] = [];
+
+			if (hasIsTeamBased) {
+				// Handle both camelCase and snake_case property names
+				teamComps = gradingComponents.filter(
+					(comp) => comp.isTeamBased === true || comp.is_team_based === true
+				);
+				individualComps = gradingComponents.filter(
+					(comp) => comp.isTeamBased === false || comp.is_team_based === false
+				);
+			} else {
+				// Fallback to component names if isTeamBased is not available
+				teamComps = gradingComponents.filter((comp) =>
+					[
+						'Project Charter',
+						'Project Report',
+						'Video presentation & demonstration',
+					].includes(comp.name)
+				);
+				individualComps = gradingComponents.filter(
+					(comp) =>
+						![
+							'Project Charter',
+							'Project Report',
+							'Video presentation & demonstration',
+						].includes(comp.name)
+				);
+			}
+
+			setTeamComponents(teamComps);
+			setIndividualComponents(individualComps);
+
+			// Initialize form values
+			// Use the local variables instead of state to avoid dependency cycles
 			const initialTeamGrades = teamComps.map((comp) => ({
 				component_id: comp.id,
 				score: 0,
@@ -580,83 +628,8 @@ export function SupervisorGradingForm({ projectId, teamMembers }: SupervisorGrad
 				...studentGradesMap,
 				feedback: '',
 			});
-		},
-		[form, teamMembers]
-	);
-
-	// Process components when loaded
-	useEffect(() => {
-		if (gradingComponents && gradingComponents.length > 0 && teamMembers.length > 0) {
-			// Set components
-			setComponents(gradingComponents);
-
-			// Separate team and individual components based on isTeamBased property
-			// Check which property name is used for team-based flag
-			const hasIsTeamBased =
-				gradingComponents.length > 0 &&
-				('isTeamBased' in gradingComponents[0] || 'is_team_based' in gradingComponents[0]);
-
-			if (hasIsTeamBased) {
-				// Handle both camelCase and snake_case property names
-				const teamComps = gradingComponents.filter(
-					(comp) => comp.isTeamBased === true || comp.is_team_based === true
-				);
-				const individualComps = gradingComponents.filter(
-					(comp) => comp.isTeamBased === false || comp.is_team_based === false
-				);
-
-				setTeamComponents(teamComps);
-				setIndividualComponents(individualComps);
-			} else {
-				// Fallback to component names if isTeamBased is not available
-				const teamComps = gradingComponents.filter((comp) =>
-					[
-						'Project Charter',
-						'Project Report',
-						'Video presentation & demonstration',
-					].includes(comp.name)
-				);
-				const individualComps = gradingComponents.filter(
-					(comp) =>
-						![
-							'Project Charter',
-							'Project Report',
-							'Video presentation & demonstration',
-						].includes(comp.name)
-				);
-
-				setTeamComponents(teamComps);
-				setIndividualComponents(individualComps);
-			}
-
-			// Initialize form values
-			initializeFormValues(teamComponents, individualComponents);
 		}
-	}, [
-		gradingComponents,
-		teamMembers,
-		initializeFormValues,
-		individualComponents,
-		teamComponents,
-	]);
-
-	// Define interface for the new gradesData structure
-	interface SupervisorGradesResponse {
-		studentGrades: Array<{
-			student_id: number;
-			component_id: number;
-			score: number;
-			comments?: string;
-		}>;
-		teamGrades: Array<{
-			component_id: number;
-			score: number;
-			comments?: string;
-		}>;
-		feedback: string;
-		gradedAt: string;
-		gradingCompleted: boolean;
-	}
+	}, [gradingComponents, teamMembers, form]);
 
 	// Load existing grades if available
 	useEffect(() => {
@@ -777,6 +750,24 @@ export function SupervisorGradingForm({ projectId, teamMembers }: SupervisorGrad
 		}
 	}, [gradesData, components, teamMembers, form, toast]);
 
+	// Define interface for the new gradesData structure
+	interface SupervisorGradesResponse {
+		studentGrades: Array<{
+			student_id: number;
+			component_id: number;
+			score: number;
+			comments?: string;
+		}>;
+		teamGrades: Array<{
+			component_id: number;
+			score: number;
+			comments?: string;
+		}>;
+		feedback: string;
+		gradedAt: string;
+		gradingCompleted: boolean;
+	}
+
 	// Check if assessment period is closed
 	useEffect(() => {
 		if (!isWithinAssessmentPeriod) {
@@ -809,31 +800,37 @@ export function SupervisorGradingForm({ projectId, teamMembers }: SupervisorGrad
 
 	// Calculate grading progress
 	useEffect(() => {
-		if (gradesData && components.length > 0) {
+		if (
+			gradesData &&
+			components.length > 0 &&
+			teamComponents.length > 0 &&
+			individualComponents.length > 0
+		) {
 			// Count total components (team + individual for each student)
 			const totalTeamComponents = teamComponents.length;
 			const totalIndividualComponents = individualComponents.length * teamMembers.length;
 			const totalComponents = totalTeamComponents + totalIndividualComponents;
 
 			// Count completed components
-			const completedTeamComponents = teamComponents.filter(
-				(comp) =>
-					Array.isArray(gradesData) &&
-					gradesData.some((grade) => grade.component_id === comp.id && !grade.student_id)
-			).length;
+			let completedTeamComponents = 0;
+			let completedIndividualComponents = 0;
 
-			const completedIndividualComponents = teamMembers.reduce((count, student) => {
-				const studentCompletedComponents = individualComponents.filter(
-					(comp) =>
-						Array.isArray(gradesData) &&
+			if (Array.isArray(gradesData)) {
+				completedTeamComponents = teamComponents.filter((comp) =>
+					gradesData.some((grade) => grade.component_id === comp.id && !grade.student_id)
+				).length;
+
+				completedIndividualComponents = teamMembers.reduce((count, student) => {
+					const studentCompletedComponents = individualComponents.filter((comp) =>
 						gradesData.some(
 							(grade) =>
 								grade.component_id === comp.id &&
 								grade.student_id === student.student_id
 						)
-				).length;
-				return count + studentCompletedComponents;
-			}, 0);
+					).length;
+					return count + studentCompletedComponents;
+				}, 0);
+			}
 
 			const totalCompleted = completedTeamComponents + completedIndividualComponents;
 
@@ -844,55 +841,77 @@ export function SupervisorGradingForm({ projectId, teamMembers }: SupervisorGrad
 		}
 	}, [gradesData, components, teamComponents, individualComponents, teamMembers]);
 
+	// Get the last update timestamp from grades data
+	const getLastUpdateTimestamp = useCallback(() => {
+		if (!gradesData || !Array.isArray(gradesData) || gradesData.length === 0) return null;
+
+		const sortedGrades = [...gradesData].sort(
+			(a, b) => new Date(b.graded_at).getTime() - new Date(a.graded_at).getTime()
+		);
+
+		return sortedGrades[0]?.graded_at;
+	}, [gradesData]);
+
 	// Check if grades have already been submitted
 	useEffect(() => {
 		// Check if the project has already been graded
-		if (gradesData && gradesData.length > 0) {
+		if (
+			gradesData &&
+			Array.isArray(gradesData) &&
+			gradesData.length > 0 &&
+			teamComponents.length > 0 &&
+			individualComponents.length > 0
+		) {
 			// Check if we have at least one grade for each team component
-			const teamGradesComplete =
-				teamComponents.length > 0 &&
-				teamComponents.every(
-					(comp) =>
-						Array.isArray(gradesData) &&
-						gradesData.some(
-							(grade) =>
-								grade.component_id === comp.id &&
-								grade.score !== null &&
-								grade.score !== undefined
-						)
-				);
+			const teamGradesComplete = teamComponents.every((comp) =>
+				gradesData.some(
+					(grade) =>
+						grade.component_id === comp.id &&
+						grade.score !== null &&
+						grade.score !== undefined
+				)
+			);
 
 			// Check if we have at least one grade for each individual component for each student
 			const individualGradesComplete =
 				individualComponents.length > 0
 					? teamMembers.every((student) =>
-							individualComponents.every(
-								(comp) =>
-									Array.isArray(gradesData) &&
-									gradesData.some(
-										(grade) =>
-											grade.component_id === comp.id &&
-											grade.student_id === student.student_id &&
-											grade.score !== null &&
-											grade.score !== undefined
-									)
+							individualComponents.every((comp) =>
+								gradesData.some(
+									(grade) =>
+										grade.component_id === comp.id &&
+										grade.student_id === student.student_id &&
+										grade.score !== null &&
+										grade.score !== undefined
+								)
 							)
 						)
-					: true; // If no individual components, consider it complete
+					: true;
 
-			// If we have a complete set of grades, disable the form and mark as already graded
+			// If we have a complete set of grades, mark as already graded
 			if (teamGradesComplete && individualGradesComplete) {
-				setIsFormDisabled(true);
 				setIsAlreadyGraded(true);
-				toast({
-					title: 'Grades already submitted',
-					description:
-						'This evaluation has already been completed. You can view the graded components.',
-					variant: 'default',
-				});
 			}
 		}
-	}, [gradesData, teamComponents, individualComponents, teamMembers, toast]);
+	}, [gradesData, teamComponents, individualComponents, teamMembers]);
+
+	// Define loading and error states
+	const isLoading = componentsLoading || gradesLoading || isLoadingAssessmentPeriod;
+	const isError = !!componentsError || !!gradesError || !!assessmentPeriodError || !!submitError;
+
+	// Set form disabled status based on passed disabled prop and other conditions
+	useEffect(() => {
+		// Form is disabled if:
+		// 1. External disabled prop is true (grading period inactive)
+		// 2. Grades exist and are locked (already submitted)
+		// 3. Components or grades are still loading
+		setIsFormDisabled(
+			disabled ||
+				(gradesData && Array.isArray(gradesData) && gradesData[0]?.is_locked) ||
+				isLoading ||
+				isAlreadyGraded
+		);
+	}, [gradesData, isLoading, isAlreadyGraded, disabled]);
 
 	// Handle form submission
 	const onSubmit = useCallback(async (_data: GradingFormValues) => {
@@ -984,26 +1003,17 @@ export function SupervisorGradingForm({ projectId, teamMembers }: SupervisorGrad
 		}
 	};
 
-	if (componentsLoading || gradesLoading || isLoadingAssessmentPeriod) {
+	const lastUpdateTimestamp = getLastUpdateTimestamp();
+
+	// Render loading state
+	if (isLoading) {
 		return <LoadingState />;
 	}
 
-	if (error) {
-		return <ErrorState message={error} />;
+	// Render error state
+	if (isError || error) {
+		return <ErrorState message={error || 'An error occurred loading the grading form'} />;
 	}
-
-	// Get the last update timestamp
-	const getLastUpdateTimestamp = () => {
-		if (!gradesData || !Array.isArray(gradesData) || gradesData.length === 0) return null;
-
-		const sortedGrades = [...gradesData].sort(
-			(a, b) => new Date(b.graded_at).getTime() - new Date(a.graded_at).getTime()
-		);
-
-		return sortedGrades[0]?.graded_at;
-	};
-
-	const lastUpdateTimestamp = getLastUpdateTimestamp();
 
 	return (
 		<div className="space-y-8">

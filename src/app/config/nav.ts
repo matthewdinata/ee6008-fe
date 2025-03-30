@@ -4,6 +4,7 @@ import {
 	FileUser,
 	FolderGit2,
 	FolderOpenDot,
+	Mail,
 	SquareRadical,
 	UserRoundPen,
 } from 'lucide-react';
@@ -145,6 +146,24 @@ export const navConfig: NavMainItemsConfig = {
 				},
 			],
 		},
+		{
+			title: 'Email',
+			icon: Mail,
+			items: [
+				{
+					title: 'Template Management',
+					url: '/faculty/email',
+					headerTitle: 'Template Management',
+					headerSubtitle: 'Create and manage email templates and notifications',
+				},
+				{
+					title: 'Email Manager',
+					url: '/faculty/manual',
+					headerTitle: 'Email Manager',
+					headerSubtitle: 'Send and schedule emails to students and faculty',
+				},
+			],
+		},
 	],
 	admin: [
 		{
@@ -212,16 +231,34 @@ export const navConfig: NavMainItemsConfig = {
 			icon: SquareRadical,
 			items: [
 				{
-					title: 'Project',
+					title: 'View Project Grades',
 					url: '/admin/grade/evaluation',
 					headerTitle: 'Project Evaluation',
 					headerSubtitle: 'Grade and provide feedback on student projects',
 				},
 				{
-					title: 'Analytics',
+					title: 'View Grades Analytics',
 					url: '/admin/grade/analytics',
 					headerTitle: 'Grade Analytics',
 					headerSubtitle: 'View statistical analysis of project grades',
+				},
+			],
+		},
+		{
+			title: 'Email',
+			icon: Mail,
+			items: [
+				{
+					title: 'Template Management',
+					url: '/admin/email',
+					headerTitle: 'Email Template Management',
+					headerSubtitle: 'Create and manage email templates and notifications',
+				},
+				{
+					title: 'Email Manager',
+					url: '/admin/manual',
+					headerTitle: 'Email Manager',
+					headerSubtitle: 'Send and schedule emails to students and faculty',
 				},
 			],
 		},

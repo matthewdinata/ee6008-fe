@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { useGetProjectsBySemester } from '@/utils/hooks/admin/use-get-projects-by-semester';
@@ -25,7 +25,6 @@ import AllProjectGrades from './components/all-project-grades';
 
 export default function AdminProjectGradingPage() {
 	const { projectId } = useParams();
-	const router = useRouter();
 	const searchParams = useSearchParams();
 
 	const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
@@ -86,11 +85,6 @@ export default function AdminProjectGradingPage() {
 	const handleProjectChange = (value: string) => {
 		const newProjectId = parseInt(value, 10);
 		setSelectedProjectId(newProjectId);
-
-		// Update URL without refreshing the page
-		const params = new URLSearchParams(searchParams.toString());
-		params.set('projectId', newProjectId.toString());
-		router.push(`/admin/project/grade/evaluation?${params.toString()}`, { scroll: false });
 	};
 
 	// Handle semester selection change
@@ -103,11 +97,6 @@ export default function AdminProjectGradingPage() {
 	// Handle tab change
 	const handleTabChange = (value: string) => {
 		setActiveTab(value);
-
-		// Update URL without refreshing the page
-		const params = new URLSearchParams(searchParams.toString());
-		params.set('tab', value);
-		router.push(`/admin/grade/evaluation?${params.toString()}`, { scroll: false });
 	};
 
 	// Show loading state but don't block rendering
@@ -132,14 +121,7 @@ export default function AdminProjectGradingPage() {
 	) : null;
 
 	return (
-		<div className="container py-6 space-y-6">
-			<div className="flex flex-col gap-2">
-				<h1 className="text-2xl font-bold">Project Grades</h1>
-				<p className="text-muted-foreground">
-					View and manage project grades for all students.
-				</p>
-			</div>
-
+		<div className="py-6 space-y-6">
 			{/* Semester Selection */}
 			<Card>
 				<CardHeader>

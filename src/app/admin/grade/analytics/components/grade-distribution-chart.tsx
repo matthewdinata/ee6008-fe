@@ -28,7 +28,6 @@ const GRADE_COLORS: Record<string, string> = {
 	'B-': '#AED581',
 	'C+': '#FFB74D',
 	C: '#FFA726',
-	'C-': '#FF9800',
 	'D+': '#FF7043',
 	D: '#FF5722',
 	F: '#F44336',
@@ -36,7 +35,7 @@ const GRADE_COLORS: Record<string, string> = {
 };
 
 // Grade order for display
-const GRADE_ORDER = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F', 'N/A'];
+const GRADE_ORDER = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'D+', 'D', 'F', 'N/A'];
 
 export default function GradeDistributionChart({ distribution }: GradeDistributionChartProps) {
 	// Format data for the chart

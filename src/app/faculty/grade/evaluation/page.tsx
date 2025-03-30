@@ -1,10 +1,12 @@
 'use client';
 
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { AlertCircle, Clock, Loader2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
-import { useGetSemesters } from '@/utils/hooks/admin/use-get-semesters';
+import { getActiveSemester } from '@/utils/actions/admin/get-active-semester';
+import { useGetSemesterTimeline } from '@/utils/hooks/admin/use-get-semester-timeline';
 import { useGetProjectDetails } from '@/utils/hooks/faculty/use-faculty-get-project-details';
 import { useGetFacultyProjects } from '@/utils/hooks/faculty/use-faculty-get-projects';
 import { useToast } from '@/utils/hooks/use-toast';
@@ -32,9 +34,10 @@ export default function ProjectGradingPage() {
 
 	const [activeTab, setActiveTab] = useState('supervisor');
 	const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
-	const [semesterId, setSemesterId] = useState<number | null>(null);
 	const [isSupervisor, setIsSupervisor] = useState(false);
 	const [isModerator, setIsModerator] = useState(false);
+	const [isGradingPeriodActive, setIsGradingPeriodActive] = useState<boolean | null>(null);
+	const [gradingPeriodMessage, setGradingPeriodMessage] = useState<string>('');
 
 	// Get user email from cookies
 	const userEmail = useMemo(() => {
@@ -66,36 +69,88 @@ export default function ProjectGradingPage() {
 		return '';
 	}, []);
 
-	// Get available semesters
-	const { data: semesters, isLoading: isSemestersLoading } = useGetSemesters();
+	// Get active semester
+	const {
+		data: activeSemester,
+		isLoading: isSemesterLoading,
+		error: semesterError,
+	} = useQuery({
+		queryKey: ['active-semester'],
+		queryFn: async () => {
+			return await getActiveSemester();
+		},
+	});
 
-	// Set default semester when semesters are loaded
+	// Get semester timeline
+	const {
+		data: timelineEvents,
+		isLoading: isTimelineLoading,
+		error: _timelineError,
+	} = useGetSemesterTimeline(activeSemester?.id || 0);
+
+	// Check if current date is within the Faculty Mark Entry period
 	useEffect(() => {
-		if (semesters && semesters.length > 0 && !semesterId) {
-			// Find an active semester first
-			const activeSemester = semesters.find((sem) => sem.isActive);
-			if (activeSemester) {
-				console.log('Setting active semester:', activeSemester);
-				setSemesterId(activeSemester.id);
+		if (timelineEvents) {
+			console.log('SEMESTER TIMELINE EVENTS:', timelineEvents);
+			console.log('Total timeline events:', timelineEvents.length);
+
+			// Log each event with its type and dates
+			timelineEvents.forEach((event) => {
+				// Using name field instead of type, based on the logged data structure
+				console.log(
+					`Event name: ${event.name}, Start: ${event.start_date}, End: ${event.end_date}`
+				);
+			});
+
+			// Find the faculty mark entry event
+			const markEntryEvent = timelineEvents.find((e) => e.name === 'Faculty Mark Entry');
+
+			if (markEntryEvent) {
+				console.log('Faculty mark entry period:', markEntryEvent);
+				const now = new Date();
+				const startDate = markEntryEvent.start_date
+					? new Date(markEntryEvent.start_date)
+					: now;
+				const endDate = markEntryEvent.end_date ? new Date(markEntryEvent.end_date) : now;
+
+				const isWithinPeriod = now >= startDate && now <= endDate;
+				console.log('Is mark entry active now?', isWithinPeriod);
+
+				setIsGradingPeriodActive(isWithinPeriod);
+
+				if (now < startDate) {
+					// Grading period hasn't started yet
+					const daysUntilStart = Math.ceil(
+						(startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+					);
+					setGradingPeriodMessage(
+						`The grading period will start in ${daysUntilStart} day${daysUntilStart !== 1 ? 's' : ''} (${startDate.toLocaleDateString()})`
+					);
+				} else if (now > endDate) {
+					// Grading period has ended
+					setGradingPeriodMessage(
+						`The grading period has ended on ${endDate.toLocaleDateString()}`
+					);
+				}
 			} else {
-				// If no active semester, use the first one
-				console.log('Setting first semester:', semesters[0]);
-				setSemesterId(semesters[0].id);
+				// No faculty mark entry event found
+				setIsGradingPeriodActive(false);
+				setGradingPeriodMessage('No grading period has been scheduled for this semester');
 			}
 		}
-	}, [semesters, semesterId]);
+	}, [timelineEvents]);
 
-	// Fetch faculty projects based on semester
+	// Fetch faculty projects based on active semester
 	const {
 		data: facultyProjects,
 		isLoading: isProjectsLoading,
 		error: projectsError,
-	} = useGetFacultyProjects(semesterId, userEmail);
+	} = useGetFacultyProjects(activeSemester?.id || null, userEmail);
 
 	// Add debug logging for faculty projects
 	useEffect(() => {
-		if (semesterId) {
-			console.log('Semester ID changed to:', semesterId);
+		if (activeSemester) {
+			console.log('Active semester:', activeSemester);
 			console.log('User email being used:', userEmail);
 		}
 
@@ -103,7 +158,7 @@ export default function ProjectGradingPage() {
 			console.log('Faculty projects loaded:', facultyProjects.length);
 			console.log('Faculty projects:', facultyProjects);
 		}
-	}, [semesterId, facultyProjects, userEmail]);
+	}, [activeSemester, facultyProjects, userEmail]);
 
 	// Set selected project when projects are loaded or when projectId from URL changes
 	useEffect(() => {
@@ -180,14 +235,6 @@ export default function ProjectGradingPage() {
 		setSelectedProjectId(newProjectId);
 	};
 
-	// Handle semester selection change
-	const handleSemesterChange = (value: string) => {
-		const newSemesterId = parseInt(value, 10);
-		console.log('Semester changed to:', newSemesterId);
-		setSemesterId(newSemesterId);
-		setSelectedProjectId(null); // Reset selected project when semester changes
-	};
-
 	// Show loading state but don't block rendering
 	const loadingContent = (
 		<div className="flex justify-center items-center min-h-[60vh] mb-8">
@@ -212,203 +259,281 @@ export default function ProjectGradingPage() {
 		<Alert variant="destructive" className="max-w-2xl mx-auto my-4">
 			<AlertCircle className="h-4 w-4" />
 			<AlertTitle>Error</AlertTitle>
+			<AlertDescription>Failed to load projects. Please try again.</AlertDescription>
+		</Alert>
+	) : null;
+
+	// Show error for semester fetch if needed
+	const semesterErrorContent = semesterError ? (
+		<Alert variant="destructive" className="max-w-2xl mx-auto my-4">
+			<AlertCircle className="h-4 w-4" />
+			<AlertTitle>Error</AlertTitle>
 			<AlertDescription>
-				Failed to load projects. Please try again or select a different semester.
+				Failed to load active semester. Please try again later.
 			</AlertDescription>
 		</Alert>
 	) : null;
 
-	return (
-		<div className="container mx-auto py-8 px-4">
-			<div className="mb-8">
-				<h1 className="text-2xl font-bold mb-4">Project Grading</h1>
+	// Show grading period inactive message
+	const gradingPeriodInactiveContent =
+		isGradingPeriodActive === false ? (
+			<Alert className="mb-6 bg-amber-200/20">
+				<Clock className="h-4 w-4 text-amber-600" />
+				<AlertTitle className="flex items-center gap-2">Grading Period Inactive</AlertTitle>
+				<AlertDescription>{gradingPeriodMessage}</AlertDescription>
+			</Alert>
+		) : (
+			<Alert className="mb-6 bg-blue-200/20">
+				<Clock className="h-4 w-4 text-blue-600" />
+				<AlertTitle className="flex items-center gap-2">Grading Period Active</AlertTitle>
+				<AlertDescription>
+					You can submit grades until the end of the faculty mark entry period.
+				</AlertDescription>
+			</Alert>
+		);
 
-				<div className="flex flex-col md:flex-row gap-4 mb-6">
-					{/* Semester selector */}
-					<div className="w-full md:w-1/3">
-						<label className="text-sm font-medium mb-1 block">Semester</label>
-						<Select
-							value={semesterId?.toString() || ''}
-							onValueChange={handleSemesterChange}
-							disabled={isSemestersLoading}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select semester" />
-							</SelectTrigger>
-							<SelectContent>
-								{semesters?.map((semester) => (
-									<SelectItem key={semester.id} value={semester.id.toString()}>
-										{semester.academicYear} - {semester.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+	// Check if page is still loading timeline or semester data
+	const isLoadingInitialData = isSemesterLoading || isTimelineLoading;
+
+	// Main function to render page content based on grading period status
+	const renderPageContent = () => {
+		// If still loading initial data, show loading
+		if (isLoadingInitialData) {
+			return loadingContent;
+		}
+
+		// Show the regular content, with disabled tabs/forms if grading period is inactive
+		return (
+			<>
+				{/* Display grading period alert */}
+				{gradingPeriodInactiveContent}
+
+				<div className="mb-8">
+					<div className="flex flex-col md:flex-row gap-4 mb-6">
+						{/* Active semester info */}
+						<div className="w-full md:w-1/3">
+							<label className="text-sm font-medium mb-1 block">
+								Active Semester
+							</label>
+							<div className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background flex items-center">
+								{isSemesterLoading ? (
+									<span className="text-muted-foreground">
+										Loading semester...
+									</span>
+								) : activeSemester ? (
+									<span>
+										{activeSemester.academicYear} - {activeSemester.name}
+									</span>
+								) : (
+									<span className="text-muted-foreground">
+										No active semester found
+									</span>
+								)}
+							</div>
+						</div>
+
+						{/* Project selector */}
+						<div className="w-full md:w-2/3">
+							<label className="text-sm font-medium mb-1 block">Project</label>
+							<Select
+								value={selectedProjectId?.toString() || ''}
+								onValueChange={handleProjectChange}
+								disabled={
+									isProjectsLoading ||
+									!facultyProjects ||
+									facultyProjects.length === 0 ||
+									isGradingPeriodActive === false
+								}
+							>
+								<SelectTrigger className="w-full">
+									<SelectValue
+										placeholder={
+											isProjectsLoading
+												? 'Loading projects...'
+												: 'Select project'
+										}
+									/>
+								</SelectTrigger>
+								<SelectContent>
+									{facultyProjects?.map((project) => (
+										<SelectItem key={project.id} value={project.id.toString()}>
+											{project.title}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					</div>
 
-					{/* Project selector */}
-					<div className="w-full md:w-2/3">
-						<label className="text-sm font-medium mb-1 block">Project</label>
-						<Select
-							value={selectedProjectId?.toString() || ''}
-							onValueChange={handleProjectChange}
-							disabled={
-								isProjectsLoading ||
-								!facultyProjects ||
-								facultyProjects.length === 0
-							}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue
-									placeholder={
-										isProjectsLoading ? 'Loading projects...' : 'Select project'
-									}
-								/>
-							</SelectTrigger>
-							<SelectContent>
-								{facultyProjects?.map((project) => (
-									<SelectItem key={project.id} value={project.id.toString()}>
-										{project.title}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+					{selectedProjectId && projectDetails && (
+						<p className="text-muted-foreground">{projectDetails?.title}</p>
+					)}
 				</div>
 
+				{(isProjectsLoading || projectDetailsLoading) && loadingContent}
+				{errorContent}
+				{projectsErrorContent}
+				{semesterErrorContent}
+
 				{selectedProjectId && projectDetails && (
-					<p className="text-muted-foreground">{projectDetails?.title}</p>
+					<>
+						<Card className="mb-8">
+							<CardHeader>
+								<CardTitle>Project Details</CardTitle>
+								<CardDescription>
+									Key information about this project
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+									<div>
+										<h3 className="font-medium">Project ID</h3>
+										<p>{projectDetails?.id}</p>
+									</div>
+									<div>
+										<h3 className="font-medium">Semester</h3>
+										<p>
+											{projectDetails?.academic_year} -{' '}
+											{projectDetails?.semester}
+										</p>
+									</div>
+									<div>
+										<h3 className="font-medium">Supervisor</h3>
+										<p>{projectDetails?.professor?.name}</p>
+									</div>
+									<div>
+										<h3 className="font-medium">Moderator</h3>
+										<p>{projectDetails?.moderator?.name || 'Not assigned'}</p>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+
+						<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+							<TabsList>
+								<TabsTrigger
+									value="supervisor"
+									disabled={isGradingPeriodActive === false}
+								>
+									Supervisor Assessment
+								</TabsTrigger>
+								<TabsTrigger
+									value="moderator"
+									disabled={isGradingPeriodActive === false}
+								>
+									Moderator Assessment
+								</TabsTrigger>
+								<TabsTrigger
+									value="peerReview"
+									disabled={isGradingPeriodActive === false}
+								>
+									Peer Reviews
+								</TabsTrigger>
+								<TabsTrigger
+									value="gradedComponents"
+									disabled={isGradingPeriodActive === false}
+								>
+									Graded Components
+								</TabsTrigger>
+								<TabsTrigger value="summary">Assessment Summary</TabsTrigger>
+							</TabsList>
+
+							<TabsContent value="supervisor" className="space-y-4">
+								{isSupervisor ? (
+									<SupervisorGradingForm
+										projectId={selectedProjectId}
+										teamMembers={projectDetails?.team_members || []}
+										disabled={isGradingPeriodActive === false}
+									/>
+								) : (
+									<Alert className="max-w-2xl mx-auto my-8">
+										<AlertCircle className="h-4 w-4" />
+										<AlertTitle>Access Restricted</AlertTitle>
+										<AlertDescription>
+											You are not a supervisor for this project. If you
+											believe this is an error, please contact the admin or
+											course coordinator.
+										</AlertDescription>
+									</Alert>
+								)}
+							</TabsContent>
+
+							<TabsContent value="moderator" className="space-y-4">
+								{isModerator ? (
+									<ModeratorGradingForm
+										projectId={selectedProjectId}
+										disabled={isGradingPeriodActive === false}
+									/>
+								) : (
+									<Alert className="max-w-2xl mx-auto my-8">
+										<AlertCircle className="h-4 w-4" />
+										<AlertTitle>Access Restricted</AlertTitle>
+										<AlertDescription>
+											You are not a moderator for this project. If you believe
+											this is an error, please contact the admin or course
+											coordinator.
+										</AlertDescription>
+									</Alert>
+								)}
+							</TabsContent>
+
+							<TabsContent value="peerReview" className="space-y-4">
+								{isSupervisor || isModerator ? (
+									<PeerReviewTab
+										projectId={selectedProjectId}
+										disabled={isGradingPeriodActive === false}
+									/>
+								) : (
+									<Alert className="max-w-2xl mx-auto my-8">
+										<AlertCircle className="h-4 w-4" />
+										<AlertTitle>Access Restricted</AlertTitle>
+										<AlertDescription>
+											You need to be a supervisor or moderator to view peer
+											reviews for this project.
+										</AlertDescription>
+									</Alert>
+								)}
+							</TabsContent>
+
+							<TabsContent value="gradedComponents" className="space-y-4">
+								{isSupervisor || isModerator ? (
+									<GradedComponentsView
+										projectId={selectedProjectId}
+										role={isSupervisor ? 'supervisor' : 'moderator'}
+										disabled={isGradingPeriodActive === false}
+									/>
+								) : (
+									<Alert className="max-w-2xl mx-auto my-8">
+										<AlertCircle className="h-4 w-4" />
+										<AlertTitle>Access Restricted</AlertTitle>
+										<AlertDescription>
+											You need to be a supervisor or moderator to view graded
+											components for this project.
+										</AlertDescription>
+									</Alert>
+								)}
+							</TabsContent>
+
+							<TabsContent value="summary" className="space-y-4">
+								<ProjectGradesSummary projectId={selectedProjectId} />
+							</TabsContent>
+						</Tabs>
+					</>
 				)}
-			</div>
 
-			{(isProjectsLoading || projectDetailsLoading) && loadingContent}
-			{errorContent}
-			{projectsErrorContent}
+				{!selectedProjectId && facultyProjects && facultyProjects.length === 0 && (
+					<Alert className="max-w-2xl mx-auto my-8">
+						<AlertCircle className="h-4 w-4" />
+						<AlertTitle>No Projects Found</AlertTitle>
+						<AlertDescription>
+							No projects were found for the active semester. Please contact your
+							administrator if you believe this is an error.
+						</AlertDescription>
+					</Alert>
+				)}
+			</>
+		);
+	};
 
-			{selectedProjectId && projectDetails && (
-				<>
-					<Card className="mb-8">
-						<CardHeader>
-							<CardTitle>Project Details</CardTitle>
-							<CardDescription>Key information about this project</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-								<div>
-									<h3 className="font-medium">Project ID</h3>
-									<p>{projectDetails?.id}</p>
-								</div>
-								<div>
-									<h3 className="font-medium">Semester</h3>
-									<p>
-										{projectDetails?.academic_year} - {projectDetails?.semester}
-									</p>
-								</div>
-								<div>
-									<h3 className="font-medium">Supervisor</h3>
-									<p>{projectDetails?.professor?.name}</p>
-								</div>
-								<div>
-									<h3 className="font-medium">Moderator</h3>
-									<p>{projectDetails?.moderator?.name || 'Not assigned'}</p>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-
-					<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-						<TabsList>
-							<TabsTrigger value="supervisor">Supervisor Assessment</TabsTrigger>
-							<TabsTrigger value="moderator">Moderator Assessment</TabsTrigger>
-							<TabsTrigger value="peerReview">Peer Reviews</TabsTrigger>
-							<TabsTrigger value="gradedComponents">Graded Components</TabsTrigger>
-							<TabsTrigger value="summary">Assessment Summary</TabsTrigger>
-						</TabsList>
-
-						<TabsContent value="supervisor" className="space-y-4">
-							{isSupervisor ? (
-								<SupervisorGradingForm
-									projectId={selectedProjectId}
-									teamMembers={projectDetails?.team_members || []}
-								/>
-							) : (
-								<Alert className="max-w-2xl mx-auto my-8">
-									<AlertCircle className="h-4 w-4" />
-									<AlertTitle>Access Restricted</AlertTitle>
-									<AlertDescription>
-										You are not a supervisor for this project. If you believe
-										this is an error, please contact the admin or course
-										coordinator.
-									</AlertDescription>
-								</Alert>
-							)}
-						</TabsContent>
-
-						<TabsContent value="moderator" className="space-y-4">
-							{isModerator ? (
-								<ModeratorGradingForm projectId={selectedProjectId} />
-							) : (
-								<Alert className="max-w-2xl mx-auto my-8">
-									<AlertCircle className="h-4 w-4" />
-									<AlertTitle>Access Restricted</AlertTitle>
-									<AlertDescription>
-										You are not a moderator for this project. If you believe
-										this is an error, please contact the admin or course
-										coordinator.
-									</AlertDescription>
-								</Alert>
-							)}
-						</TabsContent>
-
-						<TabsContent value="peerReview" className="space-y-4">
-							{isSupervisor || isModerator ? (
-								<PeerReviewTab projectId={selectedProjectId} />
-							) : (
-								<Alert className="max-w-2xl mx-auto my-8">
-									<AlertCircle className="h-4 w-4" />
-									<AlertTitle>Access Restricted</AlertTitle>
-									<AlertDescription>
-										You need to be a supervisor or moderator to view peer
-										reviews for this project.
-									</AlertDescription>
-								</Alert>
-							)}
-						</TabsContent>
-
-						<TabsContent value="gradedComponents" className="space-y-4">
-							{isSupervisor || isModerator ? (
-								<GradedComponentsView
-									projectId={selectedProjectId}
-									role={isSupervisor ? 'supervisor' : 'moderator'}
-								/>
-							) : (
-								<Alert className="max-w-2xl mx-auto my-8">
-									<AlertCircle className="h-4 w-4" />
-									<AlertTitle>Access Restricted</AlertTitle>
-									<AlertDescription>
-										You need to be a supervisor or moderator to view graded
-										components for this project.
-									</AlertDescription>
-								</Alert>
-							)}
-						</TabsContent>
-
-						<TabsContent value="summary" className="space-y-4">
-							<ProjectGradesSummary projectId={selectedProjectId} />
-						</TabsContent>
-					</Tabs>
-				</>
-			)}
-
-			{!selectedProjectId && facultyProjects && facultyProjects.length === 0 && (
-				<Alert className="max-w-2xl mx-auto my-8">
-					<AlertCircle className="h-4 w-4" />
-					<AlertTitle>No Projects Found</AlertTitle>
-					<AlertDescription>
-						No projects were found for the selected semester. Please select a different
-						semester or contact your administrator.
-					</AlertDescription>
-				</Alert>
-			)}
-		</div>
-	);
+	return <div className="mx-auto py-8 px-4">{renderPageContent()}</div>;
 }

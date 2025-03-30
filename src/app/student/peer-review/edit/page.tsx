@@ -1,10 +1,14 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import { Clock, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+import { useCheckPeerReviewPeriod } from '@/utils/hooks/student/use-check-peer-review-period';
 import { usePeerReviews } from '@/utils/hooks/student/use-peer-reviews';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 /**
  * This page acts as a redirect to the appropriate edit page with an ID
@@ -13,11 +17,28 @@ import { usePeerReviews } from '@/utils/hooks/student/use-peer-reviews';
  */
 export default function EditReviewRedirectPage() {
 	const router = useRouter();
-	const { data: peerReviews } = usePeerReviews();
+	const { data: peerReviews, isLoading: isLoadingReviews } = usePeerReviews();
+	const {
+		isWithinPeerReviewPeriod,
+		timeMessage,
+		isLoading: isTimelineLoading,
+	} = useCheckPeerReviewPeriod();
 
 	useEffect(() => {
+		// First, check if we're within the review period
+		if (!isTimelineLoading && !isWithinPeerReviewPeriod) {
+			// If outside the period, redirect to main page
+			router.push('/student/peer-review');
+			return;
+		}
+
 		// If we have peer reviews data, find the first review that can be edited
-		if (peerReviews && peerReviews.teamMembers && peerReviews.teamMembers.length > 0) {
+		if (
+			!isLoadingReviews &&
+			peerReviews &&
+			peerReviews.teamMembers &&
+			peerReviews.teamMembers.length > 0
+		) {
 			// Find the first review that has been submitted (has a reviewId)
 			const reviewToEdit = peerReviews.teamMembers.find((member) => member.reviewId);
 
@@ -29,7 +50,25 @@ export default function EditReviewRedirectPage() {
 				router.push('/student/peer-review');
 			}
 		}
-	}, [peerReviews, router]);
+	}, [peerReviews, router, isWithinPeerReviewPeriod, isTimelineLoading, isLoadingReviews]);
+
+	// If outside peer review period, show warning
+	if (!isTimelineLoading && !isWithinPeerReviewPeriod) {
+		return (
+			<Alert className="mb-6">
+				<Clock className="h-4 w-4" />
+				<AlertTitle>Peer Review Period Inactive</AlertTitle>
+				<AlertDescription>
+					{timeMessage}
+					<div className="mt-4">
+						<Button onClick={() => router.push('/student/peer-review')}>
+							Return to Dashboard
+						</Button>
+					</div>
+				</AlertDescription>
+			</Alert>
+		);
+	}
 
 	// Show loading state while we determine where to redirect
 	return (

@@ -101,7 +101,7 @@ export default function FacultyTable() {
 	};
 
 	return (
-		<div className="container mx-auto p-6 text-foreground">
+		<div className="mx-auto p-6 text-foreground">
 			<div className="flex flex-col space-y-4">
 				<div className="flex justify-between items-center">
 					<h2 className="text-2xl font-bold text-foreground">Faculty List</h2>

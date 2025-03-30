@@ -1,10 +1,12 @@
 'use client';
 
-import { AlertCircle, CheckCircle2, Edit, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, Edit, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { TeamMember } from '@/utils/actions/student/types';
+import { useCheckPeerReviewPeriod } from '@/utils/hooks/student/use-check-peer-review-period';
+import { useGetActiveSemesterTimeline } from '@/utils/hooks/student/use-get-active-semester-timeline';
 import { usePeerReviews } from '@/utils/hooks/student/use-peer-reviews';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -25,6 +27,20 @@ export default function PeerReviewDashboard() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const { data, isLoading, isError, error, refetch } = usePeerReviews();
+	const {
+		isWithinPeerReviewPeriod,
+		timeMessage,
+		isLoading: isTimelineLoading,
+		error: _timelineError,
+	} = useCheckPeerReviewPeriod();
+
+	// For debugging timeline data
+	const { data: timelineData } = useGetActiveSemesterTimeline();
+
+	useEffect(() => {
+		// Debug output
+		console.log('💫 Timeline data in dashboard:', timelineData);
+	}, [timelineData]);
 
 	useEffect(() => {
 		if (isError && error) {
@@ -35,6 +51,10 @@ export default function PeerReviewDashboard() {
 	}, [isError, error]);
 
 	const handleReviewClick = (teamMemberId: number, reviewId?: number) => {
+		if (!isWithinPeerReviewPeriod) {
+			return; // Don't navigate if outside of review period
+		}
+
 		if (reviewId) {
 			// Edit existing review
 			router.push(`/student/peer-review/edit/${reviewId}`);
@@ -44,7 +64,7 @@ export default function PeerReviewDashboard() {
 		}
 	};
 
-	if (isLoading) {
+	if (isLoading || isTimelineLoading) {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-[400px]">
 				<Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
@@ -84,16 +104,38 @@ export default function PeerReviewDashboard() {
 		);
 	}
 
-	const { projectTitle, teamMembers, completionProgress } = data;
+	const { teamMembers, completionProgress } = data;
 
 	return (
 		<div className="space-y-6">
-			<div>
-				<h1 className="text-2xl font-bold tracking-tight">Peer Review Dashboard</h1>
-				<p className="text-muted-foreground">
-					Review and provide feedback for your team members on project: {projectTitle}
-				</p>
-			</div>
+			{/* Debug Info
+			<div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-md">
+				<h3 className="font-mono text-sm">Debug Information</h3>
+				<pre className="text-xs mt-2 max-h-40 overflow-auto">
+					{JSON.stringify({
+						isWithinPeerReviewPeriod,
+						timeMessage,
+						timelineLoading: isTimelineLoading,
+						timelineError,
+						rawTimelineData: timelineData
+					}, null, 2)}
+				</pre>
+			</div> */}
+
+			{/* Timeline Status Alert */}
+			{isWithinPeerReviewPeriod ? (
+				<Alert className="mb-6">
+					<CheckCircle2 className="h-4 w-4" />
+					<AlertTitle>Peer Review Period Active</AlertTitle>
+					<AlertDescription>{timeMessage}</AlertDescription>
+				</Alert>
+			) : (
+				<Alert className="mb-6">
+					<Clock className="h-4 w-4" />
+					<AlertTitle>Peer Review Period Inactive</AlertTitle>
+					<AlertDescription>{timeMessage}</AlertDescription>
+				</Alert>
+			)}
 
 			{/* Progress Section */}
 			<Card>
@@ -154,6 +196,7 @@ export default function PeerReviewDashboard() {
 									onClick={() => handleReviewClick(member.id, member.reviewId)}
 									variant={member.reviewed ? 'outline' : 'default'}
 									className="w-full"
+									disabled={!isWithinPeerReviewPeriod}
 								>
 									{member.reviewed ? (
 										<>

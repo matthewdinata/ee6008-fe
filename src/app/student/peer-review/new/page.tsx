@@ -1,23 +1,38 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { AlertCircle, Clock, Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { TeamMember } from '@/utils/actions/student/types';
+import { useCheckPeerReviewPeriod } from '@/utils/hooks/student/use-check-peer-review-period';
 import { usePeerReviews } from '@/utils/hooks/student/use-peer-reviews';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 import ReviewForm from '../components/review-form';
 
 export default function NewReviewPage() {
+	const router = useRouter();
 	const searchParams = useSearchParams();
 	const revieweeId = searchParams.get('revieweeId');
 	const [teamMember, setTeamMember] = useState<TeamMember | undefined>(undefined);
 	const [error, setError] = useState<string | null>(null);
 
 	const { data: peerReviewsData, isLoading, isError, error: peerReviewsError } = usePeerReviews();
+	const {
+		isWithinPeerReviewPeriod,
+		timeMessage,
+		isLoading: isTimelineLoading,
+	} = useCheckPeerReviewPeriod();
+
+	useEffect(() => {
+		// Redirect to dashboard if outside peer review period
+		if (!isTimelineLoading && !isWithinPeerReviewPeriod) {
+			router.push('/student/peer-review');
+		}
+	}, [isTimelineLoading, isWithinPeerReviewPeriod, router]);
 
 	useEffect(() => {
 		if (isError) {
@@ -50,47 +65,63 @@ export default function NewReviewPage() {
 
 			setTeamMember(member);
 		}
-	}, [isLoading, isError, peerReviewsData, revieweeId, peerReviewsError]);
+	}, [isLoading, isError, peerReviewsData, peerReviewsError, revieweeId]);
 
-	if (isLoading) {
+	if (isLoading || isTimelineLoading) {
 		return (
-			<div className="container mx-auto py-6 flex flex-col items-center justify-center min-h-[400px]">
+			<div className="flex flex-col items-center justify-center min-h-[400px]">
 				<Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
 				<p className="text-muted-foreground">Loading...</p>
 			</div>
 		);
 	}
 
-	if (error) {
+	if (!isWithinPeerReviewPeriod) {
 		return (
-			<div className="container mx-auto py-6">
-				<Alert variant="destructive">
-					<AlertTitle>Error</AlertTitle>
-					<AlertDescription>{error}</AlertDescription>
-				</Alert>
-			</div>
+			<Alert className="mb-6">
+				<Clock className="h-4 w-4" />
+				<AlertTitle>Peer Review Period Inactive</AlertTitle>
+				<AlertDescription>
+					{timeMessage}
+					<div className="mt-4">
+						<Button onClick={() => router.push('/student/peer-review')}>
+							Return to Dashboard
+						</Button>
+					</div>
+				</AlertDescription>
+			</Alert>
 		);
 	}
 
-	if (!teamMember || !peerReviewsData) {
+	if (error) {
 		return (
-			<div className="container mx-auto py-6">
-				<Alert variant="destructive">
-					<AlertTitle>Error</AlertTitle>
-					<AlertDescription>Unable to load team member data</AlertDescription>
-				</Alert>
+			<Alert variant="destructive" className="mb-6">
+				<AlertCircle className="h-4 w-4" />
+				<AlertTitle>Error</AlertTitle>
+				<AlertDescription>
+					{error}
+					<div className="mt-4">
+						<Button onClick={() => router.push('/student/peer-review')}>
+							Return to Dashboard
+						</Button>
+					</div>
+				</AlertDescription>
+			</Alert>
+		);
+	}
+
+	if (!teamMember) {
+		return (
+			<div className="flex flex-col items-center justify-center min-h-[400px]">
+				<p className="text-muted-foreground">No team member found to review.</p>
 			</div>
 		);
 	}
 
 	return (
-		<div className="container mx-auto py-6">
-			<ReviewForm
-				revieweeId={teamMember.id}
-				revieweeName={teamMember.name}
-				projectId={peerReviewsData.projectId}
-				teamMember={teamMember}
-			/>
+		<div className="space-y-6">
+			<h1 className="text-2xl font-bold mb-4">Peer Review for {teamMember.name}</h1>
+			<ReviewForm teamMember={teamMember} />
 		</div>
 	);
 }

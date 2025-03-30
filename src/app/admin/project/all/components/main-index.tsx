@@ -2,8 +2,6 @@
 
 import { useMemo, useState } from 'react';
 
-import { getFacultyUsers } from '@/utils/actions/admin/project';
-import { fetchSemesters } from '@/utils/actions/admin/semester';
 import { Programme, Project, User } from '@/utils/actions/admin/types';
 import { useGetFacultyUsers } from '@/utils/hooks/admin/use-get-facullty-users';
 import { useGetProjectProgrammes } from '@/utils/hooks/admin/use-get-project-programmes';
@@ -202,46 +200,7 @@ export default function ProjectsPage() {
 	};
 
 	return (
-		<div className="container mx-auto py-6">
-			<Button
-				onClick={() => {
-					console.log('Debug button clicked'); // This should show up immediately when clicked
-					alert('Debug button clicked'); // This will show a popup to confirm the click is working
-					console.log('Current semesters:', semesters);
-				}}
-			>
-				Debug
-			</Button>
-
-			<Button
-				onClick={async () => {
-					try {
-						console.log('Directly calling fetchSemesters...');
-						const response = await fetchSemesters();
-						console.log('Direct fetchSemesters response:', response);
-					} catch (error) {
-						console.error('Error directly calling fetchSemesters:', error);
-					}
-				}}
-			>
-				Test Fetch Semesters
-			</Button>
-
-			<Button
-				onClick={async () => {
-					try {
-						console.log('Directly calling getFacultyUsers...');
-						const faculty = await getFacultyUsers();
-						console.log('Direct getFacultyUsers response:', faculty);
-						console.log(`Retrieved ${faculty.length} faculty members`);
-					} catch (error) {
-						console.error('Error directly calling getFacultyUsers:', error);
-					}
-				}}
-			>
-				Test Fetch Faculty
-			</Button>
-
+		<div className="mx-auto py-6">
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 					<CardTitle className="text-2xl font-bold">Projects</CardTitle>

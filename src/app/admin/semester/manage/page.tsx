@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export default function SemesterManagePage() {
 	return (
-		<div className="container mx-auto p-6 text-foreground">
+		<div className="mx-auto p-6 text-foreground">
 			<div className="space-y-8">
 				{/* Semester Management Section */}
 				<SemesterManager />

@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, CheckCircle2, Clock, Edit, Info, Loader2, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { UseFormReturn, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -45,6 +45,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface ModeratorGradingFormProps {
 	projectId: number;
+	disabled?: boolean;
 }
 
 // Type definitions
@@ -313,7 +314,10 @@ function OverallFeedbackSection({ form }: { form: UseFormReturn<GradingFormValue
 	);
 }
 
-export default function ModeratorGradingForm({ projectId }: ModeratorGradingFormProps) {
+export default function ModeratorGradingForm({
+	projectId,
+	disabled = false,
+}: ModeratorGradingFormProps) {
 	const { toast } = useToast();
 
 	const [gradingComponents, setComponents] = useState<GradingComponent[]>([]);
@@ -601,13 +605,13 @@ export default function ModeratorGradingForm({ projectId }: ModeratorGradingForm
 		return () => subscription.unsubscribe();
 	}, [form]);
 
-	// Check if form should be disabled
-	useEffect(() => {
-		setIsFormDisabled(!isWithinAssessmentPeriod || gradingCompleted);
-	}, [isWithinAssessmentPeriod, gradingCompleted]);
+	// Set form disabled status based on loading, existing grades locked status, or passed disabled prop
+	// Define loading and error states to avoid inconsistent hook rendering
+	const isLoading = componentsLoading || gradesLoading || isLoadingAssessmentPeriod;
+	const isError = !!componentsError || !!gradesError || !!assessmentPeriodError || !!_submitError;
 
-	// Get the last update timestamp
-	const getLastUpdateTimestamp = () => {
+	// Create the getLastUpdateTimestamp as a memoized function to maintain consistent hook ordering
+	const getLastUpdateTimestamp = useCallback(() => {
 		if (
 			!existingGradesData ||
 			!Array.isArray(existingGradesData) ||
@@ -620,7 +624,18 @@ export default function ModeratorGradingForm({ projectId }: ModeratorGradingForm
 		);
 
 		return sortedGrades[0]?.graded_at;
-	};
+	}, [existingGradesData]);
+
+	// Set form disabled status
+	useEffect(() => {
+		// Form is disabled if:
+		// 1. External disabled prop is true (grading period inactive)
+		// 2. Grades exist and are locked (already submitted)
+		// 3. Components or grades are still loading
+		setIsFormDisabled(
+			disabled || existingGradesData?.[0]?.is_locked || false || isLoading || gradingCompleted
+		);
+	}, [existingGradesData, isLoading, gradingCompleted, disabled]);
 
 	const _lastUpdateTimestamp = getLastUpdateTimestamp();
 
@@ -632,12 +647,13 @@ export default function ModeratorGradingForm({ projectId }: ModeratorGradingForm
 		componentsLoaded: !!gradingComponents?.length,
 	});
 
-	if (componentsLoading || gradesLoading || isLoadingAssessmentPeriod) {
+	// Render loading and error states consistently
+	if (isLoading) {
 		return <LoadingState />;
 	}
 
-	if (error) {
-		return <ErrorState message={error} />;
+	if (isError || error) {
+		return <ErrorState message={error || 'An error occurred loading the grading form'} />;
 	}
 
 	if (!isWithinAssessmentPeriod && gradingCompleted) {

@@ -110,8 +110,6 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 				'Student ID',
 				'Student Name',
 				'Matric Number',
-				'Supervisor Grade',
-				'Moderator Grade',
 				'Final Grade',
 				'Letter Grade',
 			];
@@ -124,18 +122,12 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 				project.students.forEach((student) => {
 					const row = [
 						project.projectId,
-						`"${project.title.replace(/"/g, '""')}"`, // Escape quotes in title
+						`"${project.title.replace(/"/g, '""')}"`,
 						`"${(project.supervisorName || 'Not assigned').replace(/"/g, '""')}"`,
 						`"${(project.moderatorName || 'Not assigned').replace(/"/g, '""')}"`,
 						student.studentId,
 						`"${(student.name || 'Unknown').replace(/"/g, '""')}"`,
 						student.matricNumber,
-						student.supervisorGrade !== undefined && student.supervisorGrade !== null
-							? Number(student.supervisorGrade).toFixed(1)
-							: 0,
-						student.moderatorGrade !== undefined && student.moderatorGrade !== null
-							? Number(student.moderatorGrade).toFixed(1)
-							: 0,
 						student.finalGrade !== undefined && student.finalGrade !== null
 							? Number(student.finalGrade).toFixed(1)
 							: 0,
@@ -331,12 +323,7 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 																	<TableHead>
 																		Student Name
 																	</TableHead>
-																	<TableHead className="text-center">
-																		Supervisor Grade
-																	</TableHead>
-																	<TableHead className="text-center">
-																		Moderator Grade
-																	</TableHead>
+
 																	<TableHead className="text-center">
 																		Final Grade
 																	</TableHead>
@@ -357,26 +344,7 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 																			{student.name ||
 																				'Unknown'}
 																		</TableCell>
-																		<TableCell className="text-center">
-																			{student.supervisorGrade !==
-																				undefined &&
-																			student.supervisorGrade !==
-																				null
-																				? Number(
-																						student.supervisorGrade
-																					).toFixed(1)
-																				: 'N/A'}
-																		</TableCell>
-																		<TableCell className="text-center">
-																			{student.moderatorGrade !==
-																				undefined &&
-																			student.moderatorGrade !==
-																				null
-																				? Number(
-																						student.moderatorGrade
-																					).toFixed(1)
-																				: 'N/A'}
-																		</TableCell>
+
 																		<TableCell className="text-center">
 																			{student.finalGrade !==
 																				undefined &&

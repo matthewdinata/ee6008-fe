@@ -92,7 +92,6 @@ export async function middleware(request: NextRequest) {
 
 		const { role } = userData;
 
-		// Simple role-based path authorization
 		const hasAccess = checkPathAccess(role, requestedPath);
 
 		if (!hasAccess) {
@@ -151,18 +150,13 @@ export async function middleware(request: NextRequest) {
 }
 
 function checkPathAccess(role: string, path: string): boolean {
-	// Public paths that are accessible to all authenticated users
-	const publicPaths = ['/signin', '/unauthorized', '/dashboard', '/settings', '/notifications'];
+	const publicPaths = ['/signin', '/unauthorized', '/dashboard'];
 	if (publicPaths.some((p) => path.startsWith(p))) {
 		return true;
 	}
-
-	// Root path should redirect to role-specific dashboard
 	if (path === '/') {
 		return true;
 	}
-
-	// Role-based path checking - each role can only access their own paths
 	switch (role) {
 		case 'admin':
 			return path.startsWith('/admin') || path === '/';

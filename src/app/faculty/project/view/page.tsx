@@ -315,11 +315,6 @@ export default function FacultyProjectsPage() {
 
 	return (
 		<div className="space-y-4 p-4 sm:p-8">
-			<h1 className="text-2xl font-bold tracking-tight">Faculty Projects</h1>
-			<p className="text-muted-foreground">
-				Manage your projects and view assigned moderator projects.
-			</p>
-
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

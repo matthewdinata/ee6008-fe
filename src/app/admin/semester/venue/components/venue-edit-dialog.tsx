@@ -44,7 +44,6 @@ export interface VenueEditDialogProps {
 	onVenueUpdated: (venue: Venue) => void;
 }
 
-// Define the form validation schema
 const venueFormSchema = z.object({
 	name: z.string().min(2, {
 		message: 'Venue name must be at least 2 characters.',
@@ -70,6 +69,7 @@ export function VenueEditDialog({
 	const [error, setError] = useState<string | null>(null);
 
 	// Initialize the form with the venue data
+
 	const form = useForm<VenueFormValues>({
 		resolver: zodResolver(venueFormSchema),
 		defaultValues: {
