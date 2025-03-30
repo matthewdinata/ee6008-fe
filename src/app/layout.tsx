@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { cookies, headers } from 'next/headers';
 
@@ -10,6 +10,7 @@ import AppHeader from '@/components/layout/app-header';
 import AppSidebar from '@/components/layout/app-sidebar';
 import { AuthProvider } from '@/components/layout/auth-provider';
 import Background from '@/components/layout/background';
+import CourseStructuredData from '@/components/structured-data';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
@@ -35,7 +36,44 @@ const geistMono = localFont({
 // ---------------------
 // 2) Export Page Metadata
 // ---------------------
-export const metadata: Metadata = { title: 'EE6008', description: 'EE6008 Application' };
+export const metadata: Metadata = {
+	title: 'EE6008 - Collaborative Research and Development Project - NTU',
+	description:
+		'EE6008 Collaborative Research and Development Project for MSc students at Nanyang Technological University. Gain practical experience in design, implementation, prototyping and testing of electrical and electronic engineering projects.',
+	keywords:
+		'EE6008, NTU, Nanyang Technological University, Collaborative Research, Development Project, MSc EEE, School of EEE, Electronic Engineering',
+	authors: [{ name: 'NTU School of Electrical and Electronic Engineering' }],
+	metadataBase: new URL('https://ee6008-fe.vercel.app'),
+	openGraph: {
+		title: 'EE6008 - Collaborative Research and Development Project - NTU Singapore',
+		description:
+			'Course management system for EE6008 at Nanyang Technological University School of EEE',
+		url: 'https://ee6008-fe.vercel.app',
+		siteName: 'EE6008 Course Portal',
+		locale: 'en_SG',
+		type: 'website',
+	},
+	twitter: {
+		card: 'summary_large_image',
+		title: 'EE6008 - Collaborative Research and Development Project - NTU',
+		description:
+			'MSc course at Nanyang Technological University School of EEE. 3 AUs, AY2023-24 Semester 2.',
+	},
+	icons: {
+		icon: '/favicon.ico',
+	},
+	robots: {
+		index: true,
+		follow: true,
+	},
+};
+
+// Export viewport configuration separately
+export const viewport: Viewport = {
+	width: 'device-width',
+	initialScale: 1,
+	minimumScale: 1,
+};
 
 // ----------------------------------------
 // 3) Basic Layout (for unauthenticated or errors)
@@ -45,7 +83,10 @@ function BasicLayout({ children }: { children: React.ReactNode }) {
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 				<Provider>
-					<AuthProvider>{children}</AuthProvider>
+					<AuthProvider>
+						<CourseStructuredData />
+						{children}
+					</AuthProvider>
 				</Provider>
 			</body>
 		</html>
