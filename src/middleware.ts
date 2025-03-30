@@ -150,7 +150,17 @@ export async function middleware(request: NextRequest) {
 }
 
 function checkPathAccess(role: string, path: string): boolean {
-	const publicPaths = ['/signin', '/unauthorized', '/dashboard'];
+	if (path === '/googlee217630cb03f37b2.html') {
+		return true;
+	}
+	const publicPaths = [
+		'/signin',
+		'/unauthorized',
+		'/dashboard',
+		'/googlee217630cb03f37b2.html',
+		'/robots.txt',
+		'/sitemap.xml',
+	];
 	if (publicPaths.some((p) => path.startsWith(p))) {
 		return true;
 	}
