@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { cookies, headers } from 'next/headers';
@@ -86,6 +87,7 @@ function BasicLayout({ children }: { children: React.ReactNode }) {
 					<AuthProvider>
 						<CourseStructuredData />
 						{children}
+						<Analytics />
 					</AuthProvider>
 				</Provider>
 			</body>
@@ -101,12 +103,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 	const headersList = headers();
 	const pathname = headersList.get('x-pathname') || headersList.get('x-url') || '';
 
-	// Define auth-related pages that should always use BasicLayout
-	const isAuthPage = pathname.includes('/signin') || pathname.includes('/unauthorized');
+	// Check if we're on an auth-related page so we can show a simpler layout
+	// Note: Next.js strips the query string from the pathname
+	const isAuthPage = pathname.startsWith('/signin');
+	const isUnauthorizedPage = pathname.startsWith('/unauthorized');
 
-	// For auth pages, always use BasicLayout
-	if (isAuthPage) {
-		return <BasicLayout>{children}</BasicLayout>;
+	// If this is an auth page (signin, etc.), use simplified layout
+	if (isAuthPage || isUnauthorizedPage) {
+		return (
+			<html lang="en">
+				<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+					<Provider>
+						<AuthProvider>
+							<CourseStructuredData />
+							{children}
+							<Analytics />
+						</AuthProvider>
+					</Provider>
+				</body>
+			</html>
+		);
 	}
 
 	// Get session token from cookies
@@ -185,6 +201,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 							</AuthProvider>
 						</Background>
 						<Toaster />
+						<Analytics />
 					</Provider>
 				</body>
 			</html>
