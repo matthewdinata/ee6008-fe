@@ -150,9 +150,6 @@ export async function middleware(request: NextRequest) {
 }
 
 function checkPathAccess(role: string, path: string): boolean {
-	if (path === '/googlee217630cb03f37b2.html') {
-		return true;
-	}
 	const publicPaths = [
 		'/signin',
 		'/unauthorized',
@@ -161,12 +158,16 @@ function checkPathAccess(role: string, path: string): boolean {
 		'/robots.txt',
 		'/sitemap.xml',
 	];
-	if (publicPaths.some((p) => path.startsWith(p))) {
+
+	// Check if path is in public paths list
+	if (publicPaths.some((p) => path === p || path.startsWith(p))) {
 		return true;
 	}
+
 	if (path === '/') {
 		return true;
 	}
+
 	switch (role) {
 		case 'admin':
 			return path.startsWith('/admin') || path === '/';
@@ -184,6 +185,6 @@ function checkPathAccess(role: string, path: string): boolean {
 
 export const config = {
 	matcher: [
-		'/((?!_next/|favicon.ico|assets/|avatars/|images/|fonts/|api/|auth/|signin|unauthorized).*)',
+		'/((?!_next/|favicon.ico|assets/|avatars/|images/|fonts/|api/|auth/|signin|unauthorized|googlee217630cb03f37b2.html|robots.txt|sitemap.xml).*)',
 	],
 };

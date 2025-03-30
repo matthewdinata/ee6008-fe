@@ -67,6 +67,9 @@ export const metadata: Metadata = {
 		index: true,
 		follow: true,
 	},
+	verification: {
+		google: 'RZ0Mgd30h9vwlzQrtCytjLnJqwVeDCcKc9oiTmn4H8Y',
+	},
 };
 
 // Export viewport configuration separately
