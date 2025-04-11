@@ -74,7 +74,7 @@ export async function checkEligibility(data: UserData, accessToken?: string) {
 }
 
 /**
- * Server action to check if an email exists/is registered
+ * Server action to check if an email exists in user table
  * @param email User's email to check
  */
 export async function checkAuth(email: string) {

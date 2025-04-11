@@ -1,5 +1,7 @@
 'use client';
 
+// This is a client component, so Next.js metadata needs to be in a separate file
+// See metadata.ts in this same folder
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';

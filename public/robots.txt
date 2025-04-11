@@ -1,0 +1,12 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://ee6008-fe.vercel.app/sitemap.xml
+
+# Disallow access to API routes
+Disallow: /api/
+
+# Ensure good crawl efficiency
+Crawl-delay: 10

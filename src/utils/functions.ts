@@ -59,7 +59,17 @@ export async function fetcherFn<T = any>(
 		const response = await fetch(`${apiUrl}/api/${path}`, fetchOptions);
 
 		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
+			// Try to get more detailed error information from the response
+			try {
+				const errorData = await response.json();
+				console.error('API error details:', errorData);
+				throw new Error(
+					`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`
+				);
+			} catch (parseError) {
+				// If we can't parse the error response as JSON, just throw the basic error
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
 		}
 
 		const rawResult = await response.json();

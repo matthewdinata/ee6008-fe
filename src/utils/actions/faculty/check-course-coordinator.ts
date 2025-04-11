@@ -2,26 +2,29 @@
 
 import { fetcherFn } from '../../functions';
 
-export type CheckCourseCoordinatorResponseData = {
-	message: string;
+export type CourseCoordinatorResponse = {
 	isCourseCoordinator: boolean;
+	courses?: {
+		id: number;
+		code: string;
+		name: string;
+	}[];
 } | null;
 
-export async function checkCourseCoordinator(): Promise<CheckCourseCoordinatorResponseData> {
+export async function checkCourseCoordinator(): Promise<CourseCoordinatorResponse> {
 	try {
-		const result = await fetcherFn<CheckCourseCoordinatorResponseData>(
+		// Use the JWT token from fetcherFn for authentication
+		// The backend will identify the user from the token
+		const result = await fetcherFn<CourseCoordinatorResponse>(
 			'faculty/check-course-coordinator',
 			{
 				method: 'GET',
-			},
-			{
-				next: { tags: ['check-course-coordinator'] },
 			}
 		);
 
-		return result ?? { message: '', isCourseCoordinator: false };
+		return result ?? { isCourseCoordinator: false };
 	} catch (error) {
 		console.error('Error in checkCourseCoordinator:', error);
-		return null;
+		return { isCourseCoordinator: false };
 	}
 }
