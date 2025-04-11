@@ -37,8 +37,8 @@ function AllProposals() {
 					<AlertTitle className="text-lg font-semibold">Access Restricted</AlertTitle>
 					<AlertDescription className="mt-2">
 						<p className="mb-4">
-							This page is reserved for Course Coordinators and Programme Directors only. You do not have the
-							necessary permissions to view this content.
+							This page is reserved for Course Coordinators and Programme Directors
+							only. You do not have the necessary permissions to view this content.
 						</p>
 						<div className="flex flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0">
 							<Button
