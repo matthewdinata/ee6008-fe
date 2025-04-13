@@ -140,7 +140,7 @@ function TeamAssessmentSection({
 					>
 						<div className="flex justify-between items-start mb-4">
 							<h4 className="text-xl font-semibold">
-								{component.name} ({component.weight}%)
+								{component.name} ({component.weighting}%)
 								{isGraded && (
 									<Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 font-medium">
 										Graded
@@ -298,7 +298,7 @@ function StudentComponentCard({
 			<CardHeader className="pb-2">
 				<div className="flex justify-between items-start">
 					<CardTitle>
-						{component.name} ({component.weight}%)
+						{component.name} ({component.weighting}%)
 						{isGraded && (
 							<Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 font-medium">
 								Graded

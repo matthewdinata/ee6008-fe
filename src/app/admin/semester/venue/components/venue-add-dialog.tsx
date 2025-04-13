@@ -38,52 +38,6 @@ import {
 
 /* eslint-disable prettier/prettier, import/extensions */
 
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
-/* eslint-disable prettier/prettier, import/extensions */
-
 interface VenueAddDialogProps {
 	semesters: Semester[];
 	defaultSemesterId?: number;

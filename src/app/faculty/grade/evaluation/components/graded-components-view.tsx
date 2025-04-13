@@ -52,7 +52,7 @@ interface GradingComponent {
 	id: number;
 	name: string;
 	description: string;
-	weight: number;
+	weighting: number;
 	max_score: number;
 	component_type: string;
 	is_team_based?: boolean;
@@ -452,7 +452,7 @@ export function GradedComponentsView({
 								const isEditing = editingComponentId === `${component.id}`;
 								const hasGrade = checkIfGraded();
 								// Use weighting property if weight is not available
-								const weightValue = component.weight || 0;
+								const weightValue = component.weighting || 0;
 
 								return (
 									<Card
@@ -674,7 +674,7 @@ export function GradedComponentsView({
 						<div className="grid gap-6">
 							{individualComponents.map((component) => {
 								// Use weighting property if weight is not available
-								const weightValue = component.weight || 0;
+								const weightValue = component.weighting || 0;
 
 								return (
 									<Card key={component.id}>
