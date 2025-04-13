@@ -106,16 +106,40 @@ export async function deleteUser(userId: number): Promise<void> {
 	// Get session from client
 	const session = await getSessionFromClient();
 
-	const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users/${userId}`, {
-		method: 'DELETE',
-		headers: {
-			Authorization: `Bearer ${session.access_token}`,
-			'Content-Type': 'application/json',
-		},
-	});
+	// Log the delete operation
+	console.log('Deleting user with ID:', userId);
 
-	if (!response.ok) {
-		throw new Error('Failed to delete user');
+	// Use the same API path format as other working functions (without /api prefix)
+	const apiUrl = process.env.BACKEND_API_URL;
+	const endpoint = `${apiUrl}/api/admin/users/${userId}`;
+
+	console.log('Delete API endpoint:', endpoint);
+
+	try {
+		const response = await fetch(endpoint, {
+			method: 'DELETE',
+			headers: {
+				Authorization: `Bearer ${session.access_token}`,
+				'Content-Type': 'application/json',
+			},
+		});
+
+		// Log response status
+		console.log('Delete response status:', response.status, response.statusText);
+
+		// Try to get response text for debugging
+		const responseText = await response.text();
+		console.log('Delete response text:', responseText);
+
+		if (!response.ok) {
+			console.error('Delete operation failed with status:', response.status);
+			throw new Error(`Failed to delete user: ${response.statusText}`);
+		}
+
+		console.log('User successfully deleted');
+	} catch (error) {
+		console.error('Error during delete operation:', error);
+		throw error;
 	}
 }
 
@@ -147,14 +171,24 @@ interface Student {
 	};
 }
 
-export async function fetchStudentUsers(): Promise<Student[]> {
+export async function fetchStudentUsers(forceRefresh: boolean = false): Promise<Student[]> {
 	// Get session from client
 	const session = await getSessionFromClient();
 
-	const response = await fetch(`${process.env.BACKEND_API_URL}/api/admin/users-student`, {
+	// Add a timestamp or random parameter to bypass caching
+	const cacheParam = forceRefresh ? `?_cache=${Date.now()}` : '';
+
+	console.log('Fetching student users, force refresh:', forceRefresh);
+	const apiUrl = process.env.BACKEND_API_URL;
+	const endpoint = `${apiUrl}/api/admin/users-student${cacheParam}`;
+	console.log('Student fetch endpoint:', endpoint);
+
+	const response = await fetch(endpoint, {
 		headers: {
 			Authorization: `Bearer ${session.access_token}`,
 			'Content-Type': 'application/json',
+			'Cache-Control': forceRefresh ? 'no-cache, no-store, must-revalidate' : '',
+			Pragma: forceRefresh ? 'no-cache' : '',
 		},
 	});
 
@@ -164,7 +198,32 @@ export async function fetchStudentUsers(): Promise<Student[]> {
 	}
 
 	const data = await response.json();
-	console.log('Fetched student users:', data);
+
+	// Enhanced logging to display detailed API response
+	console.log(
+		'%c === STUDENT API RESPONSE DETAILS ===',
+		'background: #333; color: #00ff00; font-weight: bold; padding: 4px; border-radius: 4px;'
+	);
+	console.log('Raw API Response:', data);
+	console.log('Response Type:', typeof data);
+	console.log('Is Array:', Array.isArray(data));
+	console.log('Number of Students:', Array.isArray(data) ? data.length : 'Not an array');
+
+	// Print the first student record as a sample (if available)
+	if (Array.isArray(data) && data.length > 0) {
+		console.log('Sample Student Record:', data[0]);
+		console.log('Sample Student Keys:', Object.keys(data[0]));
+	}
+
+	// Print all student IDs for easy tracking
+	if (Array.isArray(data)) {
+		const idList = data.map((s) => s.student_id || s.id).join(', ');
+		console.log('All Student IDs:', idList);
+	}
+	console.log(
+		'%c ================================',
+		'background: #333; color: #00ff00; font-weight: bold; padding: 4px; border-radius: 4px;'
+	);
 	return data.map((user: StudentData) => ({
 		id: user.student_id,
 		user_id: user.student_id,

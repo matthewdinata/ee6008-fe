@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getProjectProgrammes } from '@/utils/actions/admin/project';
@@ -9,9 +10,7 @@ import { useGetFacultyProjects } from '@/utils/hooks/faculty/use-faculty-get-pro
 import { useToast } from '@/utils/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
 	Select,
 	SelectContent,
@@ -19,10 +18,18 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table';
 
 import { EnhancedProject, ProjectStatus } from '@/app/admin/project/all/components/columns';
 
-import ProjectList from './components/project-list';
+import { ProjectDetailsModal } from './components/project-detail-modals';
 
 // Helper function to transform Project to EnhancedProject
 const enhanceProject = (project: Project, _programmes: Programme[]): EnhancedProject => {
@@ -52,9 +59,25 @@ export default function FacultyProjectsPage() {
 	const [filteredProjects, setFilteredProjects] = useState<EnhancedProject[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [programmes, setProgrammes] = useState<Programme[]>([]);
+	const [_isCourseCoordinator, setIsCourseCoordinator] = useState<boolean>(false);
 	const [semesterId, setSemesterId] = useState<number | null>(null);
 	const [searchTerm, setSearchTerm] = useState('');
-	const [isCourseCoordinator, setIsCourseCoordinator] = useState(false);
+	const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+	const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+	// Pagination state
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
+
+	// Handle page size change
+	const handlePageSizeChange = (value: string) => {
+		const newSize = parseInt(value, 10);
+		setPageSize(newSize);
+		// Adjust current page to maintain approximate scroll position
+		const firstItemIndex = (currentPage - 1) * pageSize;
+		const newPage = Math.floor(firstItemIndex / newSize) + 1;
+		setCurrentPage(newPage);
+	};
 
 	// Get user email from cookies
 	const facultyEmail = useMemo(() => {
@@ -99,7 +122,6 @@ export default function FacultyProjectsPage() {
 		data: projectsData,
 		isLoading: isProjectsLoading,
 		error: projectsError,
-		refetch: refetchProjects,
 	} = useGetFacultyProjects(semesterId, facultyEmail, {
 		onError: (error) => {
 			console.error('Error in useGetFacultyProjects:', error);
@@ -292,14 +314,6 @@ export default function FacultyProjectsPage() {
 		console.log('Render state:', renderState);
 	}
 
-	// Handler for project update
-	const handleProjectUpdate = useCallback(
-		(_updatedProject: Project) => {
-			refetchProjects();
-		},
-		[refetchProjects]
-	);
-
 	// Handler for search input change
 	const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
 		setSearchTerm(e.target.value);
@@ -313,88 +327,177 @@ export default function FacultyProjectsPage() {
 		}
 	}, [facultyEmail]);
 
-	return (
-		<div className="space-y-4 p-4 sm:p-8">
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Total Projects</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{projects.length}</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Course Coordinator Status
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							{isCourseCoordinator ? 'Yes' : 'No'}
-						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Available Programmes</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{programmes.length}</div>
-					</CardContent>
-				</Card>
-			</div>
+	// Add sorting state
+	const [sortColumn, setSortColumn] = useState<string | null>(null);
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
-			<div className="flex flex-col sm:flex-row gap-4 items-end sm:items-center">
-				<div className="flex-1">
-					<Label htmlFor="search" className="sr-only">
-						Search
-					</Label>
-					<Input
-						id="search"
-						placeholder="Search projects..."
-						value={searchTerm}
-						onChange={handleSearchChange}
-						className="max-w-sm"
-					/>
+	// Handle sorting toggle
+	const toggleSort = (column: string) => {
+		if (sortColumn === column) {
+			// Cycle through: asc -> desc -> null
+			if (sortDirection === 'asc') {
+				setSortDirection('desc');
+			} else if (sortDirection === 'desc') {
+				setSortColumn(null);
+				setSortDirection(null);
+			} else {
+				setSortDirection('asc');
+			}
+		} else {
+			setSortColumn(column);
+			setSortDirection('asc');
+		}
+	};
+
+	// Apply sorting to filtered projects
+	const sortedProjects = useMemo(() => {
+		if (!filteredProjects || !sortColumn || !sortDirection) return filteredProjects;
+
+		return [...filteredProjects].sort((a, b) => {
+			let aValue: string | number = '';
+			let bValue: string | number = '';
+
+			switch (sortColumn) {
+				case 'title':
+					aValue = a.title || '';
+					bValue = b.title || '';
+					break;
+				case 'programme':
+					aValue =
+						a.programmeName ||
+						a.programme_name ||
+						(a.programme && a.programme.name) ||
+						'';
+					bValue =
+						b.programmeName ||
+						b.programme_name ||
+						(b.programme && b.programme.name) ||
+						'';
+					break;
+				case 'professor':
+					aValue =
+						a.professorName ||
+						a.professor_name ||
+						(a.professor && a.professor.name) ||
+						'';
+					bValue =
+						b.professorName ||
+						b.professor_name ||
+						(b.professor && b.professor.name) ||
+						'';
+					break;
+				case 'moderator':
+					aValue =
+						a.moderatorName ||
+						a.moderator_name ||
+						(a.moderator && a.moderator.name) ||
+						'';
+					bValue =
+						b.moderatorName ||
+						b.moderator_name ||
+						(b.moderator && b.moderator.name) ||
+						'';
+					break;
+				default:
+					return 0;
+			}
+
+			// Handle string comparisons
+			if (typeof aValue === 'string' && typeof bValue === 'string') {
+				const comparison = aValue.localeCompare(bValue);
+				return sortDirection === 'asc' ? comparison : -comparison;
+			}
+
+			// Handle number comparisons
+			const numA = typeof aValue === 'number' ? aValue : 0;
+			const numB = typeof bValue === 'number' ? bValue : 0;
+
+			return sortDirection === 'asc' ? numA - numB : numB - numA;
+		});
+	}, [filteredProjects, sortColumn, sortDirection]);
+
+	// Pagination calculations
+	const totalItems = sortedProjects.length;
+	const totalPages = Math.ceil(totalItems / pageSize);
+	const startIndex = (currentPage - 1) * pageSize;
+	const endIndex = Math.min(startIndex + pageSize, totalItems);
+
+	// Get current page of projects
+	const currentProjects = useMemo(() => {
+		return sortedProjects.slice(startIndex, endIndex);
+	}, [sortedProjects, startIndex, endIndex]);
+
+	// Handle page change
+	const handlePageChange = (newPage: number) => {
+		setCurrentPage(newPage);
+	};
+
+	return (
+		<div className="space-y-6 p-4 sm:p-8">
+			<div className="flex flex-col space-y-4">
+				<div className="flex justify-between items-center"></div>
+				<div className="flex flex-wrap gap-4 items-center justify-between">
+					<div className="flex flex-1 flex-wrap gap-4 items-center">
+						<Input
+							id="search"
+							placeholder="Search projects..."
+							value={searchTerm}
+							onChange={handleSearchChange}
+							className="max-w-xs w-full"
+						/>
+						<div className="w-full sm:w-[180px]">
+							<Select
+								value={semesterId?.toString() || ''}
+								onValueChange={handleSemesterChange}
+							>
+								<SelectTrigger id="semester">
+									<SelectValue placeholder="Select semester" />
+								</SelectTrigger>
+								<SelectContent>
+									{isSemestersLoading ? (
+										<SelectItem value="loading" disabled>
+											Loading...
+										</SelectItem>
+									) : semestersError ? (
+										<SelectItem value="error" disabled>
+											Error loading semesters
+										</SelectItem>
+									) : semesters && semesters.length > 0 ? (
+										semesters.map((semester) => (
+											<SelectItem
+												key={semester.id}
+												value={semester.id.toString()}
+											>
+												{semester.academicYear || semester.academic_year}{' '}
+												{semester.name}
+											</SelectItem>
+										))
+									) : (
+										<SelectItem value="none" disabled>
+											No semesters available
+										</SelectItem>
+									)}
+								</SelectContent>
+							</Select>
+						</div>
+					</div>
+					<div className="flex items-center gap-2">
+						<span className="text-sm text-muted-foreground whitespace-nowrap">
+							Rows per page
+						</span>
+						<Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+							<SelectTrigger className="h-9 w-16">
+								<SelectValue placeholder={pageSize.toString()} />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="5">5</SelectItem>
+								<SelectItem value="10">10</SelectItem>
+								<SelectItem value="20">20</SelectItem>
+								<SelectItem value="50">50</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
 				</div>
-				<div className="w-full sm:w-[180px]">
-					<Label htmlFor="semester" className="mb-2 block">
-						Semester
-					</Label>
-					<Select
-						value={semesterId?.toString() || ''}
-						onValueChange={handleSemesterChange}
-					>
-						<SelectTrigger id="semester">
-							<SelectValue placeholder="Select semester" />
-						</SelectTrigger>
-						<SelectContent>
-							{isSemestersLoading ? (
-								<SelectItem value="loading" disabled>
-									Loading...
-								</SelectItem>
-							) : semestersError ? (
-								<SelectItem value="error" disabled>
-									Error loading semesters
-								</SelectItem>
-							) : semesters && semesters.length > 0 ? (
-								semesters.map((semester) => (
-									<SelectItem key={semester.id} value={semester.id.toString()}>
-										{semester.academicYear || semester.academic_year}{' '}
-										{semester.name}
-									</SelectItem>
-								))
-							) : (
-								<SelectItem value="none" disabled>
-									No semesters available
-								</SelectItem>
-							)}
-						</SelectContent>
-					</Select>
-				</div>
-				<Button onClick={() => refetchProjects()}>Refresh</Button>
 			</div>
 
 			{loading || isProjectsLoading ? (
@@ -411,14 +514,129 @@ export default function FacultyProjectsPage() {
 						: 'You may not have any projects assigned for this semester.'}
 				</div>
 			) : (
-				<ProjectList
-					projects={filteredProjects}
-					semesterId={semesterId || 0}
-					programmes={programmes}
-					onProjectUpdate={handleProjectUpdate}
-					isCourseCoordinator={isCourseCoordinator}
-				/>
+				<div className="border rounded-md">
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead className="w-[300px]">
+									<Button
+										variant="ghost"
+										onClick={() => toggleSort('title')}
+										className="p-0 h-auto hover:bg-transparent"
+									>
+										Project Title
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</Button>
+								</TableHead>
+								<TableHead>
+									<Button
+										variant="ghost"
+										onClick={() => toggleSort('programme')}
+										className="p-0 h-auto hover:bg-transparent"
+									>
+										Programme
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</Button>
+								</TableHead>
+								<TableHead>
+									<Button
+										variant="ghost"
+										onClick={() => toggleSort('professor')}
+										className="p-0 h-auto hover:bg-transparent"
+									>
+										Supervisor
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</Button>
+								</TableHead>
+								<TableHead>
+									<Button
+										variant="ghost"
+										onClick={() => toggleSort('moderator')}
+										className="p-0 h-auto hover:bg-transparent"
+									>
+										Moderator
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</Button>
+								</TableHead>
+								<TableHead className="text-right">Actions</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{currentProjects.map((project) => (
+								<TableRow key={project.id}>
+									<TableCell className="font-medium">{project.title}</TableCell>
+									<TableCell>
+										{project.programmeName ||
+											project.programme_name ||
+											(project.programme && project.programme.name) ||
+											'Not assigned'}
+									</TableCell>
+									<TableCell>
+										{project.professorName ||
+											project.professor_name ||
+											(project.professor && project.professor.name) ||
+											'Not assigned'}
+									</TableCell>
+									<TableCell>
+										{project.moderatorName ||
+											project.moderator_name ||
+											(project.moderator && project.moderator.name) ||
+											'Not assigned'}
+									</TableCell>
+									<TableCell className="text-right">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => {
+												// Open project details in a dialog
+												setSelectedProjectId(project.id);
+												setIsDetailsModalOpen(true);
+											}}
+										>
+											View Details
+										</Button>
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+
+					{/* Pagination controls */}
+					{totalPages > 1 && (
+						<div className="flex items-center justify-between mt-4 px-2">
+							<div className="text-sm text-muted-foreground">
+								Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{' '}
+								{totalItems} projects
+							</div>
+							<div className="flex items-center space-x-2">
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={() => handlePageChange(currentPage - 1)}
+									disabled={currentPage === 1}
+								>
+									<ChevronLeft className="h-4 w-4" />
+								</Button>
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={() => handlePageChange(currentPage + 1)}
+									disabled={currentPage === totalPages}
+								>
+									<ChevronRight className="h-4 w-4" />
+								</Button>
+							</div>
+						</div>
+					)}
+				</div>
 			)}
+
+			{/* Project Details Modal */}
+			<ProjectDetailsModal
+				projectId={selectedProjectId}
+				isOpen={isDetailsModalOpen}
+				onClose={() => setIsDetailsModalOpen(false)}
+			/>
 		</div>
 	);
 }

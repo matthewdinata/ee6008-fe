@@ -1,9 +1,10 @@
 'use client';
 
 import Color from '@tiptap/extension-color';
-import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import TextAlign from '@tiptap/extension-text-align';
 import TextStyle from '@tiptap/extension-text-style';
+import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import {
@@ -15,18 +16,13 @@ import {
 	Heading1,
 	Heading2,
 	Italic,
-	Link as LinkIcon,
 	List,
 	ListOrdered,
 	Palette,
-	Underline,
-	X,
+	Underline as UnderlineIcon,
 } from 'lucide-react';
 import React, { useEffect } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
 	Select,
 	SelectContent,
@@ -51,11 +47,9 @@ export function RichTextEditor({
 	const editor = useEditor({
 		extensions: [
 			StarterKit,
-			Link.configure({
-				openOnClick: false,
-				HTMLAttributes: {
-					class: 'text-primary underline',
-				},
+			Underline,
+			TextAlign.configure({
+				types: ['heading', 'paragraph'],
 			}),
 			Placeholder.configure({
 				placeholder,
@@ -80,18 +74,6 @@ export function RichTextEditor({
 	if (!editor) {
 		return null;
 	}
-
-	// Helper functions for the link popover
-	const _setLink = () => {
-		const url = prompt('Enter URL');
-		if (url) {
-			editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-		}
-	};
-
-	const removeLinkAtSelection = () => {
-		editor.chain().focus().extendMarkRange('link').unsetLink().run();
-	};
 
 	return (
 		<div className="border rounded-md">
@@ -134,12 +116,12 @@ export function RichTextEditor({
 							<Toggle
 								size="sm"
 								pressed={editor.isActive('underline')}
-								onPressedChange={() => {
-									editor.chain().focus().toggleMark('underline').run();
-								}}
+								onPressedChange={() =>
+									editor.chain().focus().toggleUnderline().run()
+								}
 								aria-label="Underline"
 							>
-								<Underline className="h-4 w-4" />
+								<UnderlineIcon className="h-4 w-4" />
 							</Toggle>
 						</TooltipTrigger>
 						<TooltipContent>Underline</TooltipContent>
@@ -247,11 +229,7 @@ export function RichTextEditor({
 								size="sm"
 								pressed={editor.isActive({ textAlign: 'left' })}
 								onPressedChange={() =>
-									editor
-										.chain()
-										.focus()
-										.setMark('textAlign', { textAlign: 'left' })
-										.run()
+									editor.chain().focus().setTextAlign('left').run()
 								}
 								aria-label="Align left"
 							>
@@ -269,11 +247,7 @@ export function RichTextEditor({
 								size="sm"
 								pressed={editor.isActive({ textAlign: 'center' })}
 								onPressedChange={() =>
-									editor
-										.chain()
-										.focus()
-										.setMark('textAlign', { textAlign: 'center' })
-										.run()
+									editor.chain().focus().setTextAlign('center').run()
 								}
 								aria-label="Align center"
 							>
@@ -291,11 +265,7 @@ export function RichTextEditor({
 								size="sm"
 								pressed={editor.isActive({ textAlign: 'right' })}
 								onPressedChange={() =>
-									editor
-										.chain()
-										.focus()
-										.setMark('textAlign', { textAlign: 'right' })
-										.run()
+									editor.chain().focus().setTextAlign('right').run()
 								}
 								aria-label="Align right"
 							>
@@ -305,64 +275,6 @@ export function RichTextEditor({
 						<TooltipContent>Align Right</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
-
-				<div className="bg-border w-px h-6 mx-1" />
-
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button variant="ghost" size="sm" className="px-2">
-							<LinkIcon className="h-4 w-4" />
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent className="w-60 p-2">
-						<div className="grid gap-2">
-							<div className="flex gap-1">
-								<Input
-									id="link"
-									placeholder="https://example.com"
-									className="h-8"
-									onKeyDown={(e) => {
-										if (e.key === 'Enter') {
-											e.preventDefault();
-											editor
-												.chain()
-												.focus()
-												.extendMarkRange('link')
-												.setLink({ href: e.currentTarget.value })
-												.run();
-										}
-									}}
-								/>
-								<Button
-									size="sm"
-									variant="ghost"
-									onClick={removeLinkAtSelection}
-									className="w-8 h-8"
-								>
-									<X className="h-4 w-4" />
-								</Button>
-							</div>
-							<Button
-								size="sm"
-								onClick={() => {
-									const input = document.getElementById(
-										'link'
-									) as HTMLInputElement;
-									if (input.value) {
-										editor
-											.chain()
-											.focus()
-											.extendMarkRange('link')
-											.setLink({ href: input.value })
-											.run();
-									}
-								}}
-							>
-								Save
-							</Button>
-						</div>
-					</PopoverContent>
-				</Popover>
 
 				<div className="bg-border w-px h-6 mx-1" />
 

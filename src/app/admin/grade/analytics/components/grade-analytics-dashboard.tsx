@@ -71,6 +71,9 @@ export default function GradeAnalyticsDashboard() {
 		}
 	}, [gradesError, toast]);
 
+	// Check if grades are available or all zeros
+	const [allGradesZero, setAllGradesZero] = useState<boolean>(false);
+
 	// Calculate grade statistics and prepare data for visualizations
 	const {
 		gradeStats,
@@ -79,7 +82,7 @@ export default function GradeAnalyticsDashboard() {
 		projectComparisonData,
 		gradeTiers,
 	} = useMemo(() => {
-		if (!projectGrades.length) {
+		if (!projectGrades || projectGrades.length === 0) {
 			return {
 				gradeStats: null,
 				letterGradeDistribution: {},
@@ -100,21 +103,32 @@ export default function GradeAnalyticsDashboard() {
 			};
 		}
 
-		// For demo purposes, let's simulate some realistic grades if all are 0
-		const simulateRealisticGrades = allStudents.every((s) => s.finalGrade === 0);
+		// Check if all grades are zero
+		const areAllGradesZero = allStudents.every(
+			(student) =>
+				student.finalGrade === 0 &&
+				student.supervisorGrade === 0 &&
+				student.moderatorGrade === 0
+		);
 
-		// Filter students with valid grades or use simulated grades
-		const validStudents = simulateRealisticGrades
-			? allStudents.map((student) => ({
-					...student,
-					// Generate random grades between 40 and 95 for demonstration
-					finalGrade: Math.floor(Math.random() * 55) + 40,
-					// Assign letter grades based on the simulated final grade
-					letterGrade: assignLetterGrade(Math.floor(Math.random() * 55) + 40),
-				}))
-			: allStudents.filter(
-					(student) => student.finalGrade !== undefined && student.finalGrade !== null
-				);
+		// Update state outside of useMemo in an effect
+		setAllGradesZero(areAllGradesZero);
+
+		// If all grades are zero, still return empty data
+		if (areAllGradesZero) {
+			return {
+				gradeStats: null,
+				letterGradeDistribution: {},
+				bellCurveData: [],
+				projectComparisonData: [],
+				gradeTiers: { excellent: 0, good: 0, average: 0, poor: 0, failing: 0 },
+			};
+		}
+
+		// Filter students with valid grades
+		const validStudents = allStudents.filter(
+			(student) => student.finalGrade !== undefined && student.finalGrade !== null
+		);
 
 		if (!validStudents.length) {
 			return {
@@ -126,63 +140,70 @@ export default function GradeAnalyticsDashboard() {
 			};
 		}
 
-		// Extract all grades
+		// Calculate the statistics
 		const grades = validStudents.map((student) => student.finalGrade || 0);
-
-		// Basic statistics
 		const sum = grades.reduce((acc, grade) => acc + grade, 0);
 		const avg = sum / grades.length;
 		const max = Math.max(...grades);
 		const min = Math.min(...grades);
 
-		// Calculate standard deviation
-		const squareDiffs = grades.map((grade) => Math.pow(grade - avg, 2));
-		const avgSquareDiff = squareDiffs.reduce((acc, val) => acc + val, 0) / grades.length;
-		const stdDev = Math.sqrt(avgSquareDiff);
+		// Calculate the standard deviation
+		const squaredDifferences = grades.map((grade) => Math.pow(grade - avg, 2));
+		const variance =
+			squaredDifferences.reduce((acc, squaredDiff) => acc + squaredDiff, 0) / grades.length;
+		const stdDev = Math.sqrt(variance);
 
-		// Count letter grades
+		// Calculate the letter grade distribution
 		const letterGradeDistribution: Record<string, number> = {};
-		validStudents.forEach((student) => {
-			const letterGrade = student.letterGrade || 'N/A';
+		grades.forEach((grade) => {
+			const letterGrade = assignLetterGrade(grade);
 			letterGradeDistribution[letterGrade] = (letterGradeDistribution[letterGrade] || 0) + 1;
 		});
 
 		// Group grades into ranges for bell curve
-		const bellCurveData = generateBellCurveData(grades, avg, stdDev);
+		const generatedBellCurveData = generateBellCurveData(grades, avg, stdDev);
+		// Map to the expected DataPoint format
+		const bellCurveData = generatedBellCurveData.map((item) => ({
+			range: item.x,
+			count: item.y,
+			normalDistribution: item.normalY,
+		}));
 
 		// Project comparison data
 		const projectComparisonData = projectGrades
 			.filter((project) => project.students && project.students.length > 0)
 			.map((project) => {
-				const projectStudents = simulateRealisticGrades
-					? project.students.map((s) => ({
-							...s,
-							finalGrade: Math.floor(Math.random() * 55) + 40,
-						}))
-					: project.students || [];
+				const projectStudents = project.students || [];
 
 				const validProjectStudents = projectStudents.filter(
-					(s) => s.finalGrade !== undefined && s.finalGrade !== null
+					(student) => student.finalGrade !== undefined && student.finalGrade !== null
 				);
 
-				if (!validProjectStudents.length) return null;
+				if (!validProjectStudents.length) {
+					return null; // Return null for projects with no valid students
+				}
 
-				const projectGrades = validProjectStudents.map((s) => s.finalGrade || 0);
-				const projectAvg =
-					projectGrades.reduce((acc, g) => acc + g, 0) / projectGrades.length;
+				const projectGrades = validProjectStudents.map(
+					(student) => student.finalGrade || 0
+				);
+				const projectSum = projectGrades.reduce((acc, grade) => acc + grade, 0);
+				const projectAvg = projectSum / projectGrades.length;
 
+				// Return with the expected ProjectData format
 				return {
 					projectId: project.projectId,
 					title: project.title,
 					averageGrade: parseFloat(projectAvg.toFixed(2)),
-					studentCount: validProjectStudents.length,
+					studentCount: projectStudents.length,
 				};
 			})
-			.filter(Boolean)
-			.sort((a, b) => (b?.averageGrade || 0) - (a?.averageGrade || 0))
-			.slice(0, 10);
+			.sort((a, b) => {
+				if (a === null || b === null) return 0;
+				return b.averageGrade - a.averageGrade;
+			}) // Sort by highest average
+			.slice(0, 10); // Top 10 projects
 
-		// Calculate grade tiers
+		// Count students by grade tiers
 		const gradeTiers = {
 			excellent: validStudents.filter((s) => (s.finalGrade || 0) >= 85).length,
 			good: validStudents.filter((s) => (s.finalGrade || 0) >= 70 && (s.finalGrade || 0) < 85)
@@ -218,7 +239,6 @@ export default function GradeAnalyticsDashboard() {
 
 	// Helper function to assign letter grade based on numeric grade
 	function assignLetterGrade(grade: number): string {
-		if (grade >= 90) return 'A+';
 		if (grade >= 85) return 'A';
 		if (grade >= 80) return 'A-';
 		if (grade >= 75) return 'B+';
@@ -226,132 +246,117 @@ export default function GradeAnalyticsDashboard() {
 		if (grade >= 65) return 'B-';
 		if (grade >= 60) return 'C+';
 		if (grade >= 55) return 'C';
-		if (grade >= 50) return 'D+';
-		if (grade >= 45) return 'D';
+		if (grade >= 50) return 'C-';
+		if (grade >= 45) return 'D+';
+		if (grade >= 40) return 'D';
 		return 'F';
 	}
 
 	// Helper function to generate bell curve data
 	function generateBellCurveData(grades: number[], mean: number, stdDev: number) {
-		// Handle edge cases
-		if (!grades.length) return [];
-
-		// Create bins for the histogram
-		const min = Math.max(0, Math.floor(Math.min(...grades) / 5) * 5); // Round down to nearest 5, minimum 0
-		const max = Math.min(100, Math.ceil(Math.max(...grades) / 5) * 5); // Round up to nearest 5, maximum 100
+		// Create histogram data first (actual grade distribution)
+		const min = Math.min(...grades);
+		const max = Math.max(...grades);
+		// Round to nearest multiples of 5 for cleaner bins
+		const binMin = Math.floor(min / 5) * 5;
+		const binMax = Math.ceil(max / 5) * 5;
 		const binSize = 5;
-		const bins: Record<string, number> = {};
+		const binCount = (binMax - binMin) / binSize;
 
 		// Initialize bins
-		for (let i = min; i <= max; i += binSize) {
-			bins[`${i}-${i + binSize - 1}`] = 0;
+		const bins: { x: string; y: number }[] = [];
+		for (let i = 0; i <= binCount; i++) {
+			const binStart = binMin + i * binSize;
+			const binLabel = `${binStart}`;
+			bins.push({ x: binLabel, y: 0 });
 		}
 
 		// Count grades in each bin
 		grades.forEach((grade) => {
-			const binIndex = Math.floor(grade / binSize) * binSize;
-			const binKey = `${binIndex}-${binIndex + binSize - 1}`;
-			if (bins[binKey] !== undefined) {
-				bins[binKey]++;
+			const binIndex = Math.floor((grade - binMin) / binSize);
+			if (binIndex >= 0 && binIndex < bins.length) {
+				bins[binIndex].y += 1;
 			}
 		});
 
-		// Find the maximum count for scaling
-		const maxCount = Math.max(...Object.values(bins), 1); // Ensure maxCount is at least 1
-
-		// Calculate normal distribution values for each bin
-		const normalDistValues: number[] = [];
-
-		// Only proceed with normal distribution if we have a valid standard deviation
-		if (stdDev > 0.1) {
-			Object.keys(bins).forEach((range) => {
-				const _midpoint = parseInt(range.split('-')[0]) + binSize / 2;
-				const zScore = (_midpoint - mean) / stdDev;
-				// Use a simplified bell curve formula
-				const normalValue = Math.exp(-0.5 * Math.pow(zScore, 2));
-				normalDistValues.push(normalValue);
-			});
-		}
-
-		// Find the maximum normal distribution value for scaling
-		const maxNormalValue = Math.max(...normalDistValues, 0.001); // Avoid division by zero
-
-		// Convert to array format for chart with properly scaled normal distribution
-		return Object.entries(bins).map(([range, count], index) => {
-			let normalValue = 0;
-
-			// Only calculate if we have a valid standard deviation
-			if (stdDev > 0.1) {
-				// Scale the normal distribution value to match the histogram scale
-				// This ensures the bell curve has a reasonable height relative to the bars
-				normalValue = (normalDistValues[index] / maxNormalValue) * maxCount;
-			}
-
+		// Add bell curve data points
+		const bellCurveData = bins.map((bin) => {
+			const x = parseInt(bin.x);
+			const normalY =
+				(1 / (stdDev * Math.sqrt(2 * Math.PI))) *
+				Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+			// Scale the normal distribution to match the histogram
+			const scaleFactor = grades.length * binSize;
 			return {
-				range,
-				count,
-				normalDistribution: normalValue,
+				x: bin.x,
+				y: bin.y, // Histogram count
+				normalY: normalY * scaleFactor, // Bell curve
 			};
 		});
+
+		return bellCurveData;
 	}
 
 	// Helper function to calculate median
 	function calculateMedian(values: number[]): number {
-		if (!values || values.length === 0) return 0;
+		if (!values.length) return 0;
 
-		// Filter out any NaN or undefined values
-		const validValues = values.filter((val) => typeof val === 'number' && !isNaN(val));
-
-		if (validValues.length === 0) return 0;
-
-		const sorted = [...validValues].sort((a, b) => a - b);
+		// Sort values
+		const sorted = [...values].sort((a, b) => a - b);
 		const middle = Math.floor(sorted.length / 2);
 
+		// If odd length, return middle value; if even, return average of two middle values
 		if (sorted.length % 2 === 0) {
 			return (sorted[middle - 1] + sorted[middle]) / 2;
+		} else {
+			return sorted[middle];
 		}
-
-		return sorted[middle];
 	}
 
 	// Convert ProjectGradeSummary to ProjectGradeResponse for the ProjectsTable component
-	const adaptProjectGrades = (projects: ProjectGradeSummary[]): ProjectGradeResponse[] => {
-		return projects.map((project) => ({
-			project_id: project.projectId,
-			projectId: project.projectId,
-			title: project.title,
-			description: '', // Default empty string as it's required
-			role: 'supervisor' as const, // Default value
-			supervisor_name: project.supervisorName,
-			supervisorName: project.supervisorName,
-			supervisor_email: '',
-			supervisorEmail: '',
-			moderator_name: project.moderatorName,
-			moderatorName: project.moderatorName,
-			moderator_email: '',
-			moderatorEmail: '',
-			students: project.students.map((student) => ({
-				student_id: student.studentId,
-				studentId: student.studentId,
-				name: student.name,
-				matric_number: student.matricNumber,
-				matricNumber: student.matricNumber,
-				supervisor_grade: student.supervisorGrade,
-				supervisorGrade: student.supervisorGrade,
-				moderator_grade: student.moderatorGrade,
-				moderatorGrade: student.moderatorGrade,
-				final_grade: student.finalGrade,
-				finalGrade: student.finalGrade,
-				letter_grade: student.letterGrade,
-				letterGrade: student.letterGrade,
-			})),
-		}));
-	};
+	function adaptProjectGrades(projects: ProjectGradeSummary[]): ProjectGradeResponse[] {
+		return projects.map((project) => {
+			const students = project.students || [];
+			const validStudents = students.filter(
+				(s) => s.finalGrade !== undefined && s.finalGrade !== null
+			);
+
+			const avgGrade =
+				validStudents.length > 0
+					? validStudents.reduce((sum, student) => sum + (student.finalGrade || 0), 0) /
+						validStudents.length
+					: 0;
+
+			const letterGrade = assignLetterGrade(avgGrade);
+
+			return {
+				projectId: project.projectId,
+				project_id: project.projectId,
+				title: project.title,
+				supervisorName: project.supervisorName || '',
+				supervisor_name: project.supervisorName || '',
+				moderatorName: project.moderatorName || '',
+				moderator_name: project.moderatorName || '',
+				// Fill in required fields with default values
+				description: '',
+				role: 'supervisor' as const,
+				supervisorEmail: '',
+				supervisor_email: '',
+				moderatorEmail: '',
+				moderator_email: '',
+				students: students,
+				// Add custom properties for the table
+				averageGrade: avgGrade.toFixed(2),
+				letterGrade,
+				studentCount: students.length,
+			};
+		});
+	}
 
 	// Handle semester change
-	const handleSemesterChange = (value: string) => {
-		setSelectedSemesterId(Number(value));
-	};
+	function handleSemesterChange(value: string) {
+		setSelectedSemesterId(parseInt(value));
+	}
 
 	if (semestersError || gradesError) {
 		return (
@@ -378,17 +383,20 @@ export default function GradeAnalyticsDashboard() {
 				</CardHeader>
 				<CardContent>
 					{isLoadingSemesters ? (
-						<Skeleton className="h-10 w-full max-w-xs" />
+						<Skeleton className="h-10 w-full" />
 					) : (
-						<Select onValueChange={handleSemesterChange}>
-							<SelectTrigger className="w-full max-w-xs">
+						<Select
+							value={selectedSemesterId?.toString() || ''}
+							onValueChange={handleSemesterChange}
+						>
+							<SelectTrigger>
 								<SelectValue placeholder="Select a semester" />
 							</SelectTrigger>
 							<SelectContent>
 								{semesters.map((semester) => (
 									<SelectItem key={semester.id} value={semester.id.toString()}>
-										{semester.name} - AY {semester.academicYear}{' '}
-										{semester.isActive ? '(Active)' : ''}
+										AY {semester.academicYear} - {semester.name}
+										{semester.isActive ? ' (Active)' : ''}
 									</SelectItem>
 								))}
 							</SelectContent>
@@ -398,252 +406,7 @@ export default function GradeAnalyticsDashboard() {
 			</Card>
 
 			{/* Grade Analytics Content */}
-			{selectedSemesterId ? (
-				isLoadingGrades ? (
-					<div className="space-y-4">
-						<Skeleton className="h-[300px] w-full" />
-						<Skeleton className="h-[400px] w-full" />
-					</div>
-				) : projectGrades.length === 0 ? (
-					<Alert>
-						<AlertCircle className="h-4 w-4" />
-						<AlertTitle>No Data</AlertTitle>
-						<AlertDescription>
-							No grade data available for the selected semester.
-						</AlertDescription>
-					</Alert>
-				) : (
-					<div className="space-y-6">
-						{/* Tabs for different analytics views */}
-						<Tabs
-							defaultValue="overview"
-							onValueChange={setActiveTab}
-							className="space-y-6"
-						>
-							<TabsList className="grid grid-cols-3 w-full max-w-4xl">
-								<TabsTrigger value="overview">Overview</TabsTrigger>
-								<TabsTrigger value="distribution">Grade Distribution</TabsTrigger>
-								<TabsTrigger value="projects">Project Analysis</TabsTrigger>
-							</TabsList>
-
-							{/* Overview Tab */}
-							<TabsContent value="overview" className="space-y-6">
-								{gradeStats && (
-									<>
-										{/* Key Metrics */}
-										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-											<Card>
-												<CardHeader className="pb-2">
-													<CardTitle className="text-sm font-medium">
-														Average Grade
-													</CardTitle>
-												</CardHeader>
-												<CardContent>
-													<div className="text-2xl font-bold">
-														{gradeStats.average}
-													</div>
-													<p className="text-xs text-muted-foreground">
-														Standard Deviation: {gradeStats.stdDev}
-													</p>
-												</CardContent>
-											</Card>
-											<Card>
-												<CardHeader className="pb-2">
-													<CardTitle className="text-sm font-medium">
-														Median Grade
-													</CardTitle>
-												</CardHeader>
-												<CardContent>
-													<div className="text-2xl font-bold">
-														{gradeStats.median}
-													</div>
-													<p className="text-xs text-muted-foreground">
-														Middle value in the grade distribution
-													</p>
-												</CardContent>
-											</Card>
-											<Card>
-												<CardHeader className="pb-2">
-													<CardTitle className="text-sm font-medium">
-														Passing Rate
-													</CardTitle>
-												</CardHeader>
-												<CardContent>
-													<div className="text-2xl font-bold">
-														{gradeStats.passingRate}%
-													</div>
-													<p className="text-xs text-muted-foreground">
-														Students with grade ≥ 40
-													</p>
-												</CardContent>
-											</Card>
-											<Card>
-												<CardHeader className="pb-2">
-													<CardTitle className="text-sm font-medium">
-														Total Students
-													</CardTitle>
-												</CardHeader>
-												<CardContent>
-													<div className="text-2xl font-bold">
-														{gradeStats.count}
-													</div>
-													<p className="text-xs text-muted-foreground">
-														Range: {gradeStats.min} - {gradeStats.max}
-													</p>
-												</CardContent>
-											</Card>
-										</div>
-
-										{/* Grade Tiers */}
-										<Card>
-											<CardHeader>
-												<CardTitle>Grade Performance Tiers</CardTitle>
-												<CardDescription>
-													Distribution of students across performance
-													categories
-												</CardDescription>
-											</CardHeader>
-											<CardContent>
-												<div className="grid grid-cols-5 gap-4 text-center">
-													<div>
-														<div className="text-xl font-bold text-green-500">
-															{gradeTiers.excellent}
-														</div>
-														<div className="text-sm font-medium">
-															Excellent
-														</div>
-														<div className="text-xs text-muted-foreground">
-															85-100
-														</div>
-													</div>
-													<div>
-														<div className="text-xl font-bold text-blue-500">
-															{gradeTiers.good}
-														</div>
-														<div className="text-sm font-medium">
-															Good
-														</div>
-														<div className="text-xs text-muted-foreground">
-															70-84
-														</div>
-													</div>
-													<div>
-														<div className="text-xl font-bold text-yellow-500">
-															{gradeTiers.average}
-														</div>
-														<div className="text-sm font-medium">
-															Average
-														</div>
-														<div className="text-xs text-muted-foreground">
-															55-69
-														</div>
-													</div>
-													<div>
-														<div className="text-xl font-bold text-orange-500">
-															{gradeTiers.poor}
-														</div>
-														<div className="text-sm font-medium">
-															Poor
-														</div>
-														<div className="text-xs text-muted-foreground">
-															40-54
-														</div>
-													</div>
-													<div>
-														<div className="text-xl font-bold text-red-500">
-															{gradeTiers.failing}
-														</div>
-														<div className="text-sm font-medium">
-															Failing
-														</div>
-														<div className="text-xs text-muted-foreground">
-															0-39
-														</div>
-													</div>
-												</div>
-											</CardContent>
-										</Card>
-
-										{/* Bell Curve Chart */}
-										<Card>
-											<CardHeader>
-												<CardTitle>Grade Distribution Bell Curve</CardTitle>
-												<CardDescription>
-													Normal distribution of grades with histogram
-													overlay
-												</CardDescription>
-											</CardHeader>
-											<CardContent>
-												<div className="h-[400px]">
-													<GradeBellCurveChart
-														data={bellCurveData}
-														mean={parseFloat(gradeStats.average)}
-														stdDev={parseFloat(gradeStats.stdDev)}
-														median={parseFloat(gradeStats.median)}
-													/>
-												</div>
-											</CardContent>
-										</Card>
-									</>
-								)}
-							</TabsContent>
-
-							{/* Distribution Tab */}
-							<TabsContent value="distribution" className="space-y-6">
-								{/* Letter Grade Distribution */}
-								<Card>
-									<CardHeader>
-										<CardTitle>Letter Grade Distribution</CardTitle>
-										<CardDescription>
-											Distribution of letter grades across all students
-										</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<div className="h-[400px]">
-											<GradeDistributionChart
-												distribution={letterGradeDistribution}
-											/>
-										</div>
-									</CardContent>
-								</Card>
-
-								{/* Top Projects by Average Grade */}
-								<Card>
-									<CardHeader>
-										<CardTitle>Top Projects by Average Grade</CardTitle>
-										<CardDescription>
-											Projects with the highest average student grades
-										</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<div className="h-[400px]">
-											<ProjectComparisonChart data={projectComparisonData} />
-										</div>
-									</CardContent>
-								</Card>
-							</TabsContent>
-
-							{/* Projects Tab */}
-							<TabsContent value="projects" className="space-y-6">
-								{/* Project Performance Analysis */}
-								<Card>
-									<CardHeader>
-										<CardTitle>Project Performance Analysis</CardTitle>
-										<CardDescription>
-											Detailed breakdown of all projects and their grades
-										</CardDescription>
-									</CardHeader>
-									<CardContent>
-										<ProjectsTable
-											projects={adaptProjectGrades(projectGrades)}
-										/>
-									</CardContent>
-								</Card>
-							</TabsContent>
-						</Tabs>
-					</div>
-				)
-			) : (
+			{!selectedSemesterId ? (
 				<Alert>
 					<AlertCircle className="h-4 w-4" />
 					<AlertTitle>Select a Semester</AlertTitle>
@@ -651,6 +414,245 @@ export default function GradeAnalyticsDashboard() {
 						Please select a semester to view detailed grade analytics.
 					</AlertDescription>
 				</Alert>
+			) : isLoadingGrades ? (
+				<div className="space-y-4">
+					<Skeleton className="h-[300px] w-full" />
+					<Skeleton className="h-[400px] w-full" />
+				</div>
+			) : !projectGrades || projectGrades.length === 0 ? (
+				<Alert>
+					<AlertCircle className="h-4 w-4" />
+					<AlertTitle>No Data</AlertTitle>
+					<AlertDescription>
+						THERE&apos;S NO GRADE FOR THIS SEMESTER YET. Please check back later.
+					</AlertDescription>
+				</Alert>
+			) : allGradesZero ? (
+				<Alert className="bg-muted">
+					<AlertCircle className="h-4 w-4" />
+					<AlertTitle>No Grades Available</AlertTitle>
+					<AlertDescription>
+						Grades have not been entered for this semester yet. Analytics will be
+						available once grades are submitted.
+					</AlertDescription>
+				</Alert>
+			) : (
+				<div className="space-y-6">
+					<Tabs defaultValue="overview" onValueChange={setActiveTab}>
+						<TabsList className="grid w-full grid-cols-3">
+							<TabsTrigger value="overview">Overview</TabsTrigger>
+							<TabsTrigger value="distribution">Grade Distribution</TabsTrigger>
+							<TabsTrigger value="projects">Project Analysis</TabsTrigger>
+						</TabsList>
+
+						{/* Overview Tab */}
+						<TabsContent value="overview" className="space-y-6">
+							{gradeStats && (
+								<>
+									{/* Key Metrics */}
+									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+										<Card>
+											<CardHeader className="pb-2">
+												<CardTitle className="text-sm font-medium">
+													Average Grade
+												</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<div className="text-2xl font-bold">
+													{gradeStats.average}
+												</div>
+												<p className="text-xs text-muted-foreground">
+													Standard Deviation: {gradeStats.stdDev}
+												</p>
+											</CardContent>
+										</Card>
+										<Card>
+											<CardHeader className="pb-2">
+												<CardTitle className="text-sm font-medium">
+													Median Grade
+												</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<div className="text-2xl font-bold">
+													{gradeStats.median}
+												</div>
+												<p className="text-xs text-muted-foreground">
+													Middle value in the grade distribution
+												</p>
+											</CardContent>
+										</Card>
+										<Card>
+											<CardHeader className="pb-2">
+												<CardTitle className="text-sm font-medium">
+													Passing Rate
+												</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<div className="text-2xl font-bold">
+													{gradeStats.passingRate}%
+												</div>
+												<p className="text-xs text-muted-foreground">
+													Students with grade ≥ 40
+												</p>
+											</CardContent>
+										</Card>
+										<Card>
+											<CardHeader className="pb-2">
+												<CardTitle className="text-sm font-medium">
+													Total Students
+												</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<div className="text-2xl font-bold">
+													{gradeStats.count}
+												</div>
+												<p className="text-xs text-muted-foreground">
+													Range: {gradeStats.min} - {gradeStats.max}
+												</p>
+											</CardContent>
+										</Card>
+									</div>
+
+									{/* Grade Distribution by Tier */}
+									<Card>
+										<CardHeader>
+											<CardTitle>Grade Distribution by Tier</CardTitle>
+											<CardDescription>
+												Breakdown of students across different grade tiers
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+												<div>
+													<div className="text-xl font-bold text-green-500">
+														{gradeTiers.excellent}
+													</div>
+													<div className="text-sm font-medium">
+														Excellent
+													</div>
+													<div className="text-xs text-muted-foreground">
+														85-100
+													</div>
+												</div>
+												<div>
+													<div className="text-xl font-bold text-emerald-500">
+														{gradeTiers.good}
+													</div>
+													<div className="text-sm font-medium">Good</div>
+													<div className="text-xs text-muted-foreground">
+														70-84
+													</div>
+												</div>
+												<div>
+													<div className="text-xl font-bold text-yellow-500">
+														{gradeTiers.average}
+													</div>
+													<div className="text-sm font-medium">
+														Average
+													</div>
+													<div className="text-xs text-muted-foreground">
+														55-69
+													</div>
+												</div>
+												<div>
+													<div className="text-xl font-bold text-orange-500">
+														{gradeTiers.poor}
+													</div>
+													<div className="text-sm font-medium">Poor</div>
+													<div className="text-xs text-muted-foreground">
+														40-54
+													</div>
+												</div>
+												<div>
+													<div className="text-xl font-bold text-red-500">
+														{gradeTiers.failing}
+													</div>
+													<div className="text-sm font-medium">
+														Failing
+													</div>
+													<div className="text-xs text-muted-foreground">
+														0-39
+													</div>
+												</div>
+											</div>
+										</CardContent>
+									</Card>
+
+									{/* Bell Curve Chart */}
+									<Card>
+										<CardHeader>
+											<CardTitle>Grade Distribution Bell Curve</CardTitle>
+											<CardDescription>
+												Normal distribution of grades with histogram overlay
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<div className="h-[400px]">
+												<GradeBellCurveChart
+													data={bellCurveData}
+													mean={parseFloat(gradeStats.average)}
+													stdDev={parseFloat(gradeStats.stdDev)}
+													median={parseFloat(gradeStats.median)}
+												/>
+											</div>
+										</CardContent>
+									</Card>
+								</>
+							)}
+						</TabsContent>
+
+						{/* Distribution Tab */}
+						<TabsContent value="distribution" className="space-y-6">
+							{/* Letter Grade Distribution */}
+							<Card>
+								<CardHeader>
+									<CardTitle>Letter Grade Distribution</CardTitle>
+									<CardDescription>
+										Distribution of letter grades across all students
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<div className="h-[400px]">
+										<GradeDistributionChart
+											distribution={letterGradeDistribution}
+										/>
+									</div>
+								</CardContent>
+							</Card>
+
+							{/* Top Projects by Average Grade */}
+							<Card>
+								<CardHeader>
+									<CardTitle>Top Projects by Average Grade</CardTitle>
+									<CardDescription>
+										Projects with the highest average student grades
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<div className="h-[400px]">
+										<ProjectComparisonChart data={projectComparisonData} />
+									</div>
+								</CardContent>
+							</Card>
+						</TabsContent>
+
+						{/* Projects Tab */}
+						<TabsContent value="projects" className="space-y-6">
+							{/* Project Performance Analysis */}
+							<Card>
+								<CardHeader>
+									<CardTitle>Project Performance Analysis</CardTitle>
+									<CardDescription>
+										Detailed breakdown of all projects and their grades
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<ProjectsTable projects={adaptProjectGrades(projectGrades)} />
+								</CardContent>
+							</Card>
+						</TabsContent>
+					</Tabs>
+				</div>
 			)}
 		</div>
 	);

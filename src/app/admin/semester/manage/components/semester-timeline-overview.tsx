@@ -203,7 +203,6 @@ export function SemesterTimelineOverview({ semesterId }: SemesterTimelineOvervie
 		return (
 			<div className="flex flex-col gap-4">
 				<div className="flex justify-between">
-					<h2 className="text-3xl font-semibold tracking-tight">Semester Timeline</h2>
 					{!semesterId && (
 						<Tabs value={activeTab} onValueChange={setActiveTab}>
 							<TabsList className="grid grid-cols-2 h-8">
@@ -228,7 +227,6 @@ export function SemesterTimelineOverview({ semesterId }: SemesterTimelineOvervie
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="flex justify-between">
-				<h2 className="text-3xl font-semibold tracking-tight">Semester Timeline</h2>
 				{!semesterId && (
 					<Tabs value={activeTab} onValueChange={setActiveTab}>
 						<TabsList className="grid grid-cols-2 h-8">

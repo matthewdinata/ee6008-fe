@@ -21,7 +21,7 @@ import { useToast } from '@/utils/hooks/use-toast';
 import { EmailTemplate } from '@/utils/types/email';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
 	Dialog,
 	DialogContent,
@@ -115,12 +115,7 @@ export function EmailTemplatesList({ initialTab = 'all' }: EmailTemplatesListPro
 
 	return (
 		<Card className="w-full">
-			<CardHeader>
-				<CardTitle>Email Templates</CardTitle>
-				<CardDescription>
-					Create and manage email templates for communicating with students and faculty.
-				</CardDescription>
-			</CardHeader>
+			<CardHeader></CardHeader>
 			<CardContent>
 				<Tabs value={tab} onValueChange={setTab} className="w-full">
 					<div className="flex items-center justify-between mb-4">

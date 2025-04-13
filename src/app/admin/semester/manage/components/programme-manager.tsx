@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Loader2, MoreHorizontal, Plus, RefreshCw } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { deleteProgramme } from '@/utils/actions/admin/semester';
@@ -16,9 +16,16 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
 	Table,
 	TableBody,
@@ -48,6 +55,7 @@ export function ProgrammeManager({ semesterId }: ProgrammeManagerProps) {
 	const [isAssigningLeader, setIsAssigningLeader] = useState(false);
 	const [selectedProgramme, setSelectedProgramme] = useState<Programme | null>(null);
 	const [deletingProgrammeId, setDeletingProgrammeId] = useState<number | null>(null);
+	const [programmeToDelete, setProgrammeToDelete] = useState<Programme | null>(null);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 
 	// Format the error message
@@ -71,17 +79,22 @@ export function ProgrammeManager({ semesterId }: ProgrammeManagerProps) {
 		setIsAssigningLeader(true);
 	};
 
-	const handleDeleteProgramme = async (programmeId: number) => {
+	const handleDeleteProgramme = async () => {
+		if (!programmeToDelete) return;
+
 		try {
-			setDeletingProgrammeId(programmeId);
+			setDeletingProgrammeId(programmeToDelete.id);
 			setDeleteError(null);
 
 			// Call the actual API function using our server action
-			const response = await deleteProgramme(programmeId);
+			const response = await deleteProgramme(programmeToDelete.id);
 
 			if (!response.success) {
 				throw new Error(response.error || 'Failed to delete programme');
 			}
+
+			// Close the dialog and reset state
+			setProgrammeToDelete(null);
 
 			// Refetch programmes after successful deletion
 			refetchProgrammes();
@@ -138,7 +151,17 @@ export function ProgrammeManager({ semesterId }: ProgrammeManagerProps) {
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead>Programme</TableHead>
+							<TableHead>
+								<div
+									className="flex items-center cursor-pointer"
+									onClick={() => {
+										// Sort by programme name logic could be added here
+									}}
+								>
+									Programme
+								</div>
+							</TableHead>
+							<TableHead>Programme Code</TableHead>
 							<TableHead>Programme Leader</TableHead>
 							<TableHead className="text-right">Actions</TableHead>
 						</TableRow>
@@ -146,7 +169,14 @@ export function ProgrammeManager({ semesterId }: ProgrammeManagerProps) {
 					<TableBody>
 						{programmes.map((programme) => (
 							<TableRow key={programme.id} className="hover:bg-gray-50">
-								<TableCell className="font-medium">{programme.name}</TableCell>
+								<TableCell>
+									<div className="font-medium">{programme.name}</div>
+								</TableCell>
+								<TableCell>
+									<div className="line-clamp-2">
+										{programme.programme_code || 'Not set'}
+									</div>
+								</TableCell>
 								<TableCell>
 									{programme.leader_name ? (
 										<div>
@@ -171,52 +201,37 @@ export function ProgrammeManager({ semesterId }: ProgrammeManagerProps) {
 									)}
 								</TableCell>
 								<TableCell className="text-right">
-									<div className="flex justify-end space-x-2">
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() => handleAssignLeader(programme)}
-										>
-											Assign Leader
-										</Button>
-										<AlertDialog>
-											<AlertDialogTrigger asChild>
-												{/* <Button variant="ghost" size="icon"></Button> */}
+									<div className="flex justify-end items-center gap-2">
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
 												<Button
 													variant="ghost"
 													size="icon"
-													disabled={deletingProgrammeId === programme.id}
+													className="h-8 w-8 p-0"
 												>
-													{deletingProgrammeId === programme.id ? (
-														<Loader2 className="h-4 w-4 animate-spin" />
-													) : (
-														<Trash2 className="h-4 w-4 text-destructive" />
-													)}
+													<span className="sr-only">Open menu</span>
+													<MoreHorizontal className="h-4 w-4" />
 												</Button>
-											</AlertDialogTrigger>
-											<AlertDialogContent>
-												<AlertDialogHeader>
-													<AlertDialogTitle>
-														Are you sure?
-													</AlertDialogTitle>
-													<AlertDialogDescription>
-														This will delete the programme &quot;
-														{programme.name}&quot; and all related data.
-														This action cannot be undone.
-													</AlertDialogDescription>
-												</AlertDialogHeader>
-												<AlertDialogFooter>
-													<AlertDialogCancel>Cancel</AlertDialogCancel>
-													<AlertDialogAction
-														onClick={() =>
-															handleDeleteProgramme(programme.id)
-														}
-													>
-														Delete
-													</AlertDialogAction>
-												</AlertDialogFooter>
-											</AlertDialogContent>
-										</AlertDialog>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align="end">
+												<DropdownMenuLabel>Actions</DropdownMenuLabel>
+												<DropdownMenuSeparator />
+												<DropdownMenuItem
+													onClick={() => handleAssignLeader(programme)}
+												>
+													Assign Leader
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													className="text-destructive focus:text-destructive"
+													disabled={deletingProgrammeId === programme.id}
+													onClick={() => setProgrammeToDelete(programme)}
+												>
+													{deletingProgrammeId === programme.id
+														? 'Deleting...'
+														: 'Delete Programme'}
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
 									</div>
 								</TableCell>
 							</TableRow>
@@ -243,6 +258,28 @@ export function ProgrammeManager({ semesterId }: ProgrammeManagerProps) {
 					semesterId={semesterId}
 				/>
 			)}
+
+			{/* Delete Programme Dialog */}
+			<AlertDialog
+				open={!!programmeToDelete}
+				onOpenChange={(open) => !open && setProgrammeToDelete(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This will delete the programme &quot;{programmeToDelete?.name}&quot; and
+							all related data. This action cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={handleDeleteProgramme}>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

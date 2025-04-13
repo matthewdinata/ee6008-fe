@@ -1,13 +1,13 @@
 'use client';
 
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 import { Semester } from '@/utils/actions/admin/types';
 import { useGetSemesters } from '@/utils/hooks/admin/use-get-semesters';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
 	Table,
 	TableBody,
@@ -131,22 +131,13 @@ export function SemesterManager() {
 		<div className="space-y-8">
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-xl font-bold">Semester Management</CardTitle>
 					<div className="flex space-x-2">
-						<Button
-							variant="outline"
-							size="icon"
-							onClick={() => refetchSemesters()}
-							disabled={isLoading}
-						>
-							<RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-						</Button>
 						<Button
 							variant="default"
 							size="sm"
 							onClick={() => setIsCreateDialogOpen(true)}
 						>
-							<Plus className="mr-2 h-4 w-4" /> Create Semester
+							<Plus className="mr-2 h-4 w-4" /> Create New Semester
 						</Button>
 					</div>
 				</CardHeader>

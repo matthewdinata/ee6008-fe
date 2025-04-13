@@ -264,7 +264,10 @@ export const AssignLeaderDialog: React.FC<AssignLeaderDialogProps> = ({
 												<SelectValue placeholder="Select a faculty member" />
 											</SelectTrigger>
 										</FormControl>
-										<SelectContent>
+										<SelectContent
+											position="popper"
+											className="max-h-[300px] overflow-y-auto z-50"
+										>
 											{isLoadingUsers ? (
 												<div className="flex justify-center p-4">
 													<Loader2 className="h-4 w-4 animate-spin" />
@@ -275,8 +278,19 @@ export const AssignLeaderDialog: React.FC<AssignLeaderDialogProps> = ({
 												</div>
 											) : (
 												users.map((user) => (
-													<SelectItem key={user.email} value={user.email}>
-														{user.name} ({user.email})
+													<SelectItem
+														key={`faculty-${user.id}`}
+														value={user.email}
+														className="py-3"
+													>
+														<div className="flex flex-col">
+															<span className="font-medium truncate">
+																{user.name}
+															</span>
+															<span className="text-xs text-muted-foreground truncate">
+																{user.email}
+															</span>
+														</div>
 													</SelectItem>
 												))
 											)}

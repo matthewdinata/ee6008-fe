@@ -88,6 +88,11 @@ export function SingleUserAdd({ defaultRole = 'student' }: SingleUserAddProps) {
 				validationErrors.studentID =
 					'Invalid student ID format. Must be 9 characters with a letter at the beginning.';
 			}
+
+			// Validate that a semester is selected for students
+			if (!formData.semesterID) {
+				validationErrors.semesterID = 'Please select a semester for the student';
+			}
 		}
 
 		// Set validation errors and return validation result
@@ -142,8 +147,8 @@ export function SingleUserAdd({ defaultRole = 'student' }: SingleUserAddProps) {
 					email: formData.email,
 					name: formData.name,
 					role: 'student',
-					studentID: formData.studentID,
-					semesterID: formData.semesterID ? Number(formData.semesterID) : undefined,
+					studentId: formData.studentID,
+					semesterId: formData.semesterID ? Number(formData.semesterID) : undefined,
 				};
 
 				console.log('Prepared student data:', JSON.stringify(userData));
@@ -355,7 +360,9 @@ export function SingleUserAdd({ defaultRole = 'student' }: SingleUserAddProps) {
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="semesterID">Semester</Label>
+							<Label htmlFor="semesterID">
+								Semester <span className="text-red-500">*</span>
+							</Label>
 							<Select
 								value={formData.semesterID || ''}
 								onValueChange={(value) => {
@@ -364,6 +371,10 @@ export function SingleUserAdd({ defaultRole = 'student' }: SingleUserAddProps) {
 										...formData,
 										semesterID: value,
 									});
+									// Clear any semester selection error when the user selects a semester
+									if (errors.semesterID) {
+										setErrors({ ...errors, semesterID: '' });
+									}
 								}}
 							>
 								<SelectTrigger

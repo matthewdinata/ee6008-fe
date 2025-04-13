@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import ProjectGradesSummary from '@/app/faculty/grade/evaluation/components/project-grades-sumary';
+import AdminProjectGradesSummary from '@/app/admin/grade/evaluation/components/admin-project-grades-summary';
 
 import AllProjectGrades from './components/all-project-grades';
 
@@ -205,7 +205,7 @@ export default function AdminProjectGradingPage() {
 
 					{/* Project Grades Summary */}
 					{selectedProjectId && !projectDetailsLoading && !projectDetailsError && (
-						<ProjectGradesSummary projectId={selectedProjectId} />
+						<AdminProjectGradesSummary projectId={selectedProjectId} />
 					)}
 				</TabsContent>
 
