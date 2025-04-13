@@ -66,6 +66,7 @@ interface ReviewFormProps {
 	projectId?: number;
 	isEdit?: boolean;
 	teamMember?: TeamMember;
+	onComplete?: () => void; // Callback for when form submission completes
 }
 
 export default function ReviewForm({
@@ -75,6 +76,7 @@ export default function ReviewForm({
 	projectId,
 	isEdit = false,
 	teamMember,
+	onComplete,
 }: ReviewFormProps) {
 	const router = useRouter();
 	const { toast } = useToast();
@@ -147,8 +149,13 @@ export default function ReviewForm({
 				throw new Error('Missing required data for review submission');
 			}
 
-			// Navigate back to the dashboard
-			router.push('/student/peer-review');
+			// If onComplete callback is provided, use it (for dialog mode), otherwise navigate
+			if (onComplete) {
+				onComplete();
+			} else {
+				// Navigate back to the dashboard
+				router.push('/student/peer-review');
+			}
 		} catch (error) {
 			console.error('Error submitting review:', error);
 			toast({
@@ -203,20 +210,22 @@ export default function ReviewForm({
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center">
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={() => router.push('/student/peer-review')}
-					className="mr-2"
-				>
-					<ArrowLeft className="h-4 w-4 mr-2" />
-					Back
-				</Button>
-				<h1 className="text-2xl font-bold tracking-tight">
-					{isEdit ? 'Edit Review' : 'New Review'}
-				</h1>
-			</div>
+			{!onComplete && (
+				<div className="flex items-center">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => router.push('/student/peer-review')}
+						className="mr-2"
+					>
+						<ArrowLeft className="h-4 w-4 mr-2" />
+						Back
+					</Button>
+					<h1 className="text-2xl font-bold tracking-tight">
+						{isEdit ? 'Edit Review' : 'New Review'}
+					</h1>
+				</div>
+			)}
 
 			<Card>
 				<CardHeader>
@@ -285,7 +294,11 @@ export default function ReviewForm({
 							<Button
 								type="button"
 								variant="outline"
-								onClick={() => router.push('/student/peer-review')}
+								onClick={
+									onComplete
+										? onComplete
+										: () => router.push('/student/peer-review')
+								}
 								disabled={isSubmitting}
 							>
 								Cancel

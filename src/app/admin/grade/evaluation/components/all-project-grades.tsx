@@ -1,6 +1,6 @@
 'use client';
 
-import { DownloadIcon, Loader2, SearchIcon } from 'lucide-react';
+import { ArrowUpDown, DownloadIcon, Loader2, SearchIcon } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
 import { useGetAllProjectGrades } from '@/utils/hooks/admin/use-get-all-project-grades';
@@ -37,7 +37,8 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 	const { toast } = useToast();
 	const [searchTerm, setSearchTerm] = useState('');
 	const [expandedProjects, setExpandedProjects] = useState<Record<number, boolean>>({});
-	const [showDebugInfo, setShowDebugInfo] = useState(false);
+	const [sortColumn, setSortColumn] = useState<string | null>(null);
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
 	// Fetch all project grades
 	const {
@@ -68,14 +69,78 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 	// Pagination
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 10;
-	const totalPages = Math.ceil((filteredProjects?.length || 0) / itemsPerPage);
+
+	// Apply sorting to filtered projects
+	const sortedProjects = useMemo(() => {
+		if (!filteredProjects || !sortColumn || !sortDirection) return filteredProjects;
+
+		return [...filteredProjects].sort((a, b) => {
+			let aValue: string | number = '';
+			let bValue: string | number = '';
+
+			// Handle special cases for nested objects/arrays
+			switch (sortColumn) {
+				case 'title':
+					aValue = a.title || '';
+					bValue = b.title || '';
+					break;
+				case 'supervisor':
+					aValue = a.supervisorName || '';
+					bValue = b.supervisorName || '';
+					break;
+				case 'moderator':
+					aValue = a.moderatorName || '';
+					bValue = b.moderatorName || '';
+					break;
+				case 'studentsCount':
+					aValue = a.students.length;
+					bValue = b.students.length;
+					break;
+				default:
+					return 0;
+			}
+
+			// Handle string comparisons
+			if (typeof aValue === 'string' && typeof bValue === 'string') {
+				const comparison = aValue.localeCompare(bValue);
+				return sortDirection === 'asc' ? comparison : -comparison;
+			}
+
+			// Handle number comparisons
+			const numA = typeof aValue === 'number' ? aValue : 0;
+			const numB = typeof bValue === 'number' ? bValue : 0;
+
+			return sortDirection === 'asc' ? numA - numB : numB - numA;
+		});
+	}, [filteredProjects, sortColumn, sortDirection]);
+
+	// Handle sorting toggle
+	const toggleSort = (column: string) => {
+		if (sortColumn === column) {
+			// Cycle through: asc -> desc -> null
+			if (sortDirection === 'asc') {
+				setSortDirection('desc');
+			} else if (sortDirection === 'desc') {
+				setSortColumn(null);
+				setSortDirection(null);
+			} else {
+				setSortDirection('asc');
+			}
+		} else {
+			setSortColumn(column);
+			setSortDirection('asc');
+		}
+	};
+
+	// Calculate total pages after we have sorted projects
+	const totalPages = Math.ceil((sortedProjects?.length || 0) / itemsPerPage);
 
 	const paginatedProjects = useMemo(() => {
-		if (!filteredProjects || filteredProjects.length === 0) return [];
+		if (!sortedProjects || sortedProjects.length === 0) return [];
 		const startIndex = (currentPage - 1) * itemsPerPage;
 		const endIndex = startIndex + itemsPerPage;
-		return filteredProjects.slice(startIndex, endIndex);
-	}, [filteredProjects, currentPage]);
+		return sortedProjects.slice(startIndex, endIndex);
+	}, [sortedProjects, currentPage]);
 
 	const handlePageChange = (page: number) => {
 		setCurrentPage(page);
@@ -131,7 +196,9 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 						student.finalGrade !== undefined && student.finalGrade !== null
 							? Number(student.finalGrade).toFixed(1)
 							: 0,
-						student.letterGrade || 'F',
+						student.letterGrade && student.letterGrade !== 'F'
+							? student.letterGrade
+							: 'NO GRADE GIVEN',
 					];
 					csvContent += row.join(',') + '\n';
 				});
@@ -232,10 +299,46 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead className="w-[300px]">Project</TableHead>
-							<TableHead>Supervisor</TableHead>
-							<TableHead>Moderator</TableHead>
-							<TableHead className="text-center">Students</TableHead>
+							<TableHead className="w-[300px]">
+								<Button
+									variant="ghost"
+									onClick={() => toggleSort('title')}
+									className="p-0 h-auto hover:bg-transparent"
+								>
+									Project
+									<ArrowUpDown className="ml-2 h-4 w-4" />
+								</Button>
+							</TableHead>
+							<TableHead>
+								<Button
+									variant="ghost"
+									onClick={() => toggleSort('supervisor')}
+									className="p-0 h-auto hover:bg-transparent"
+								>
+									Supervisor
+									<ArrowUpDown className="ml-2 h-4 w-4" />
+								</Button>
+							</TableHead>
+							<TableHead>
+								<Button
+									variant="ghost"
+									onClick={() => toggleSort('moderator')}
+									className="p-0 h-auto hover:bg-transparent"
+								>
+									Moderator
+									<ArrowUpDown className="ml-2 h-4 w-4" />
+								</Button>
+							</TableHead>
+							<TableHead className="text-center">
+								<Button
+									variant="ghost"
+									onClick={() => toggleSort('studentsCount')}
+									className="p-0 h-auto hover:bg-transparent flex items-center justify-center w-full"
+								>
+									Students
+									<ArrowUpDown className="ml-2 h-4 w-4" />
+								</Button>
+							</TableHead>
 							<TableHead className="text-center">Avg. Grade</TableHead>
 							<TableHead className="text-right">Actions</TableHead>
 						</TableRow>
@@ -356,8 +459,11 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 																				: 'N/A'}
 																		</TableCell>
 																		<TableCell className="text-center">
-																			{student.letterGrade ||
-																				'N/A'}
+																			{student.letterGrade &&
+																			student.letterGrade !==
+																				'F'
+																				? student.letterGrade
+																				: 'NO GRADE GIVEN'}
 																		</TableCell>
 																	</TableRow>
 																))}
@@ -461,142 +567,6 @@ export default function AllProjectGrades({ semesterId, academicYear }: AllProjec
 							</PaginationContent>
 						</Pagination>
 					</div>
-				)}
-			</div>
-
-			{/* Debug Information */}
-			<div className="mt-8">
-				<Button
-					variant="outline"
-					onClick={() => setShowDebugInfo(!showDebugInfo)}
-					className="mb-4"
-				>
-					{showDebugInfo ? 'Hide Debug Info' : 'Show Debug Info'}
-				</Button>
-
-				{showDebugInfo && (
-					<Card>
-						<CardHeader>
-							<CardTitle>Debug Information</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
-								<div>
-									<h3 className="text-lg font-medium">Raw API Response:</h3>
-									<pre className="bg-muted p-4 rounded-md overflow-auto max-h-[400px] text-xs">
-										{JSON.stringify(allProjectGrades, null, 2)}
-									</pre>
-								</div>
-
-								<div>
-									<h3 className="text-lg font-medium">
-										Processed Data (First Project):
-									</h3>
-									{allProjectGrades && allProjectGrades.length > 0 ? (
-										<div className="space-y-2">
-											<p>
-												<strong>Project ID:</strong>{' '}
-												{allProjectGrades[0].projectId}
-											</p>
-											<p>
-												<strong>Title:</strong> {allProjectGrades[0].title}
-											</p>
-											<p>
-												<strong>Supervisor:</strong>{' '}
-												{allProjectGrades[0].supervisorName ||
-													'Not assigned'}
-											</p>
-											<p>
-												<strong>Moderator:</strong>{' '}
-												{allProjectGrades[0].moderatorName ||
-													'Not assigned'}
-											</p>
-											<p>
-												<strong>Number of Students:</strong>{' '}
-												{allProjectGrades[0].students.length}
-											</p>
-
-											<h4 className="font-medium">First Student:</h4>
-											{allProjectGrades[0].students.length > 0 ? (
-												<div className="pl-4">
-													<p>
-														<strong>Student ID:</strong>{' '}
-														{allProjectGrades[0].students[0].studentId}
-													</p>
-													<p>
-														<strong>Name:</strong>{' '}
-														{allProjectGrades[0].students[0].name ||
-															'Unknown'}
-													</p>
-													<p>
-														<strong>Matric Number:</strong>{' '}
-														{
-															allProjectGrades[0].students[0]
-																.matricNumber
-														}
-													</p>
-													<p>
-														<strong>Supervisor Grade:</strong>{' '}
-														{
-															allProjectGrades[0].students[0]
-																.supervisorGrade
-														}
-													</p>
-													<p>
-														<strong>Moderator Grade:</strong>{' '}
-														{
-															allProjectGrades[0].students[0]
-																.moderatorGrade
-														}
-													</p>
-													<p>
-														<strong>Final Grade:</strong>{' '}
-														{allProjectGrades[0].students[0].finalGrade}
-													</p>
-													<p>
-														<strong>Letter Grade:</strong>{' '}
-														{
-															allProjectGrades[0].students[0]
-																.letterGrade
-														}
-													</p>
-
-													<h5 className="font-medium mt-2">
-														Grade Types:
-													</h5>
-													<p>
-														supervisorGrade:{' '}
-														{
-															typeof allProjectGrades[0].students[0]
-																.supervisorGrade
-														}
-													</p>
-													<p>
-														moderatorGrade:{' '}
-														{
-															typeof allProjectGrades[0].students[0]
-																.moderatorGrade
-														}
-													</p>
-													<p>
-														finalGrade:{' '}
-														{
-															typeof allProjectGrades[0].students[0]
-																.finalGrade
-														}
-													</p>
-												</div>
-											) : (
-												<p>No students in this project</p>
-											)}
-										</div>
-									) : (
-										<p>No projects available</p>
-									)}
-								</div>
-							</div>
-						</CardContent>
-					</Card>
 				)}
 			</div>
 		</div>

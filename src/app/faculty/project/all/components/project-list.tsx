@@ -7,7 +7,6 @@ import { removeProjectModerator } from '@/utils/actions/admin/project';
 import { Programme, Project } from '@/utils/actions/admin/types';
 import { useToast } from '@/utils/hooks/use-toast';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -78,65 +77,6 @@ export default function ProjectList({
 				))}
 			</>
 		);
-	};
-
-	// Get status badge based on project status
-	const getStatusBadge = (status: string): JSX.Element => {
-		// Add null check before calling toLowerCase
-		if (!status) {
-			return <Badge variant="outline">Unknown</Badge>;
-		}
-
-		const statusLower = status.toLowerCase();
-		switch (statusLower) {
-			case 'open':
-				return (
-					<Badge
-						variant="outline"
-						className="bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 border-green-300 dark:border-green-800"
-					>
-						Open
-					</Badge>
-				);
-			case 'pending':
-				return (
-					<Badge
-						variant="outline"
-						className="bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-800"
-					>
-						Pending
-					</Badge>
-				);
-			case 'assigned':
-				return (
-					<Badge
-						variant="outline"
-						className="bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-800"
-					>
-						Assigned
-					</Badge>
-				);
-			case 'completed':
-				return (
-					<Badge
-						variant="outline"
-						className="bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400 border-purple-300 dark:border-purple-800"
-					>
-						Completed
-					</Badge>
-				);
-			case 'archived':
-				return (
-					<Badge
-						variant="outline"
-						className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-700"
-					>
-						Archived
-					</Badge>
-				);
-			default:
-				return <Badge variant="outline">{status}</Badge>;
-		}
 	};
 
 	// Handler for removing a moderator
@@ -293,13 +233,6 @@ export default function ProjectList({
 							<p className="whitespace-pre-line">
 								{viewDescriptionProject?.description}
 							</p>
-						</div>
-						<div>
-							<h3 className="text-sm font-medium text-muted-foreground">Status</h3>
-							<div className="mt-1">
-								{viewDescriptionProject &&
-									getStatusBadge(viewDescriptionProject.status)}
-							</div>
 						</div>
 					</div>
 				</DialogContent>

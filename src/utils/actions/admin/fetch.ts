@@ -236,8 +236,8 @@ export async function createUser(userData: {
 	email: string;
 	name: string;
 	role: string;
-	studentID?: string;
-	semesterID?: number;
+	studentId?: string;
+	semesterId?: number;
 	isCoordinator?: boolean;
 }): Promise<ServerActionResponse<User>> {
 	try {
@@ -247,21 +247,33 @@ export async function createUser(userData: {
 			role: userData.role,
 		};
 		if (userData.role === 'student') {
-			if (userData.studentID) {
-				requestData.studentID = userData.studentID;
+			if (userData.studentId) {
+				requestData.studentId = userData.studentId;
 			}
-			requestData.semesterID = userData.semesterID ? userData.semesterID : null;
+			requestData.semesterId = userData.semesterId ? userData.semesterId : 5;
 		} else if (userData.role === 'faculty') {
-			requestData.is_coordinator = Boolean(userData.isCoordinator);
-			requestData.semesterID = null;
+			requestData.isCoordinator = Boolean(userData.isCoordinator);
+			requestData.semesterId = null;
 		}
-		const responseData = await fetcherFn(
-			'admin/users',
-			{
-				method: 'POST',
+
+		console.log('Request data:', JSON.stringify(requestData));
+		const apiUrl = process.env.BACKEND_API_URL;
+		if (!apiUrl) {
+			throw new Error('Backend API URL is not defined');
+		}
+		const accessToken = await getAccessToken();
+		const response = await fetch(`${apiUrl}/api/admin/users`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${accessToken}`,
 			},
-			requestData
-		);
+			body: JSON.stringify(requestData),
+		});
+
+		const responseData = await response.json();
+		console.log('Response from server:', JSON.stringify(responseData));
+
 		return {
 			success: true,
 			data: responseData,

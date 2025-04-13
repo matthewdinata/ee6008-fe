@@ -71,6 +71,8 @@ function transformApiProject(
 		createdAt?: string;
 		updatedAt?: string;
 		venueId?: number;
+		venueName?: string;
+		venue?: { id?: number; name?: string };
 	}
 ): Project {
 	// Log the raw API project for debugging
@@ -87,6 +89,14 @@ function transformApiProject(
 		apiProject.moderator_id ||
 		(apiProject.moderator ? apiProject.moderator.id || apiProject.moderator.user_id : null);
 
+	// Add debug log for venue information
+	console.log('Venue information in API project:', {
+		venueId: apiProject.venueId,
+		venue_id: apiProject.venue_id,
+		venueName: apiProject.venueName,
+		venue_name: apiProject.venue_name,
+	});
+
 	const transformed = {
 		id: apiProject.id,
 		proposal_id: apiProject.proposalId || apiProject.proposal_id || 0,
@@ -99,11 +109,19 @@ function transformApiProject(
 		programme_id: apiProject.programmeId || apiProject.programme_id || 0,
 		professor_id: professorId,
 		moderator_id: moderatorId,
-		programme_name: apiProject.programmeName || '',
+		programme_name: apiProject.programmeName || apiProject.programme_name || '',
 		professor_name:
-			apiProject.professorName || (apiProject.professor ? apiProject.professor.name : ''),
+			apiProject.professorName ||
+			apiProject.professor_name ||
+			(apiProject.professor ? apiProject.professor.name : ''),
 		moderator_name:
-			apiProject.moderatorName || (apiProject.moderator ? apiProject.moderator.name : ''),
+			apiProject.moderatorName ||
+			apiProject.moderator_name ||
+			(apiProject.moderator ? apiProject.moderator.name : ''),
+		venue_name:
+			apiProject.venueName ||
+			apiProject.venue_name ||
+			(apiProject.venue ? apiProject.venue.name : ''),
 	};
 
 	// Log the transformed project for debugging

@@ -254,9 +254,39 @@ export async function getProjectGradesAsModeratorClient(
 }
 
 export async function getFinalProjectGradesClient(projectId: number): Promise<FinalProjectGrade[]> {
-	return fetcherFn<FinalProjectGrade[]>(`faculty/projects/${projectId}/grades`, {
-		method: 'GET',
-	});
+	console.log(`Fetching final project grades for project ID: ${projectId}`);
+	try {
+		const result = await fetcherFn<FinalProjectGrade[]>(
+			`faculty/projects/${projectId}/grades`,
+			{
+				method: 'GET',
+			}
+		);
+
+		console.log('Final project grades API response:', JSON.stringify(result, null, 2));
+		console.log(
+			'Number of grade records:',
+			Array.isArray(result) ? result.length : 'Not an array'
+		);
+
+		if (Array.isArray(result) && result.length > 0) {
+			console.log('First grade record structure:', JSON.stringify(result[0], null, 2));
+			console.log('Grade data types:', {
+				project_id: typeof result[0].project_id,
+				student_id: typeof result[0].student_id,
+				student_name: typeof result[0].student_name,
+				final_score: typeof result[0].final_score,
+				supervisor_score: typeof result[0].supervisor_score,
+				moderator_score: typeof result[0].moderator_score,
+				grade: typeof result[0].grade,
+			});
+		}
+
+		return result;
+	} catch (error) {
+		console.error('Error fetching final project grades:', error);
+		throw error;
+	}
 }
 
 export async function gradeProjectAsSupervisorClient(

@@ -149,16 +149,34 @@ export default function ProjectsPage() {
 		}
 	};
 
-	// Function to update a project with a new moderator
-	const updateProjectWithModerator = (_updatedProject: Project) => {
-		// Refetch projects after update
-		refetchProjects();
-		// Show success toast
-		toast({
-			title: 'Success',
-			description: 'Moderator assigned successfully',
-			variant: 'default',
-		});
+	// Function to update a project with a new moderator or handle moderator removal
+	const updateProjectWithModerator = (updatedProject: Project) => {
+		// Log the update action for debugging
+		console.log('Project update triggered:', updatedProject);
+
+		// Force an immediate refetch of the projects data to refresh the table
+		refetchProjects()
+			.then(() => {
+				console.log('Projects data successfully refreshed');
+			})
+			.catch((error) => {
+				console.error('Error refreshing projects data:', error);
+			});
+
+		// Only show a toast if the object isn't empty (empty object is just used to trigger refresh)
+		if (Object.keys(updatedProject).length > 1) {
+			// Check if this is a moderator removal (moderator_id is null)
+			const isRemoval =
+				updatedProject.moderator_id === null || updatedProject.moderatorId === null;
+
+			toast({
+				title: 'Success',
+				description: isRemoval
+					? 'Moderator removed successfully'
+					: 'Moderator assigned successfully',
+				variant: 'default',
+			});
+		}
 	};
 
 	// Function to manually refresh data

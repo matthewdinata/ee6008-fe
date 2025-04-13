@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import { createContext, useState } from 'react';
 
-import { Programme, Project, User } from '@/utils/actions/admin/types';
+import { Programme, Project, User, Venue } from '@/utils/actions/admin/types';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,9 @@ export const ProgrammeContext = createContext<Programme[]>([]);
 
 // Create FacultyContext
 export const FacultyContext = createContext<User[]>([]);
+
+// Create VenueContext
+export const VenueContext = createContext<Venue[]>([]);
 
 // Map the Project status to ProposalStatus equivalent
 export enum ProjectStatus {
@@ -91,6 +94,19 @@ export const getFacultyName = (faculty: User[], facultyId: number | null | undef
 	return `Faculty ID: ${facultyId}`;
 };
 
+// Function to get venue name from ID
+export const getVenueName = (venues: Venue[], venueId: number | null | undefined): string => {
+	if (venueId === null || venueId === undefined) return 'Not assigned';
+
+	// Check the venues list
+	const venue = venues.find((v) => v.id === venueId);
+	if (venue) {
+		return venue.name;
+	}
+
+	return `Venue ID: ${venueId}`;
+};
+
 function ProjectDetails({ project }: { project: EnhancedProject }) {
 	if (!project) return <Skeleton className="h-48 w-full" />;
 
@@ -116,6 +132,17 @@ function ProjectDetails({ project }: { project: EnhancedProject }) {
 						</p>
 					)}
 				</FacultyContext.Consumer>
+			</div>
+
+			<div>
+				<h3 className="font-semibold">Venue</h3>
+				<VenueContext.Consumer>
+					{(venues) => (
+						<p className="text-sm text-muted-foreground">
+							{getVenueName(venues, project.venue_id)}
+						</p>
+					)}
+				</VenueContext.Consumer>
 			</div>
 
 			<div>
@@ -252,7 +279,18 @@ export const columns: ColumnDef<EnhancedProject>[] = [
 	{
 		accessorKey: 'professor_id',
 		id: 'supervisor',
-		header: 'Supervisor',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					className="px-0 hover:bg-transparent"
+				>
+					Supervisor
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
 		cell: ({ row }) => {
 			return (
 				<FacultyContext.Consumer>
@@ -265,9 +303,46 @@ export const columns: ColumnDef<EnhancedProject>[] = [
 		},
 	},
 	{
+		accessorKey: 'venue_id',
+		id: 'venue',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					className="px-0 hover:bg-transparent"
+				>
+					Venue
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
+		cell: ({ row }) => {
+			return (
+				<VenueContext.Consumer>
+					{(venues) => getVenueName(venues, row.original.venue_id)}
+				</VenueContext.Consumer>
+			);
+		},
+		meta: {
+			header: 'Venue',
+		},
+	},
+	{
 		accessorKey: 'moderator_id',
 		id: 'moderator',
-		header: 'Moderator',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+					className="px-0 hover:bg-transparent"
+				>
+					Moderator
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
 		cell: ({ row }) => {
 			return (
 				<FacultyContext.Consumer>

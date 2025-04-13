@@ -26,7 +26,6 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 
 // Form schema
 const formSchema = z.object({
@@ -35,9 +34,6 @@ const formSchema = z.object({
 	}),
 	programme_code: z.string().min(2, {
 		message: 'Programme code must be at least 2 characters.',
-	}),
-	description: z.string().min(2, {
-		message: 'Description must be at least 2 characters.',
 	}),
 	semester_id: z.number(),
 });
@@ -65,7 +61,6 @@ export function CreateProgrammeDialog({
 		defaultValues: {
 			name: '',
 			programme_code: '',
-			description: '',
 			semester_id: semesterId,
 		},
 	});
@@ -79,7 +74,6 @@ export function CreateProgrammeDialog({
 			const response = await createProgramme({
 				name: data.name,
 				programme_code: data.programme_code,
-				description: data.description,
 				semester_id: data.semester_id,
 			});
 
@@ -145,24 +139,6 @@ export function CreateProgrammeDialog({
 									<FormLabel>Programme Code</FormLabel>
 									<FormControl>
 										<Input {...field} placeholder="e.g. CS" />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<FormField
-							control={form.control}
-							name="description"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Description</FormLabel>
-									<FormControl>
-										<Textarea
-											{...field}
-											placeholder="Enter programme description"
-											rows={3}
-										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
 import { deleteUser } from '@/utils/actions/admin/user';
@@ -35,10 +35,18 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
+// Type for sort columns
+type SortColumn = 'id' | 'name' | 'email';
+type SortDirection = 'asc' | 'desc';
+
 export default function FacultyTable() {
+	const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState('10');
+	// Add sorting state
+	const [sortColumn, setSortColumn] = useState<SortColumn>('id');
+	const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
 	// Use React Query hook for faculty users
 	const {
@@ -59,16 +67,53 @@ export default function FacultyTable() {
 		},
 	});
 
-	// Filter users based on search query
+	// Filter and sort users
 	const filteredUsers = useMemo(() => {
-		return allUsers.filter((user) => {
+		// First filter by search query
+		const filtered = allUsers.filter((user) => {
 			const searchLower = searchQuery.toLowerCase();
 			return (
 				user.name.toLowerCase().includes(searchLower) ||
 				user.email.toLowerCase().includes(searchLower)
 			);
 		});
-	}, [allUsers, searchQuery]);
+
+		// Then sort the filtered results
+		return [...filtered].sort((a, b) => {
+			// Default to comparing IDs if values are equal
+			const defaultCompare = () => {
+				const aId = a.id || a.userId || 0;
+				const bId = b.id || b.userId || 0;
+				return sortDirection === 'asc' ? aId - bId : bId - aId;
+			};
+
+			// Define compare based on sortColumn
+			let result = 0;
+			// Prepare variables outside switch statement to avoid case block declarations
+			let aId = 0;
+			let bId = 0;
+
+			switch (sortColumn) {
+				case 'id':
+					aId = a.id || a.userId || 0;
+					bId = b.id || b.userId || 0;
+					result = aId - bId;
+					break;
+				case 'name':
+					result = a.name.localeCompare(b.name);
+					break;
+				case 'email':
+					result = a.email.localeCompare(b.email);
+					break;
+
+				default:
+					return defaultCompare();
+			}
+
+			// Apply sort direction
+			return sortDirection === 'asc' ? result : -result;
+		});
+	}, [allUsers, searchQuery, sortColumn, sortDirection]);
 
 	// Calculate pagination
 	const totalItems = filteredUsers.length;
@@ -84,13 +129,16 @@ export default function FacultyTable() {
 		}
 
 		try {
+			setDeleteLoading(userId);
 			// Use utility function to delete a user
 			await deleteUser(userId);
 
 			// Refetch data after successful deletion instead of manual filtering
 			refetch();
 		} catch (error) {
-			console.error('Error:', error);
+			console.error('Error deleting user:', error);
+		} finally {
+			setDeleteLoading(null);
 		}
 	};
 
@@ -101,27 +149,10 @@ export default function FacultyTable() {
 	};
 
 	return (
-		<div className="mx-auto p-6 text-foreground">
+		<div className="w-full text-foreground">
 			<div className="flex flex-col space-y-4">
 				<div className="flex justify-between items-center">
 					<h2 className="text-2xl font-bold text-foreground">Faculty List</h2>
-					<Button
-						onClick={() => refetch()}
-						disabled={isLoading}
-						className="flex items-center gap-2"
-					>
-						{isLoading ? (
-							<>
-								<div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-								Loading...
-							</>
-						) : (
-							<>
-								<RefreshCw className="h-4 w-4" />
-								Get Faculty
-							</>
-						)}
-					</Button>
 				</div>
 
 				{error && (
@@ -134,56 +165,115 @@ export default function FacultyTable() {
 				)}
 
 				{allUsers.length > 0 && (
-					<div className="flex justify-between items-center gap-4">
-						{/* Search bar */}
-						<div className="flex items-center flex-1 max-w-sm">
-							<div className="relative w-full">
+					<div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+						<div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+							<div className="relative w-full md:w-80">
 								<Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
 								<Input
 									placeholder="Search by name or email..."
 									value={searchQuery}
-									onChange={(e) => {
-										setSearchQuery(e.target.value);
-										setCurrentPage(1); // Reset to first page on search
-									}}
-									className="pl-8"
+									onChange={(e) => setSearchQuery(e.target.value)}
+									className="pl-8 w-full"
 								/>
 							</div>
+							<Button
+								variant="outline"
+								size="icon"
+								onClick={() => {
+									console.log('Refreshing faculty data');
+									refetch();
+								}}
+								className="flex-shrink-0"
+							>
+								<RefreshCw className="h-4 w-4" />
+							</Button>
 						</div>
-
-						{/* Page size selector */}
 						<div className="flex items-center gap-2">
-							<span className="text-sm text-muted-foreground">Show:</span>
+							<span className="text-sm text-muted-foreground">Show</span>
 							<Select
 								value={pageSize}
-								onValueChange={(value) => {
-									setPageSize(value);
-									setCurrentPage(1); // Reset to first page when changing page size
+								onValueChange={(val) => {
+									setPageSize(val);
+									setCurrentPage(1); // Reset to first page when page size changes
 								}}
 							>
-								<SelectTrigger className="w-[100px]">
-									<SelectValue />
+								<SelectTrigger className="w-16 h-8">
+									<SelectValue placeholder="10" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="10">10</SelectItem>
-									<SelectItem value="25">25</SelectItem>
+									<SelectItem value="20">20</SelectItem>
 									<SelectItem value="50">50</SelectItem>
 									<SelectItem value="100">100</SelectItem>
 								</SelectContent>
 							</Select>
+							<span className="text-sm text-muted-foreground hidden md:inline">
+								per page
+							</span>
 						</div>
 					</div>
 				)}
 
-				<div className="rounded-md border border-border bg-card">
+				<div className="overflow-x-auto">
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead className="w-[100px]">ID</TableHead>
-								<TableHead>Name</TableHead>
-								<TableHead>Email</TableHead>
-								<TableHead>Role</TableHead>
-								<TableHead className="w-[100px]">Actions</TableHead>
+								<TableHead className="w-[60px]">
+									<div
+										className="flex items-center cursor-pointer"
+										onClick={() => {
+											if (sortColumn === 'id') {
+												setSortDirection(
+													sortDirection === 'asc' ? 'desc' : 'asc'
+												);
+											} else {
+												setSortColumn('id');
+												setSortDirection('asc');
+											}
+										}}
+									>
+										ID
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</div>
+								</TableHead>
+								<TableHead>
+									<div
+										className="flex items-center cursor-pointer"
+										onClick={() => {
+											if (sortColumn === 'name') {
+												setSortDirection(
+													sortDirection === 'asc' ? 'desc' : 'asc'
+												);
+											} else {
+												setSortColumn('name');
+												setSortDirection('asc');
+											}
+										}}
+									>
+										Name
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</div>
+								</TableHead>
+								<TableHead>
+									<div
+										className="flex items-center cursor-pointer"
+										onClick={() => {
+											if (sortColumn === 'email') {
+												setSortDirection(
+													sortDirection === 'asc' ? 'desc' : 'asc'
+												);
+											} else {
+												setSortColumn('email');
+												setSortDirection('asc');
+											}
+										}}
+									>
+										Email
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</div>
+								</TableHead>
+
+								<TableHead className="text-right">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -197,60 +287,58 @@ export default function FacultyTable() {
 								</TableRow>
 							) : currentUsers.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={5} className="text-center py-8">
-										{allUsers.length === 0
-											? 'Click "Get Faculty" to load data'
-											: 'No faculty users found'}
+									<TableCell colSpan={5} className="h-24 text-center">
+										No faculty users found.
 									</TableCell>
 								</TableRow>
 							) : (
 								currentUsers.map((user) => (
 									<TableRow key={user.email}>
-										<TableCell className="font-medium">{user.userId}</TableCell>
+										<TableCell className="font-medium">
+											{user.userId || user.id}
+										</TableCell>
 										<TableCell>{user.name}</TableCell>
 										<TableCell>{user.email}</TableCell>
-										<TableCell>
-											{user.isCourseCoordinator
-												? 'Course Coordinator'
-												: 'Faculty'}
-										</TableCell>
-										<TableCell>
-											<AlertDialog>
-												<AlertDialogTrigger asChild>
-													<Button
-														variant="outline"
-														size="icon"
-														className="h-8 w-8 text-red-600 hover:text-red-700"
-													>
-														<Trash2 className="h-4 w-4" />
-													</Button>
-												</AlertDialogTrigger>
-												<AlertDialogContent>
-													<AlertDialogHeader>
-														<AlertDialogTitle>
-															Delete User
-														</AlertDialogTitle>
-														<AlertDialogDescription>
-															Are you sure you want to delete{' '}
-															{user.name}? This action cannot be
-															undone.
-														</AlertDialogDescription>
-													</AlertDialogHeader>
-													<AlertDialogFooter>
-														<AlertDialogCancel>
-															Cancel
-														</AlertDialogCancel>
-														<AlertDialogAction
-															onClick={() =>
-																handleDelete(user.userId)
-															}
-															className="bg-red-600 hover:bg-red-700"
-														>
-															Delete
-														</AlertDialogAction>
-													</AlertDialogFooter>
-												</AlertDialogContent>
-											</AlertDialog>
+										<TableCell className="text-right">
+											<div className="flex justify-end gap-2">
+												<AlertDialog>
+													<AlertDialogTrigger asChild>
+														<Button variant="ghost" size="icon">
+															<Trash2 className="h-4 w-4 text-destructive" />
+														</Button>
+													</AlertDialogTrigger>
+													<AlertDialogContent>
+														<AlertDialogHeader>
+															<AlertDialogTitle>
+																Confirm Deletion
+															</AlertDialogTitle>
+															<AlertDialogDescription>
+																Are you sure you want to delete{' '}
+																{user.name}? This action cannot be
+																undone.
+															</AlertDialogDescription>
+														</AlertDialogHeader>
+														<AlertDialogFooter>
+															<AlertDialogCancel>
+																Cancel
+															</AlertDialogCancel>
+															<AlertDialogAction
+																onClick={() =>
+																	handleDelete(
+																		user.userId || user.id
+																	)
+																}
+																className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+															>
+																{deleteLoading === user.userId ||
+																deleteLoading === user.id
+																	? 'Deleting...'
+																	: 'Delete'}
+															</AlertDialogAction>
+														</AlertDialogFooter>
+													</AlertDialogContent>
+												</AlertDialog>
+											</div>
 										</TableCell>
 									</TableRow>
 								))
@@ -259,81 +347,37 @@ export default function FacultyTable() {
 					</Table>
 				</div>
 
-				{allUsers.length > 0 && (
-					<div className="flex items-center justify-between">
-						<p className="text-sm text-muted-foreground">
-							Showing {currentUsers.length > 0 ? startIndex + 1 : 0}-
-							{Math.min(endIndex, totalItems)} of {totalItems} results
-						</p>
-						<div className="flex items-center space-x-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => handlePageChange(currentPage - 1)}
-								disabled={currentPage === 1}
-							>
-								<ChevronLeft className="h-4 w-4" />
-							</Button>
-							<div className="flex items-center gap-1">
-								{Array.from({ length: totalPages }, (_, i) => i + 1)
-									.filter((page) => {
-										return (
-											page === 1 ||
-											page === totalPages ||
-											Math.abs(page - currentPage) <= 1
-										);
-									})
-									.map((page, index, array) => {
-										// Add ellipsis for skipped pages
-										const prevPage = array[index - 1];
-										if (prevPage && page - prevPage > 1) {
-											return (
-												<React.Fragment key={`ellipsis-${page}`}>
-													<span className="px-2 text-muted-foreground">
-														...
-													</span>
-													<Button
-														key={page}
-														variant={
-															currentPage === page
-																? 'default'
-																: 'outline'
-														}
-														size="sm"
-														onClick={() => handlePageChange(page)}
-														className="w-8 h-8"
-													>
-														{page}
-													</Button>
-												</React.Fragment>
-											);
-										}
-										return (
-											<Button
-												key={page}
-												variant={
-													currentPage === page ? 'default' : 'outline'
-												}
-												size="sm"
-												onClick={() => handlePageChange(page)}
-												className="w-8 h-8"
-											>
-												{page}
-											</Button>
-										);
-									})}
+				{/* Pagination controls */}
+				{totalPages > 1 && (
+					<div className="flex items-center justify-end mt-4">
+						<div className="flex items-center gap-6">
+							<div className="text-sm text-muted-foreground">
+								Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{' '}
+								{totalItems} faculty
 							</div>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => handlePageChange(currentPage + 1)}
-								disabled={currentPage === totalPages}
-							>
-								<ChevronRight className="h-4 w-4" />
-							</Button>
+							<div className="flex items-center space-x-2">
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={() => handlePageChange(currentPage - 1)}
+									disabled={currentPage === 1}
+								>
+									<ChevronLeft className="h-4 w-4" />
+								</Button>
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={() => handlePageChange(currentPage + 1)}
+									disabled={currentPage === totalPages}
+								>
+									<ChevronRight className="h-4 w-4" />
+								</Button>
+							</div>
 						</div>
 					</div>
 				)}
+
+				{/* Edit Faculty Dialog - This will need to be created separately */}
 			</div>
 		</div>
 	);

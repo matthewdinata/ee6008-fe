@@ -174,10 +174,23 @@ const AuthPage = () => {
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-background p-4">
-			<div className="gradient-background absolute inset-0 -z-10" />
+		<div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+			{/* Background using the gradient-background class from globals.css */}
+			<div className="absolute inset-0 -z-10">
+				<div className="w-full h-full gradient-background" />
+				<div className="absolute inset-0 bg-gradient opacity-20" />
+			</div>
 
-			<Card className="max-w-md w-full">
+			{/* Subtle dot pattern overlay */}
+			<div
+				className="absolute inset-0 opacity-10"
+				style={{
+					backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)`,
+					backgroundSize: '20px 20px',
+				}}
+			/>
+
+			<Card className="max-w-md w-full backdrop-blur-sm bg-card/90 shadow-xl border-border/50 relative z-10">
 				<CardHeader className="space-y-1">
 					<CardTitle className="text-center text-3xl font-bold">
 						Welcome to EE6008

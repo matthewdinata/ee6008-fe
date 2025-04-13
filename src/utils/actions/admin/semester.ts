@@ -220,6 +220,7 @@ export async function getProgrammes(
 	semesterId: number
 ): Promise<ServerActionResponse<Programme[]>> {
 	try {
+		console.log('Fetching programmes for semester ID:', semesterId);
 		const result = await fetcherFn<ProgrammeResponse>(
 			`admin/semesters/${semesterId}/programmes`,
 			{
@@ -229,6 +230,7 @@ export async function getProgrammes(
 				next: { tags: [`semester-${semesterId}-programmes`] },
 			}
 		);
+		console.log('Raw API response:', result);
 
 		// Process the response data
 		let rawProgrammes: Record<string, unknown>[] = [];
@@ -253,12 +255,16 @@ export async function getProgrammes(
 					programme && typeof programme === 'object' && programme.id !== undefined
 			);
 
+		console.log('Raw programme objects:', rawProgrammes.length);
+		console.log('Mapped programmes:', programmes);
+
 		if (programmes.length !== rawProgrammes.length) {
 			console.warn(
 				`getProgrammes: Filtered out ${rawProgrammes.length - programmes.length} invalid programme objects`
 			);
 		}
 
+		console.log('Final programmes data to return:', programmes);
 		return {
 			success: true,
 			data: programmes,

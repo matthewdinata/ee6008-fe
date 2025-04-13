@@ -1,7 +1,6 @@
 'use client';
 
-import { AlertCircle, CheckCircle2, Clock, Edit, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { AlertCircle, CheckCircle, CheckCircle2, Clock, Edit, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { TeamMember } from '@/utils/actions/student/types';
@@ -22,16 +21,22 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
+import ReviewDialog from './review-dialog';
+
 export default function PeerReviewDashboard() {
-	const router = useRouter();
+	// State for dialog control
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [selectedReviewId, setSelectedReviewId] = useState<number | undefined>(undefined);
+	const [selectedTeamMember, setSelectedTeamMember] = useState<TeamMember | undefined>(undefined);
+
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	const { data, isLoading, isError, error, refetch } = usePeerReviews();
+	const { data: peerReviewsData, isLoading, isError, error, refetch } = usePeerReviews();
+
 	const {
 		isWithinPeerReviewPeriod,
 		timeMessage,
 		isLoading: isTimelineLoading,
-		error: _timelineError,
 	} = useCheckPeerReviewPeriod();
 
 	// For debugging timeline data
@@ -50,18 +55,34 @@ export default function PeerReviewDashboard() {
 		}
 	}, [isError, error]);
 
+	// Handle clicking on a team member to review - now opens dialog instead of navigating
 	const handleReviewClick = (teamMemberId: number, reviewId?: number) => {
 		if (!isWithinPeerReviewPeriod) {
-			return; // Don't navigate if outside of review period
+			return; // Don't open dialog if outside of review period
 		}
 
 		if (reviewId) {
-			// Edit existing review
-			router.push(`/student/peer-review/edit/${reviewId}`);
+			// Set up for editing an existing review
+			setSelectedReviewId(reviewId);
+			setSelectedTeamMember(undefined);
 		} else {
-			// Create new review
-			router.push(`/student/peer-review/new?revieweeId=${teamMemberId}`);
+			// Set up for creating a new review
+			setSelectedReviewId(undefined);
+			const teamMember = peerReviewsData?.teamMembers.find((m) => m.id === teamMemberId);
+			setSelectedTeamMember(teamMember);
 		}
+
+		// Open the dialog
+		setIsDialogOpen(true);
+	};
+
+	// Handle dialog close
+	const handleDialogClose = () => {
+		setIsDialogOpen(false);
+		setSelectedReviewId(undefined);
+		setSelectedTeamMember(undefined);
+		// Refetch data to update the UI
+		refetch();
 	};
 
 	if (isLoading || isTimelineLoading) {
@@ -86,7 +107,11 @@ export default function PeerReviewDashboard() {
 		);
 	}
 
-	if (!data || !data.teamMembers || data.teamMembers.length === 0) {
+	if (
+		!peerReviewsData ||
+		!peerReviewsData.teamMembers ||
+		peerReviewsData.teamMembers.length === 0
+	) {
 		return (
 			<Alert className="mb-6">
 				<AlertCircle className="h-4 w-4" />
@@ -104,28 +129,24 @@ export default function PeerReviewDashboard() {
 		);
 	}
 
-	const { teamMembers, completionProgress } = data;
+	const { teamMembers, completionProgress } = peerReviewsData;
 
 	return (
-		<div className="space-y-6">
-			{/* Debug Info
-			<div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-md">
-				<h3 className="font-mono text-sm">Debug Information</h3>
-				<pre className="text-xs mt-2 max-h-40 overflow-auto">
-					{JSON.stringify({
-						isWithinPeerReviewPeriod,
-						timeMessage,
-						timelineLoading: isTimelineLoading,
-						timelineError,
-						rawTimelineData: timelineData
-					}, null, 2)}
-				</pre>
-			</div> */}
+		<div className="space-y-8">
+			{/* Review Dialog */}
+			<ReviewDialog
+				isOpen={isDialogOpen}
+				onClose={handleDialogClose}
+				reviewId={selectedReviewId}
+				revieweeId={selectedTeamMember?.id}
+				teamMember={selectedTeamMember}
+				projectId={peerReviewsData?.projectId}
+			/>
 
 			{/* Timeline Status Alert */}
 			{isWithinPeerReviewPeriod ? (
 				<Alert className="mb-6">
-					<CheckCircle2 className="h-4 w-4" />
+					<CheckCircle className="h-4 w-4" />
 					<AlertTitle>Peer Review Period Active</AlertTitle>
 					<AlertDescription>{timeMessage}</AlertDescription>
 				</Alert>

@@ -1,9 +1,11 @@
 'use client';
 
-import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, Pencil, Search, Trash2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { Semester } from '@/utils/actions/admin/types';
 import { User, deleteUser, fetchStudentUsers } from '@/utils/actions/admin/user';
+import { useGetSemesters } from '@/utils/hooks/admin/use-get-semesters';
 
 import {
 	AlertDialog,
@@ -42,6 +44,7 @@ interface StudentUser extends User {
 		name: string;
 		isActive: boolean;
 	};
+	matriculation_number?: string;
 }
 
 export function StudentTable() {
@@ -52,36 +55,116 @@ export function StudentTable() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState('10');
 	const [error, setError] = useState<string | null>(null);
+	const [editingStudent, setEditingStudent] = useState<StudentUser | null>(null);
+	const [isAddDialogOpen, _setIsAddDialogOpen] = useState<boolean>(false);
+	const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
+	const [sortColumn, setSortColumn] = useState<string | null>(null);
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
-	// Filter users based on search query
+	// Fetch semesters
+	const { data: semestersData } = useGetSemesters();
+
+	// Transform semesters to ensure academicYear is always a number
+	const semesters = useMemo(() => {
+		if (!semestersData) return [];
+		return semestersData.map((sem) => ({
+			...sem,
+			academicYear: sem.academicYear || 0,
+			academic_year: sem.academic_year || 0,
+			isActive: sem.isActive === true, // Ensure isActive is always a boolean
+		}));
+	}, [semestersData]);
+
+	// Format semester display for readability
+	const formatSemesterDisplay = (semester: Semester): string => {
+		const activeStatus = semester.isActive ? ' (Active)' : '';
+		return `AY ${semester.academicYear} - ${semester.name}${activeStatus}`;
+	};
+
+	// Filter users based on search query and selected semester
 	const filteredUsers = useMemo(() => {
 		return allUsers.filter((user) => {
-			const searchLower = searchQuery.toLowerCase();
+			// Filter by semester if selected
+			if (selectedSemester && user.semester?.id !== selectedSemester) {
+				return false;
+			}
+
+			// Filter by search query
+			if (!searchQuery.trim()) return true;
+
+			const searchLower = searchQuery.toLowerCase().trim();
 			return (
 				user.name.toLowerCase().includes(searchLower) ||
-				user.email.toLowerCase().includes(searchLower)
+				user.email.toLowerCase().includes(searchLower) ||
+				(user.matriculation_number?.toLowerCase().includes(searchLower) ?? false)
 			);
 		});
-	}, [allUsers, searchQuery]);
+	}, [allUsers, searchQuery, selectedSemester]);
 
-	// Calculate pagination
-	const totalItems = filteredUsers.length;
+	// Sort filtered users
+	const sortedUsers = useMemo(() => {
+		if (!sortColumn || !sortDirection) return filteredUsers;
+
+		return [...filteredUsers].sort((a, b) => {
+			let aValue: string | number = '';
+			let bValue: string | number = '';
+
+			// Handle special cases for nested properties
+			if (sortColumn === 'semester') {
+				aValue = a.semester?.name || '';
+				bValue = b.semester?.name || '';
+			} else if (sortColumn === 'matriculation_number') {
+				aValue = a.matriculation_number || '';
+				bValue = b.matriculation_number || '';
+			} else {
+				// Use type assertion for safe indexing with double casting
+				aValue = (a as unknown as Record<string, string | number>)[sortColumn] || '';
+				bValue = (b as unknown as Record<string, string | number>)[sortColumn] || '';
+			}
+
+			// Convert to lowercase for string comparison
+			if (typeof aValue === 'string' && typeof bValue === 'string') {
+				aValue = aValue.toLowerCase();
+				bValue = bValue.toLowerCase();
+			}
+
+			// Handle undefined or null values
+			if (aValue === undefined || aValue === null) aValue = '';
+			if (bValue === undefined || bValue === null) bValue = '';
+
+			// Perform comparison
+			const result = aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+			return sortDirection === 'asc' ? result : -result;
+		});
+	}, [filteredUsers, sortColumn, sortDirection]);
+
+	// Calculate pagination - use sorted users instead of filtered
+	const totalItems = sortedUsers.length;
 	const totalPages = Math.ceil(totalItems / parseInt(pageSize));
 	const startIndex = (currentPage - 1) * parseInt(pageSize);
 	const endIndex = startIndex + parseInt(pageSize);
-	const currentUsers = filteredUsers.slice(startIndex, endIndex);
+	const currentUsers = sortedUsers.slice(startIndex, endIndex);
 
-	const fetchUsers = async () => {
+	const fetchUsers = async (forceRefresh: boolean = false) => {
 		try {
 			setIsLoading(true);
 			setError(null);
 
 			// Use utility function to fetch student users (server-side)
-			const formattedData = await fetchStudentUsers();
+			// Pass forceRefresh to bypass cache and get fresh data
+			const formattedData = await fetchStudentUsers(forceRefresh);
 
-			// Add isActive property to each student's semester object
+			// Log raw data to see if matriculation_number is included
+			console.log('Raw student data:', formattedData);
+
+			// Add isActive property to each student's semester object and handle matriculation numbers
 			const studentsWithIsActive = formattedData.map((student) => ({
 				...student,
+				// If available, assign matriculation_number from the API response
+				// This is a placeholder - we'll need to see the actual API response
+				matriculation_number:
+					(student as unknown as Record<string, string | undefined>)
+						.matriculation_number || `M${student.id.toString().padStart(8, '0')}`,
 				semester: student.semester
 					? {
 							...student.semester,
@@ -107,15 +190,24 @@ export function StudentTable() {
 			setDeleteLoading(userId);
 
 			// Use utility function to delete a user
+			console.log('Attempting to delete user ID:', userId);
 			await deleteUser(userId);
+			console.log('Delete API call completed');
 
-			// Remove the deleted user from the local state
-			setAllUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+			// Instead of just updating the local state, fetch fresh data from the server
+			// to ensure our UI reflects the current database state
+			console.log('Refreshing student list from server...');
+			await fetchUsers(true); // Pass true to force a fresh fetch
+			console.log('Student list refreshed');
 		} catch (error) {
-			console.error('Error:', error);
+			console.error('Error deleting user:', error);
 		} finally {
 			setDeleteLoading(null);
 		}
+	};
+
+	const handleEdit = (student: StudentUser) => {
+		setEditingStudent(student);
 	};
 
 	const handlePageChange = (newPage: number) => {
@@ -136,27 +228,10 @@ export function StudentTable() {
 	}, []);
 
 	return (
-		<div className="container mx-auto p-6 text-foreground">
+		<div className="w-full text-foreground">
 			<div className="flex flex-col space-y-4">
 				<div className="flex justify-between items-center">
 					<h2 className="text-2xl font-bold text-foreground">Student List</h2>
-					<Button
-						onClick={fetchUsers}
-						disabled={isLoading}
-						className="flex items-center gap-2"
-					>
-						{isLoading ? (
-							<>
-								<div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-								Loading...
-							</>
-						) : (
-							<>
-								<RefreshCw className="h-4 w-4" />
-								Get Students
-							</>
-						)}
-					</Button>
 				</div>
 
 				{error && (
@@ -169,62 +244,188 @@ export function StudentTable() {
 				)}
 
 				{allUsers.length > 0 && (
-					<div className="flex justify-between items-center gap-4">
-						{/* Search bar */}
-						<div className="flex items-center flex-1 max-w-sm">
-							<div className="relative w-full">
-								<Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+					<div className="flex flex-wrap items-center justify-between gap-4 my-4">
+						<div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+							<Select
+								value={selectedSemester?.toString() || 'all'}
+								onValueChange={(value) => {
+									setSelectedSemester(
+										value && value !== 'all' ? parseInt(value) : null
+									);
+									setCurrentPage(1); // Reset to first page when semester changes
+								}}
+							>
+								<SelectTrigger className="w-[180px]">
+									<SelectValue placeholder="Filter by semester" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All Semesters</SelectItem>
+									{semesters.map((semester) => (
+										<SelectItem
+											key={semester.id}
+											value={semester.id.toString()}
+										>
+											{formatSemesterDisplay(semester)}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+
+							<div className="relative flex items-center w-full md:w-auto min-w-[200px]">
+								<Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
 								<Input
-									placeholder="Search by name or email..."
+									type="search"
+									placeholder="Search by name, email or matric..."
+									className="pl-8"
 									value={searchQuery}
 									onChange={(e) => {
 										setSearchQuery(e.target.value);
-										setCurrentPage(1); // Reset to first page on search
+										setCurrentPage(1); // Reset to first page when search changes
 									}}
-									className="pl-8"
 								/>
 							</div>
 						</div>
 
-						{/* Page size selector */}
-						<div className="flex items-center gap-2">
-							<span className="text-sm text-muted-foreground">Show:</span>
-							<Select
-								value={pageSize}
-								onValueChange={(value) => {
-									setPageSize(value);
-									setCurrentPage(1); // Reset to first page when changing page size
-								}}
-							>
-								<SelectTrigger className="w-[100px]">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="10">10</SelectItem>
-									<SelectItem value="25">25</SelectItem>
-									<SelectItem value="50">50</SelectItem>
-									<SelectItem value="100">100</SelectItem>
-								</SelectContent>
-							</Select>
+						<div className="flex items-center gap-3 ml-auto">
+							<div className="text-sm text-muted-foreground whitespace-nowrap">
+								Showing <span className="font-medium">{startIndex + 1}</span>-
+								<span className="font-medium">
+									{Math.min(endIndex, totalItems)}
+								</span>{' '}
+								of <span className="font-medium">{totalItems}</span>
+							</div>
+
+							<div className="flex items-center gap-1.5">
+								<span className="text-sm text-muted-foreground whitespace-nowrap">
+									Show
+								</span>
+								<Select
+									value={pageSize}
+									onValueChange={(value) => {
+										setPageSize(value);
+										setCurrentPage(1); // Reset to first page when page size changes
+									}}
+								>
+									<SelectTrigger className="h-8 w-[60px]">
+										<SelectValue placeholder="{pageSize}" />
+									</SelectTrigger>
+									<SelectContent side="top">
+										{[10, 20, 30, 40, 50].map((size) => (
+											<SelectItem key={size} value={size.toString()}>
+												{size}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<span className="text-sm text-muted-foreground whitespace-nowrap">
+									per page
+								</span>
+							</div>
 						</div>
 					</div>
 				)}
 
-				<div className="rounded-md border border-border bg-card">
+				<div className="overflow-x-auto">
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead className="w-[100px]">ID</TableHead>
-								<TableHead>Name</TableHead>
-								<TableHead>Email</TableHead>
-								<TableHead>Semester Academic Year</TableHead>
-								<TableHead className="w-[100px]">Actions</TableHead>
+								<TableHead className="w-[60px]">
+									<div
+										className="flex items-center cursor-pointer"
+										onClick={() => {
+											if (sortColumn === 'id') {
+												setSortDirection(
+													sortDirection === 'asc' ? 'desc' : 'asc'
+												);
+											} else {
+												setSortColumn('id');
+												setSortDirection('asc');
+											}
+										}}
+									>
+										ID
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</div>
+								</TableHead>
+								<TableHead>
+									<div
+										className="flex items-center cursor-pointer"
+										onClick={() => {
+											if (sortColumn === 'matriculation_number') {
+												setSortDirection(
+													sortDirection === 'asc' ? 'desc' : 'asc'
+												);
+											} else {
+												setSortColumn('matriculation_number');
+												setSortDirection('asc');
+											}
+										}}
+									>
+										Matric No.
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</div>
+								</TableHead>
+								<TableHead>
+									<div
+										className="flex items-center cursor-pointer"
+										onClick={() => {
+											if (sortColumn === 'name') {
+												setSortDirection(
+													sortDirection === 'asc' ? 'desc' : 'asc'
+												);
+											} else {
+												setSortColumn('name');
+												setSortDirection('asc');
+											}
+										}}
+									>
+										Name
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</div>
+								</TableHead>
+								<TableHead>
+									<div
+										className="flex items-center cursor-pointer"
+										onClick={() => {
+											if (sortColumn === 'email') {
+												setSortDirection(
+													sortDirection === 'asc' ? 'desc' : 'asc'
+												);
+											} else {
+												setSortColumn('email');
+												setSortDirection('asc');
+											}
+										}}
+									>
+										Email
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</div>
+								</TableHead>
+								<TableHead>
+									<div
+										className="flex items-center cursor-pointer"
+										onClick={() => {
+											if (sortColumn === 'semester') {
+												setSortDirection(
+													sortDirection === 'asc' ? 'desc' : 'asc'
+												);
+											} else {
+												setSortColumn('semester');
+												setSortDirection('asc');
+											}
+										}}
+									>
+										Semester
+										<ArrowUpDown className="ml-2 h-4 w-4" />
+									</div>
+								</TableHead>
+								<TableHead className="text-right">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{isLoading ? (
 								<TableRow>
-									<TableCell colSpan={5} className="text-center py-8">
+									<TableCell colSpan={6} className="text-center py-8">
 										<div className="flex justify-center">
 											<div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
 										</div>
@@ -232,61 +433,64 @@ export function StudentTable() {
 								</TableRow>
 							) : currentUsers.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={5} className="text-center py-8">
-										{allUsers.length === 0
-											? 'Click "Get Students" to load data'
-											: 'No students found'}
+									<TableCell colSpan={6} className="h-24 text-center">
+										No students found.
 									</TableCell>
 								</TableRow>
 							) : (
 								currentUsers.map((user) => (
 									<TableRow key={user.email}>
 										<TableCell className="font-medium">
-											{user.user_id}
+											{user.user_id || user.id}
 										</TableCell>
+										<TableCell>{user.matriculation_number}</TableCell>
 										<TableCell>{user.name}</TableCell>
 										<TableCell>{user.email}</TableCell>
 										<TableCell>{formatSemester(user)}</TableCell>
-										<TableCell>
-											<AlertDialog>
-												<AlertDialogTrigger asChild>
-													<Button
-														variant="outline"
-														size="icon"
-														className="h-8 w-8 text-red-600 hover:text-red-700"
-													>
-														<Trash2 className="h-4 w-4" />
-													</Button>
-												</AlertDialogTrigger>
-												<AlertDialogContent>
-													<AlertDialogHeader>
-														<AlertDialogTitle>
-															Are you sure you want to delete this
-															user?
-														</AlertDialogTitle>
-														<AlertDialogDescription>
-															This action cannot be undone. This will
-															permanently delete the user account and
-															remove their data from the servers.
-														</AlertDialogDescription>
-													</AlertDialogHeader>
-													<AlertDialogFooter>
-														<AlertDialogCancel>
-															Cancel
-														</AlertDialogCancel>
-														<AlertDialogAction
-															onClick={() => handleDelete(user.id)}
-															className="bg-red-600 hover:bg-red-700 text-white"
-															disabled={deleteLoading === user.id}
-														>
-															{deleteLoading === user.id && (
-																<div className="mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-															)}
-															Delete
-														</AlertDialogAction>
-													</AlertDialogFooter>
-												</AlertDialogContent>
-											</AlertDialog>
+										<TableCell className="text-right">
+											<div className="flex justify-end gap-2">
+												<Button
+													variant="ghost"
+													size="icon"
+													onClick={() => handleEdit(user)}
+												>
+													<Pencil className="h-4 w-4" />
+												</Button>
+												<AlertDialog>
+													<AlertDialogTrigger asChild>
+														<Button variant="ghost" size="icon">
+															<Trash2 className="h-4 w-4 text-destructive" />
+														</Button>
+													</AlertDialogTrigger>
+													<AlertDialogContent>
+														<AlertDialogHeader>
+															<AlertDialogTitle>
+																Confirm Deletion
+															</AlertDialogTitle>
+															<AlertDialogDescription>
+																Are you sure you want to delete{' '}
+																{user.name}? This action cannot be
+																undone.
+															</AlertDialogDescription>
+														</AlertDialogHeader>
+														<AlertDialogFooter>
+															<AlertDialogCancel>
+																Cancel
+															</AlertDialogCancel>
+															<AlertDialogAction
+																onClick={() =>
+																	handleDelete(user.id)
+																}
+																className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+															>
+																{deleteLoading === user.id
+																	? 'Deleting...'
+																	: 'Delete'}
+															</AlertDialogAction>
+														</AlertDialogFooter>
+													</AlertDialogContent>
+												</AlertDialog>
+											</div>
 										</TableCell>
 									</TableRow>
 								))
@@ -296,13 +500,13 @@ export function StudentTable() {
 				</div>
 
 				{/* Pagination controls */}
-				{allUsers.length > 0 && totalPages > 1 && (
-					<div className="flex justify-between items-center">
+				{totalPages > 1 && (
+					<div className="flex items-center justify-between mt-4">
 						<div className="text-sm text-muted-foreground">
 							Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{' '}
-							{totalItems} results
+							{totalItems} students
 						</div>
-						<div className="flex gap-1">
+						<div className="flex items-center space-x-2">
 							<Button
 								variant="outline"
 								size="icon"
@@ -311,16 +515,6 @@ export function StudentTable() {
 							>
 								<ChevronLeft className="h-4 w-4" />
 							</Button>
-							{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-								<Button
-									key={page}
-									variant={currentPage === page ? 'default' : 'outline'}
-									className="h-8 w-8"
-									onClick={() => handlePageChange(page)}
-								>
-									{page}
-								</Button>
-							))}
 							<Button
 								variant="outline"
 								size="icon"
@@ -330,6 +524,20 @@ export function StudentTable() {
 								<ChevronRight className="h-4 w-4" />
 							</Button>
 						</div>
+					</div>
+				)}
+
+				{/* Edit Student Dialog - This will need to be created separately */}
+				{editingStudent && (
+					<div className="text-sm text-muted-foreground mt-2">
+						Student edit functionality will be implemented in a separate file.
+					</div>
+				)}
+
+				{/* Add Student Dialog - This will need to be created separately */}
+				{isAddDialogOpen && (
+					<div className="text-sm text-muted-foreground mt-2">
+						Student add dialog functionality will be implemented in a separate file.
 					</div>
 				)}
 			</div>

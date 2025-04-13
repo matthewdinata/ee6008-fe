@@ -30,8 +30,11 @@ export async function getAllProjectGrades(semesterId: number): Promise<ProjectGr
 		return [];
 	}
 
+	console.log('Fetching all project grades for semester ID:', semesterId);
 	try {
 		const endpoint = `faculty/grades?semester_id=${semesterId}`;
+		console.log('API endpoint:', endpoint);
+
 		const response = await fetcherFn(endpoint, {
 			method: 'GET',
 			headers: {
@@ -39,7 +42,22 @@ export async function getAllProjectGrades(semesterId: number): Promise<ProjectGr
 			},
 		});
 
-		console.log('Raw API response:', response);
+		console.log('Raw API response:', JSON.stringify(response, null, 2));
+		console.log(
+			'Number of projects returned:',
+			Array.isArray(response) ? response.length : 'Not an array'
+		);
+
+		if (Array.isArray(response) && response.length > 0) {
+			const firstProject = response[0];
+			console.log('First project data:', JSON.stringify(firstProject, null, 2));
+			console.log(
+				'First project students:',
+				firstProject.students
+					? JSON.stringify(firstProject.students.slice(0, 2), null, 2)
+					: 'No students'
+			);
+		}
 
 		return response as ProjectGradeSummary[];
 	} catch (error) {

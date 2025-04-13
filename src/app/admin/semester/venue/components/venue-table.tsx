@@ -62,6 +62,34 @@ import { VenueEditDialog } from './venue-edit-dialog';
 
 /* eslint-disable prettier/prettier, import/extensions */
 
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
+/* eslint-disable prettier/prettier, import/extensions */
+
 export function VenueTable() {
 	const _router = useRouter();
 	const searchParams = useSearchParams();
@@ -142,9 +170,12 @@ export function VenueTable() {
 	};
 
 	// Filter venues based on search query
+	// Filter venues based on search query
 	const filteredVenues = useMemo(() => {
 		return venuesBySemester.filter((venue) => {
-			const searchLower = searchQuery.toLowerCase();
+			if (!searchQuery.trim()) return true;
+
+			const searchLower = searchQuery.toLowerCase().trim();
 			return (
 				venue.name.toLowerCase().includes(searchLower) ||
 				venue.location.toLowerCase().includes(searchLower)
@@ -243,34 +274,61 @@ export function VenueTable() {
 
 	return (
 		<div className="space-y-4">
-			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-				<div className="w-full sm:w-auto">
-					<Select
-						value={selectedSemester?.toString() || ''}
-						onValueChange={handleSemesterChange}
-					>
-						<SelectTrigger className="w-full sm:w-[200px]">
-							<SelectValue placeholder="Select a semester" />
-						</SelectTrigger>
-						<SelectContent>
-							{semesters.map((semester) => (
-								<SelectItem key={semester.id} value={semester.id.toString()}>
-									{formatSemesterDisplay(semester)}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-				<div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-					<div className="relative w-full sm:w-auto">
-						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 my-4">
+				<div className="flex items-center gap-4 w-full">
+					<div className="w-full sm:w-auto">
+						<Select
+							value={selectedSemester?.toString() || ''}
+							onValueChange={handleSemesterChange}
+						>
+							<SelectTrigger className="w-full sm:w-[200px]">
+								<SelectValue placeholder="Select a semester" />
+							</SelectTrigger>
+							<SelectContent>
+								{semesters.map((semester) => (
+									<SelectItem key={semester.id} value={semester.id.toString()}>
+										{formatSemesterDisplay(semester)}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="relative flex items-center w-full max-w-sm">
+						<Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
 						<Input
+							type="search"
 							placeholder="Search venues..."
+							className="pl-8"
 							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-8 w-full sm:w-[300px]"
+							onChange={(e) => {
+								setSearchQuery(e.target.value);
+								setCurrentPage(1); // Reset to first page when search changes
+							}}
 						/>
 					</div>
+				</div>
+				<div className="flex items-center">
+					<span className="text-sm text-muted-foreground whitespace-nowrap">
+						Show
+						<Select
+							value={pageSize}
+							onValueChange={(val) => {
+								_setPageSize(val);
+								setCurrentPage(1); // Reset to first page when page size changes
+							}}
+						>
+							<SelectTrigger className="w-16 h-8 mx-2 inline-flex">
+								<SelectValue placeholder="10" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="10">10</SelectItem>
+								<SelectItem value="20">20</SelectItem>
+								<SelectItem value="50">50</SelectItem>
+								<SelectItem value="100">100</SelectItem>
+							</SelectContent>
+						</Select>
+						per page
+					</span>
 				</div>
 			</div>
 
