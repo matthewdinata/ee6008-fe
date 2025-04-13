@@ -23,17 +23,25 @@ export const useGetFacultyUsers = (options?: {
 				}
 
 				// Map the response to ensure it matches the AdminUser interface from types.ts
-				const mappedFacultyData = result.map(
-					(user) =>
-						({
-							id: user.id,
-							name: user.name || '',
-							email: user.email || '',
-							role: 'faculty',
-							userId: user.userId, // Set a default role since it's required in AdminUser
-							// Add other fields that might be needed based on AdminUser type
-						}) as AdminUser
-				);
+				const mappedFacultyData = result.map((user) => {
+					// Log the original user data to debug
+					console.log('Original user data:', user);
+
+					// Check for both property formats
+					const isCoordinator = Boolean(
+						user.isCourseCoordinator || user.is_course_coordinator
+					);
+					return {
+						id: user.id,
+						name: user.name || '',
+						email: user.email || '',
+						role: 'faculty',
+						userId: user.userId || user.id, // Ensure userId is always available
+						// Preserve the coordinator status using both naming conventions
+						isCourseCoordinator: isCoordinator,
+						is_course_coordinator: isCoordinator,
+					} as AdminUser;
+				});
 
 				// Filter out any invalid user objects
 				const validFacultyData = mappedFacultyData.filter(

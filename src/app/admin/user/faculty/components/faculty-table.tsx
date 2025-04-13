@@ -1,9 +1,17 @@
 'use client';
 
-import { ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, Search, Trash2 } from 'lucide-react';
+import {
+	ArrowUpDown,
+	ChevronLeft,
+	ChevronRight,
+	Pencil,
+	RefreshCw,
+	Search,
+	Trash2,
+} from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 
-import { deleteUser } from '@/utils/actions/admin/user';
+import { User, deleteUser } from '@/utils/actions/admin/user';
 import { useGetFacultyUsers } from '@/utils/hooks/admin/use-get-facullty-users';
 
 import {
@@ -35,12 +43,16 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
+import { FacultyRoleEditDialog } from './faculty-role-edit-dialog';
+
 // Type for sort columns
 type SortColumn = 'id' | 'name' | 'email';
 type SortDirection = 'asc' | 'desc';
 
 export default function FacultyTable() {
 	const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+	const [selectedFaculty, setSelectedFaculty] = useState<User | null>(null);
+	const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState('10');
@@ -69,8 +81,18 @@ export default function FacultyTable() {
 
 	// Filter and sort users
 	const filteredUsers = useMemo(() => {
-		// First filter by search query
-		const filtered = allUsers.filter((user) => {
+		// First normalize the users data to ensure proper property access
+		const normalizedUsers = allUsers.map((user) => ({
+			...user,
+			// Ensure both property formats are available
+			isCourseCoordinator: user.isCourseCoordinator || user.isCourseCoordinator || false,
+		}));
+
+		// Log for debugging
+		console.log('Normalized users data:', normalizedUsers);
+
+		// Then filter by search query
+		const filtered = normalizedUsers.filter((user) => {
 			const searchLower = searchQuery.toLowerCase();
 			return (
 				user.name.toLowerCase().includes(searchLower) ||
@@ -273,6 +295,7 @@ export default function FacultyTable() {
 									</div>
 								</TableHead>
 
+								<TableHead className="w-[150px]">Course Coordinator</TableHead>
 								<TableHead className="text-right">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -299,11 +322,48 @@ export default function FacultyTable() {
 										</TableCell>
 										<TableCell>{user.name}</TableCell>
 										<TableCell>{user.email}</TableCell>
+										<TableCell>
+											<div className="flex items-center gap-2">
+												<span className="font-medium text-foreground">
+													{user.isCourseCoordinator ||
+													user.isCourseCoordinator
+														? 'YES'
+														: 'NO'}
+												</span>
+											</div>
+										</TableCell>
 										<TableCell className="text-right">
 											<div className="flex justify-end gap-2">
+												<Button
+													variant="ghost"
+													size="icon"
+													title="Edit Faculty"
+													onClick={() => {
+														const mappedUser: User = {
+															id: user.id,
+															userId: user.userId || user.id,
+															user_id: user.userId || user.id,
+															email: user.email,
+															name: user.name,
+															is_course_coordinator:
+																user.is_course_coordinator ||
+																user.isCourseCoordinator ||
+																false,
+															isCourseCoordinator:
+																user.isCourseCoordinator ||
+																user.is_course_coordinator ||
+																false,
+														};
+														setSelectedFaculty(mappedUser);
+														setIsRoleDialogOpen(true);
+													}}
+												>
+													<Pencil className="h-4 w-4" />
+												</Button>
 												<AlertDialog>
 													<AlertDialogTrigger asChild>
 														<Button variant="ghost" size="icon">
+															{' '}
 															<Trash2 className="h-4 w-4 text-destructive" />
 														</Button>
 													</AlertDialogTrigger>
@@ -377,7 +437,15 @@ export default function FacultyTable() {
 					</div>
 				)}
 
-				{/* Edit Faculty Dialog - This will need to be created separately */}
+				{/* Faculty Edit Dialog */}
+				{selectedFaculty && (
+					<FacultyRoleEditDialog
+						faculty={selectedFaculty}
+						open={isRoleDialogOpen}
+						onOpenChange={setIsRoleDialogOpen}
+						onFacultyUpdated={refetch}
+					/>
+				)}
 			</div>
 		</div>
 	);

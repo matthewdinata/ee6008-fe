@@ -150,33 +150,26 @@ export function StudentTable() {
 			setIsLoading(true);
 			setError(null);
 
-			// Use utility function to fetch student users (server-side)
-			// Pass forceRefresh to bypass cache and get fresh data
 			const formattedData = await fetchStudentUsers(forceRefresh);
 
-			// Log raw data to see if matriculation_number is included
-			console.log('Raw student data:', formattedData);
-
-			// Add isActive property to each student's semester object and handle matriculation numbers
 			const studentsWithIsActive = formattedData.map((student) => ({
 				...student,
-				// If available, assign matriculation_number from the API response
-				// This is a placeholder - we'll need to see the actual API response
+				userId: student.user_id || student.id,
 				matriculation_number:
 					(student as unknown as Record<string, string | undefined>)
 						.matriculation_number || `M${student.id.toString().padStart(8, '0')}`,
 				semester: student.semester
 					? {
 							...student.semester,
-							isActive: true, // Default to true as this data isn't provided by the API
+							isActive: true,
 						}
 					: undefined,
 			}));
 
 			setAllUsers(studentsWithIsActive);
 
-			setCurrentPage(1); // Reset to first page when new data is fetched
-			setSearchQuery(''); // Clear search when new data is fetched
+			setCurrentPage(1);
+			setSearchQuery('');
 		} catch (error) {
 			console.error('Error fetching users:', error);
 			setError(error instanceof Error ? error.message : 'An unexpected error occurred');
