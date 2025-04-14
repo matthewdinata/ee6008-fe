@@ -89,13 +89,14 @@ export default function ProjectsTable({ projects, showAllData = false }: Project
 	// Calculate project statistics
 	const getProjectStats = (project: ProjectGradeResponse) => {
 		const students = project.students || [];
-		if (!students.length) return { avg: 0, max: 0, min: 0, passing: 0 };
+		if (!students.length) return { avg: 'N/A', max: 'N/A', min: 'N/A', passing: 'N/A' };
 
+		// Only include grades > 0 to avoid including ungraded students
 		const validGrades = students
 			.map((s) => s.finalGrade || 0)
-			.filter((grade) => grade !== undefined && grade !== null);
+			.filter((grade) => grade !== undefined && grade !== null && grade > 0);
 
-		if (!validGrades.length) return { avg: 0, max: 0, min: 0, passing: 0 };
+		if (!validGrades.length) return { avg: 'N/A', max: 'N/A', min: 'N/A', passing: 'N/A' };
 
 		const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
 		const avg = sum / validGrades.length;
@@ -172,16 +173,17 @@ export default function ProjectsTable({ projects, showAllData = false }: Project
 										<CardTitle className="text-lg">{project.title}</CardTitle>
 										<div className="flex flex-wrap gap-2 text-sm">
 											<Badge variant="outline" className="font-normal">
-												Avg: {stats.avg}
+												Avg: {stats.avg !== 'N/A' ? stats.avg : 'No grades'}
 											</Badge>
 											<Badge variant="outline" className="font-normal">
-												Max: {stats.max}
+												Max: {stats.max !== 'N/A' ? stats.max : '-'}
 											</Badge>
 											<Badge variant="outline" className="font-normal">
-												Min: {stats.min}
+												Min: {stats.min !== 'N/A' ? stats.min : '-'}
 											</Badge>
 											<Badge variant="outline" className="font-normal">
-												Passing: {stats.passing}
+												Passing:{' '}
+												{stats.passing !== 'N/A' ? stats.passing : '-'}
 											</Badge>
 										</div>
 									</div>
@@ -240,20 +242,44 @@ export default function ProjectsTable({ projects, showAllData = false }: Project
 															</TableCell>
 															{showAllData && (
 																<TableCell>
-																	{student.supervisorGrade || 0}
+																	{student.supervisorGrade > 0 ? (
+																		student.supervisorGrade
+																	) : (
+																		<span className="text-muted-foreground italic">
+																			Not graded
+																		</span>
+																	)}
 																</TableCell>
 															)}
 															{showAllData && (
 																<TableCell>
-																	{student.moderatorGrade || 0}
+																	{student.moderatorGrade > 0 ? (
+																		student.moderatorGrade
+																	) : (
+																		<span className="text-muted-foreground italic">
+																			Not graded
+																		</span>
+																	)}
 																</TableCell>
 															)}
 															<TableCell className="font-semibold">
-																{student.finalGrade || 0}
+																{student.finalGrade > 0 ? (
+																	student.finalGrade
+																) : (
+																	<span className="text-muted-foreground italic">
+																		Not graded
+																	</span>
+																)}
 															</TableCell>
 															<TableCell>
-																{renderLetterGrade(
-																	student.letterGrade || 'N/A'
+																{student.finalGrade > 0 ? (
+																	renderLetterGrade(
+																		student.letterGrade || 'N/A'
+																	)
+																) : (
+																	<span className="text-muted-foreground italic">
+																		-
+																	</span>
 																)}
 															</TableCell>
 															{showAllData && (

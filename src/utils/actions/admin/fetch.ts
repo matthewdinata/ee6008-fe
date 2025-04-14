@@ -252,6 +252,9 @@ export async function createUser(userData: {
 			}
 			requestData.semesterId = userData.semesterId ? userData.semesterId : 5;
 		} else if (userData.role === 'faculty') {
+			// Match the backend's expected property name format (snake_case)
+			requestData.is_course_coordinator = Boolean(userData.isCoordinator);
+			// For backwards compatibility also include the camelCase version
 			requestData.isCoordinator = Boolean(userData.isCoordinator);
 			requestData.semesterId = null;
 		}
@@ -312,7 +315,10 @@ export async function createFacultyUser(userData: {
 			email: userData.email,
 			name: userData.name,
 			role: 'faculty',
-			is_coordinator: Boolean(userData.isCoordinator),
+			// Use the correct property name expected by the backend
+			is_course_coordinator: Boolean(userData.isCoordinator),
+			// For backwards compatibility also include the camelCase version
+			isCourseCoordinator: Boolean(userData.isCoordinator),
 			// Explicitly setting semesterID to null for faculty
 			semesterID: null,
 		};

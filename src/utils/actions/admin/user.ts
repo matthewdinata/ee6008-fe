@@ -5,11 +5,13 @@ import { cookies } from 'next/headers';
 
 // Define types for User data
 export interface User {
+	userId: number;
 	id: number;
 	user_id: number;
 	email: string;
 	name: string;
 	is_course_coordinator: boolean;
+	isCourseCoordinator?: boolean; // Added for camelCase support
 }
 
 // Define response types for server actions
@@ -88,13 +90,18 @@ export async function fetchFacultyUsers(): Promise<User[]> {
 	}
 
 	const data = await response.json();
-	return data.map((user: User) => ({
-		id: user.id,
-		user_id: user.user_id,
-		email: user.email,
-		name: user.name,
-		is_course_coordinator: Boolean(user.is_course_coordinator),
-	}));
+	return data.map((user: User) => {
+		const isCoordinator = Boolean(user.is_course_coordinator || user.isCourseCoordinator);
+		return {
+			id: user.id,
+			user_id: user.user_id,
+			email: user.email,
+			name: user.name,
+			is_course_coordinator: isCoordinator,
+			isCourseCoordinator: isCoordinator,
+			role: 'faculty',
+		};
+	});
 }
 
 /**
@@ -463,6 +470,135 @@ export async function bulkUploadFaculty(
 		return {
 			success: false,
 			error: error instanceof Error ? error.message : 'Unknown error occurred during upload',
+		};
+	}
+}
+
+/**
+ * Update a faculty member's course coordinator status
+ * @param userId The ID of the faculty user to update
+ * @param isCoordinator Boolean indicating whether they should be a course coordinator or not
+ * @returns Success status and updated faculty information
+ */
+/**
+ * Update a faculty member's details including name, email and coordinator status
+ * @param professorId The ID of the faculty/professor to update
+ * @param data The data to update including name, email, and coordinator status
+ * @returns Success status and updated faculty information
+ */
+export type UpdateFacultyData = {
+	name?: string;
+	email?: string;
+	isCourseCoordinator?: boolean;
+};
+
+export async function updateFaculty(
+	professorId: number, // This is actually the user_id, not the professor ID
+	data: UpdateFacultyData
+): Promise<ServerActionResponse<User>> {
+	try {
+		// Import fetcherFn here to avoid circular dependencies
+		const { fetcherFn } = await import('@/utils/functions');
+
+		// Log the update operation
+		console.log(`Updating faculty ${professorId} with data:`, data);
+
+		// Transform data format to match backend expectations
+		const payload: Record<string, unknown> = {};
+
+		if (data.name !== undefined) {
+			payload.name = data.name;
+		}
+
+		if (data.email !== undefined) {
+			payload.email = data.email;
+		}
+
+		if (data.isCourseCoordinator !== undefined) {
+			// Send both variants to ensure compatibility
+			payload.isCoordinator = data.isCourseCoordinator;
+		}
+
+		// Use fetcherFn which handles authentication and data transformation
+		// Using the updated endpoint that matches the backend route definition
+		const result = await fetcherFn<{ message: string; professor: User }>(
+			`admin/users/${professorId}`,
+			{
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			},
+			payload
+		);
+
+		// Transform the response to include both camelCase and snake_case properties
+		const professor = {
+			...result.professor,
+			isCourseCoordinator: result.professor.is_course_coordinator,
+		};
+
+		return {
+			success: true,
+			data: professor,
+		};
+	} catch (error) {
+		console.error('Faculty update error:', error);
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : 'Unknown error occurred during update',
+		};
+	}
+}
+
+/**
+ * Legacy function to only update a faculty member's course coordinator status
+ * @param userId The ID of the faculty user to update
+ * @param isCoordinator Boolean indicating whether they should be a course coordinator or not
+ * @returns Success status and updated faculty information
+ */
+export async function updateFacultyRole(
+	userId: number,
+	isCoordinator: boolean
+): Promise<ServerActionResponse<User>> {
+	try {
+		// Import fetcherFn here to avoid circular dependencies
+		const { fetcherFn } = await import('@/utils/functions');
+
+		// Log the update operation
+		console.log(`Updating faculty role for user ${userId} to coordinator: ${isCoordinator}`);
+
+		// Use fetcherFn which handles authentication and data transformation
+		const result = await fetcherFn<{ message: string; professor: User }>(
+			`admin/users/${userId}`,
+			{
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			},
+			{
+				// Send both properties to ensure compatibility with backend
+				is_course_coordinator: isCoordinator,
+				isCourseCoordinator: isCoordinator,
+			}
+		);
+
+		// Transform the response to include both camelCase and snake_case properties
+		const professor = {
+			...result.professor,
+			isCourseCoordinator: result.professor.is_course_coordinator,
+		};
+
+		return {
+			success: true,
+			data: professor,
+		};
+	} catch (error) {
+		console.error('Faculty role update error:', error);
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : 'Unknown error occurred during update',
 		};
 	}
 }

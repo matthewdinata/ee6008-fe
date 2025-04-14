@@ -1,7 +1,5 @@
 'use client';
 
-// This is a client component, so Next.js metadata needs to be in a separate file
-// See metadata.ts in this same folder
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -40,7 +38,6 @@ const AuthPage = () => {
 
 	// Get the Supabase client
 	const supabase = createClient();
-
 	// Check if user is already logged in and redirect if they are
 	useEffect(() => {
 		const checkSession = async () => {
@@ -175,13 +172,11 @@ const AuthPage = () => {
 
 	return (
 		<div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-			{/* Background using the gradient-background class from globals.css */}
 			<div className="absolute inset-0 -z-10">
 				<div className="w-full h-full gradient-background" />
 				<div className="absolute inset-0 bg-gradient opacity-20" />
 			</div>
 
-			{/* Subtle dot pattern overlay */}
 			<div
 				className="absolute inset-0 opacity-10"
 				style={{

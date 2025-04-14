@@ -323,6 +323,19 @@ export async function getFacultyUsers(): Promise<GetFacultyUsersResponseData> {
 				// Ensure we have a unique ID for each faculty member
 				const uniqueId = user.professor_id || user.userId || user.id || index + 1000;
 
+				// Debug the incoming coordinator status
+				const isCoordinator = Boolean(
+					user.isCourseCoordinator || user.is_course_coordinator
+				);
+				console.log(
+					`Processing faculty ${uniqueId} (${user.name}): coordinator status from API:`,
+					{
+						isCourseCoordinator: user.isCourseCoordinator,
+						is_course_coordinator: user.is_course_coordinator,
+						'Computed value': isCoordinator,
+					}
+				);
+
 				return {
 					// Use professor_id as the primary ID, fallback to userId or a unique index-based ID
 					id: uniqueId,
@@ -332,7 +345,9 @@ export async function getFacultyUsers(): Promise<GetFacultyUsersResponseData> {
 					name: user.name || 'Unknown',
 					email: user.email || '',
 					role: 'faculty',
-					isCourseCoordinator: !!user.isCourseCoordinator,
+					// Support both camelCase and snake_case properties
+					isCourseCoordinator: isCoordinator,
+					is_course_coordinator: isCoordinator,
 				};
 			});
 
@@ -414,6 +429,9 @@ export async function getFacultyById(facultyId: number): Promise<User | null> {
 				userId: user.userId || user.id || 0,
 				professor_id: user.professorId || user.professor_id || 0,
 				isCourseCoordinator:
+					user.isCourseCoordinator || user.is_course_coordinator || false,
+				// Add snake_case version to satisfy User interface requirements
+				is_course_coordinator:
 					user.isCourseCoordinator || user.is_course_coordinator || false,
 				professor: {
 					id: user.professorId || user.professor_id || 0,

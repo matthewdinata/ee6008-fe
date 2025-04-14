@@ -89,6 +89,7 @@ export default function GradeAnalyticsDashboard() {
 				bellCurveData: [],
 				projectComparisonData: [],
 				gradeTiers: { excellent: 0, good: 0, average: 0, poor: 0, failing: 0 },
+				areAllGradesZero: true,
 			};
 		}
 
@@ -100,35 +101,22 @@ export default function GradeAnalyticsDashboard() {
 				bellCurveData: [],
 				projectComparisonData: [],
 				gradeTiers: { excellent: 0, good: 0, average: 0, poor: 0, failing: 0 },
+				areAllGradesZero: true,
 			};
 		}
 
-		// Check if all grades are zero
-		const areAllGradesZero = allStudents.every(
-			(student) =>
-				student.finalGrade === 0 &&
-				student.supervisorGrade === 0 &&
-				student.moderatorGrade === 0
-		);
-
-		// Update state outside of useMemo in an effect
-		setAllGradesZero(areAllGradesZero);
-
-		// If all grades are zero, still return empty data
-		if (areAllGradesZero) {
-			return {
-				gradeStats: null,
-				letterGradeDistribution: {},
-				bellCurveData: [],
-				projectComparisonData: [],
-				gradeTiers: { excellent: 0, good: 0, average: 0, poor: 0, failing: 0 },
-			};
-		}
-
-		// Filter students with valid grades
+		// Only include students with valid, non-zero grades for analytics
+		// This prevents students with F grades or ungraded students from skewing the analytics
 		const validStudents = allStudents.filter(
-			(student) => student.finalGrade !== undefined && student.finalGrade !== null
+			(student) =>
+				student.finalGrade !== undefined &&
+				student.finalGrade !== null &&
+				student.finalGrade > 0
 		);
+
+		// Check if we have any valid grades at all
+
+		// We'll handle the state update in a useEffect, not here in useMemo
 
 		if (!validStudents.length) {
 			return {
@@ -137,6 +125,7 @@ export default function GradeAnalyticsDashboard() {
 				bellCurveData: [],
 				projectComparisonData: [],
 				gradeTiers: { excellent: 0, good: 0, average: 0, poor: 0, failing: 0 },
+				areAllGradesZero: true, // Track this value for useEffect
 			};
 		}
 
@@ -236,6 +225,26 @@ export default function GradeAnalyticsDashboard() {
 			gradeTiers,
 		};
 	}, [projectGrades]);
+
+	// Update the state for allGradesZero based on the computed value from useMemo
+	useEffect(() => {
+		// Check if the analytics data has the areAllGradesZero flag
+		if (
+			gradeStats === null &&
+			'areAllGradesZero' in
+				{
+					gradeStats,
+					letterGradeDistribution,
+					bellCurveData,
+					projectComparisonData,
+					gradeTiers,
+				}
+		) {
+			setAllGradesZero(true);
+		} else {
+			setAllGradesZero(false);
+		}
+	}, [gradeStats, letterGradeDistribution, bellCurveData, projectComparisonData, gradeTiers]);
 
 	// Helper function to assign letter grade based on numeric grade
 	function assignLetterGrade(grade: number): string {

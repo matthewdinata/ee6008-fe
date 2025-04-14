@@ -152,7 +152,7 @@ function AssessmentComponentsSection({
 							<CardHeader className="pb-2">
 								<div className="flex justify-between items-start">
 									<CardTitle className="text-base">
-										{component.name} ({component.weight}%)
+										{component.name} ({component.weighting}%)
 										{isGraded && (
 											<Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 font-medium">
 												Graded

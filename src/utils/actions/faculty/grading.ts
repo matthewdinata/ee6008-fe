@@ -8,7 +8,7 @@ export interface GradingComponent {
 	id: number;
 	name: string;
 	description: string;
-	weight: number;
+	weighting: number;
 	max_score: number;
 	component_type: string;
 	is_team_based?: boolean;

@@ -108,6 +108,7 @@ export interface Programme {
 
 // User types
 export interface User {
+	is_course_coordinator: boolean | undefined;
 	id: number;
 	name: string;
 	email: string;

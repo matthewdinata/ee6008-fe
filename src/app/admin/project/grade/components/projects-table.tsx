@@ -103,7 +103,9 @@ export default function ProjectsTable({ projects, showAllData = false }: Project
 		const validGrades =
 			(project.students
 				?.map((student) => student.finalGrade)
-				.filter((grade) => grade !== undefined && grade !== null) as number[]) || [];
+				.filter(
+					(grade) => grade !== undefined && grade !== null && grade > 0
+				) as number[]) || [];
 
 		if (!validGrades.length) {
 			return { avg: 'N/A', max: 'N/A', min: 'N/A', passingRate: 'N/A' };
@@ -213,22 +215,36 @@ export default function ProjectsTable({ projects, showAllData = false }: Project
 																	<>
 																		<span className="text-xs text-muted-foreground">
 																			S:{' '}
-																			{student.supervisorGrade ||
-																				'N/A'}
+																			{(student.supervisorGrade ??
+																				0) > 0
+																				? student.supervisorGrade
+																				: 'Not graded'}
 																		</span>
 																		<span className="text-xs text-muted-foreground">
 																			M:{' '}
-																			{student.moderatorGrade ||
-																				'N/A'}
+																			{(student.moderatorGrade ??
+																				0) > 0
+																				? student.moderatorGrade
+																				: 'Not graded'}
 																		</span>
 																	</>
 																)}
 																<span className="font-medium">
-																	{student.finalGrade || 'N/A'}
+																	{(student.finalGrade ?? 0) >
+																	0 ? (
+																		student.finalGrade
+																	) : (
+																		<span className="text-muted-foreground italic">
+																			Not graded
+																		</span>
+																	)}
 																</span>
-																{renderLetterGrade(
-																	student.letterGrade || 'N/A'
-																)}
+																{(student.finalGrade ?? 0) > 0
+																	? renderLetterGrade(
+																			student.letterGrade ||
+																				'N/A'
+																		)
+																	: null}
 															</div>
 														</div>
 													))}

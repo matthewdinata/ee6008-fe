@@ -69,13 +69,11 @@ export default function GradeBellCurveChart({
 		if (active && payload && payload.length) {
 			const gradeRange = label;
 			const count = payload[0]?.value;
-			const normalDist = payload[1]?.value?.toFixed(2) || '0';
 
 			return (
 				<Card className="p-3 bg-background border shadow-md">
 					<p className="font-medium">{`Grade Range: ${gradeRange}`}</p>
 					<p className="text-sm text-muted-foreground">{`Student Count: ${count}`}</p>
-					<p className="text-sm text-muted-foreground">{`Normal Distribution: ${normalDist}`}</p>
 					{gradeRange === meanRange && (
 						<p className="text-sm font-medium text-red-500">{`Mean: ${mean.toFixed(2)}`}</p>
 					)}
@@ -121,17 +119,7 @@ export default function GradeBellCurveChart({
 						fontSize: 14,
 					}}
 				/>
-				<YAxis
-					yAxisId="right"
-					orientation="right"
-					label={{
-						value: 'Normal Distribution',
-						angle: 90,
-						position: 'insideRight',
-						style: { textAnchor: 'middle' },
-						fontSize: 14,
-					}}
-				/>
+				<YAxis yAxisId="right" orientation="right" hide={true} />
 				<Tooltip content={<CustomTooltip />} />
 				<Legend wrapperStyle={{ paddingTop: 20 }} />
 
@@ -153,7 +141,7 @@ export default function GradeBellCurveChart({
 					stroke="#ff7300"
 					strokeWidth={3}
 					dot={false}
-					name="Normal Distribution"
+					legendType="none"
 				/>
 
 				{/* Mean reference line */}

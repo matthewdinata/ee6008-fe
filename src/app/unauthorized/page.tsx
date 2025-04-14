@@ -36,60 +36,6 @@ import {
 /* eslint-disable prettier/prettier */
 // app/unauthorized/page.tsx
 
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
-/* eslint-disable prettier/prettier */
-// app/unauthorized/page.tsx
-
 export default function UnauthorizedPage() {
 	const router = useRouter();
 	const [role, setRole] = useState<string | null>(null);
