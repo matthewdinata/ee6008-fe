@@ -34,6 +34,8 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
+import { ProjectDetailsModal } from '@/app/faculty/project/view/components/project-detail-modals';
+
 import AssignModeratorDialog from './assign-moderator-dialog';
 import { EnhancedProject } from './columns';
 
@@ -63,6 +65,9 @@ export default function ProjectList({
 	const [pageSize, setPageSize] = useState('10');
 	const [sortColumn, setSortColumn] = useState<string | null>(null);
 	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+	// For detailed project modal
+	const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+	const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 	const { toast } = useToast();
 
 	// Format long text with line breaks after every few words
@@ -209,6 +214,12 @@ export default function ProjectList({
 	const refreshProjects = () => {
 		// This will trigger the parent component to fetch updated projects
 		onProjectUpdate({} as Project);
+	};
+
+	// Handle viewing project details in modal
+	const handleViewDetails = (projectId: number) => {
+		setSelectedProjectId(projectId);
+		setIsDetailsModalOpen(true);
 	};
 
 	return (
@@ -428,6 +439,11 @@ export default function ProjectList({
 												<DropdownMenuLabel>Actions</DropdownMenuLabel>
 												<DropdownMenuSeparator />
 												<DropdownMenuItem
+													onClick={() => handleViewDetails(project.id)}
+												>
+													View Details
+												</DropdownMenuItem>
+												<DropdownMenuItem
 													onClick={() =>
 														setViewDescriptionProject(project)
 													}
@@ -517,6 +533,12 @@ export default function ProjectList({
 					}}
 				/>
 			)}
+			{/* Project Details Modal */}
+			<ProjectDetailsModal
+				projectId={selectedProjectId}
+				isOpen={isDetailsModalOpen}
+				onClose={() => setIsDetailsModalOpen(false)}
+			/>
 		</div>
 	);
 }
