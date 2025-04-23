@@ -130,8 +130,8 @@ export function EmailScheduler() {
 		}
 
 		// Format scheduled date and time
-		const scheduledDate = data.scheduled_date; // already in ISO format from date picker
-		const scheduledTime = data.scheduled_time; // already in HH:MM:SS format from time picker
+		const scheduledDate = data.scheduled_date;
+		const scheduledTime = data.scheduled_time;
 
 		if (!scheduledDate || !scheduledTime) {
 			setNotification({
@@ -141,19 +141,9 @@ export function EmailScheduler() {
 			});
 			return;
 		}
-
-		// Create the ISO datetime string by combining date and time
-		const [year, month, day] = scheduledDate.split('-');
-		const [hours, minutes] = scheduledTime.split(':');
-		const scheduledDateTime = new Date(
-			parseInt(year),
-			parseInt(month) - 1, // JavaScript months are 0-indexed
-			parseInt(day),
-			parseInt(hours),
-			parseInt(minutes)
-		).toISOString();
-
-		// Create the payload for the API call with the exact format the backend expects
+		const dateTimeStr = `${scheduledDate}T${scheduledTime}`;
+		const localDate = new Date(dateTimeStr);
+		const scheduledDateTime = localDate.toISOString();
 		const payload: {
 			template_id: number;
 			semester_id: number;
@@ -369,7 +359,37 @@ export function EmailScheduler() {
 													<Calendar
 														mode="single"
 														selected={schedulingDate}
-														onSelect={setSchedulingDate}
+														onSelect={(date) => {
+															if (!date) return;
+															console.log(
+																'Calendar UI date selected:',
+																date
+															);
+
+															// Format the date to YYYY-MM-DD format in local timezone
+															const localDateString =
+																date.getFullYear() +
+																'-' +
+																String(
+																	date.getMonth() + 1
+																).padStart(2, '0') +
+																'-' +
+																String(date.getDate()).padStart(
+																	2,
+																	'0'
+																);
+
+															console.log(
+																'Local date string:',
+																localDateString
+															);
+															setSchedulingDate(date);
+															// Update form value with local date string
+															form.setValue(
+																'scheduled_date',
+																localDateString
+															);
+														}}
 														disabled={(date) => date < new Date()}
 														initialFocus
 													/>
@@ -383,9 +403,13 @@ export function EmailScheduler() {
 												<Input
 													type="time"
 													value={schedulingTime}
-													onChange={(e) =>
-														setSchedulingTime(e.target.value)
-													}
+													onChange={(e) => {
+														console.log(
+															'Time input changed:',
+															e.target.value
+														);
+														setSchedulingTime(e.target.value);
+													}}
 													className="w-full"
 												/>
 												<Clock className="ml-2 h-4 w-4 text-muted-foreground" />
@@ -461,12 +485,16 @@ export function EmailScheduler() {
 									form.setValue('email_list', parsedManualEmails);
 
 									// Update the form data to include date and time
-									form.setValue(
-										'scheduled_date',
-										schedulingDate
-											? schedulingDate.toISOString().split('T')[0]
-											: ''
-									);
+									const formattedDate = schedulingDate
+										? schedulingDate.getFullYear() +
+											'-' +
+											String(schedulingDate.getMonth() + 1).padStart(2, '0') +
+											'-' +
+											String(schedulingDate.getDate()).padStart(2, '0')
+										: '';
+									console.log('Setting form scheduled_date:', formattedDate);
+									console.log('Original schedulingDate:', schedulingDate);
+									form.setValue('scheduled_date', formattedDate);
 									form.setValue('scheduled_time', schedulingTime);
 
 									// Log the updated form data
