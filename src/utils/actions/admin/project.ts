@@ -156,6 +156,10 @@ export async function getProjectsBySemester(semesterId: number): Promise<Project
 
 		console.log('Projects API response:', JSON.stringify(result, null, 2));
 
+		if (!result || !Array.isArray(result)) {
+			return [];
+		}
+
 		// Transform camelCase keys to snake_case for frontend compatibility
 		const transformedProjects = result.map(transformApiProject);
 
@@ -163,7 +167,7 @@ export async function getProjectsBySemester(semesterId: number): Promise<Project
 		return transformedProjects;
 	} catch (error) {
 		console.error('Error fetching projects:', error);
-		throw error;
+		return []; // Return empty array instead of throwing to prevent page crashes
 	}
 }
 

@@ -254,7 +254,7 @@ export function PeerReviewTab({ projectId, disabled = false }: PeerReviewTabProp
 																</div>
 																<Badge>
 																	Score: {reviewPair.review.score}
-																	/5
+																	/10
 																</Badge>
 															</div>
 															<div className="mt-3">
@@ -301,7 +301,7 @@ export function PeerReviewTab({ projectId, disabled = false }: PeerReviewTabProp
 																</div>
 																<Badge>
 																	Score: {reviewPair.review.score}
-																	/5
+																	/10
 																</Badge>
 															</div>
 															<div className="mt-3">

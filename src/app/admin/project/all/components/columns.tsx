@@ -41,6 +41,8 @@ export enum ProjectStatus {
 	APPROVED = 'approved',
 	REJECTED = 'rejected',
 	PENDING = 'pending',
+	Active = 'Active',
+	Inactive = 'Inactive',
 }
 
 // Enhanced Project type that matches the structure of ProposalResponse

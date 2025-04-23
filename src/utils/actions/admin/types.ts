@@ -148,6 +148,7 @@ export interface AssignLeaderParams {
 
 // Project types
 export interface Project {
+	is_active: boolean;
 	id: number;
 	proposal_id?: number;
 	title: string;

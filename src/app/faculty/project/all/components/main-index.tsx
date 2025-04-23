@@ -18,7 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
 	Select,
 	SelectContent,
@@ -35,7 +34,12 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 
-import { EnhancedProject, ProjectStatus } from '@/app/faculty/project/all/components/columns';
+import {
+	EnhancedProject as AdminEnhancedProject,
+	ProjectStatus,
+} from '@/app/admin/project/all/components/columns';
+// Import admin components for course coordinator view
+import ProjectList from '@/app/admin/project/all/components/project-list';
 import { ProjectDetailsModal } from '@/app/faculty/project/view/components/project-detail-modals';
 
 // Define interface for Programme Leader API response
@@ -45,12 +49,11 @@ interface ProgrammeLeaderResponse {
 	projects?: Project[];
 }
 
-// Helper function to transform Project to EnhancedProject
-const enhanceProject = (
+const _enhanceProject = (
 	project: Project,
 	programmes: Programme[],
 	_faculty: User[] = []
-): EnhancedProject => {
+): AdminEnhancedProject => {
 	// Find the programme for this project
 	// Handle both camelCase and snake_case field names
 	const programmeId = project.programmeId || project.programme_id || 0;
@@ -258,12 +261,24 @@ export default function FacultyProjectsPage() {
 	}, [semesterId, refetchCoordData, refetchLeaderData, coordData, leaderData, toast]);
 
 	// Admin & Course Coordinator Data Fetching
-	const { data: projectsData = [], isLoading: projectsLoading } = useGetProjectsBySemester(
-		semesterId || 0,
-		{
-			enabled: semesterId !== null && isCourseCoordinator,
-		}
-	);
+	const {
+		data: projectsData = [],
+		isLoading: projectsLoading,
+		refetch: refetchProjects,
+	} = useGetProjectsBySemester(semesterId || 0, {
+		enabled: semesterId !== null && isCourseCoordinator,
+		onSuccess: (data) => {
+			console.log('Projects fetched successfully for course coordinator:', data.length);
+		},
+		onError: (error) => {
+			console.error('Error fetching projects:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to load projects',
+				variant: 'destructive',
+			});
+		},
+	});
 
 	// Programme Leader Data Fetching
 	const {
@@ -319,10 +334,80 @@ export default function FacultyProjectsPage() {
 		setProgrammeLeaderProgrammes([]);
 	};
 
+	// Map a project to the format expected by the admin view
+	const enhanceProjectForAdmin = (project: Project): AdminEnhancedProject => {
+		// Find the professor and programme information
+		const professor = facultyData?.find((f) => f.id === project.professor_id) || null;
+		const programme = programmesData?.find((p) => p.id === project.programme_id) || null;
+		const moderator = facultyData?.find((f) => f.id === project.moderator_id) || null;
+
+		// Get the names from the existing project fields or from the found objects
+		const professorName =
+			professor?.name || project.professor_name || project.professorName || '';
+		const moderatorName =
+			moderator?.name || project.moderator_name || project.moderatorName || '';
+		const programmeName =
+			programme?.name || project.programme_name || project.programmeName || '';
+
+		// For debugging
+		console.log('Project data mapping:', {
+			id: project.id,
+			title: project.title,
+			professor_id: project.professor_id,
+			professor_name_original: project.professor_name || project.professorName,
+			professor_found: professor ? 'Yes' : 'No',
+			professor_name_mapped: professorName,
+			moderator_id: project.moderator_id,
+			moderator_name_original: project.moderator_name || project.moderatorName,
+			moderator_found: moderator ? 'Yes' : 'No',
+			moderator_name_mapped: moderatorName,
+		});
+
+		// Return the enhanced project with all properties needed by the admin view
+		return {
+			...project,
+			professor: professor || {
+				id: project.professor_id || 0,
+				name: professorName,
+			},
+			programme: programme || {
+				id: project.programme_id || 0,
+				name: programmeName,
+			},
+			moderator:
+				moderator ||
+				(project.moderator_id
+					? {
+							id: project.moderator_id,
+							name: moderatorName,
+						}
+					: null),
+			status: project.is_active ? ProjectStatus.Active : ProjectStatus.Inactive,
+			// Add explicit name fields for sorting and display
+			professor_name: professorName,
+			programme_name: programmeName,
+			moderator_name: moderatorName,
+			// Ensure we have venue information if available
+			venue_name: project.venue_name || project.venueName || '',
+			// Ensure we have all IDs properly set
+			professor_id: project.professor_id,
+			programme_id: project.programme_id,
+			moderator_id: project.moderator_id,
+		};
+	};
+
+	// Get admin-formatted projects for course coordinators
+	const adminFormattedProjects = useMemo(() => {
+		if (isCourseCoordinator && projectsData && projectsData.length > 0) {
+			return projectsData.map((project) => enhanceProjectForAdmin(project));
+		}
+		return [];
+	}, [isCourseCoordinator, projectsData, facultyData, programmesData]);
+
 	// Combined projects from both sources
 	const allProjects = useMemo(() => {
 		if (isCourseCoordinator) {
-			// Course coordinator can see all projects
+			// Course coordinator can see all projects (basic format, not enhanced)
 			return projectsData;
 		} else if (isProgrammeLeader && programmeLeaderProjectsData) {
 			// Handle response format from Programme Leader API
@@ -347,14 +432,12 @@ export default function FacultyProjectsPage() {
 		}
 
 		const typedProjects = allProjects as Project[];
-		const typedProgrammes = programmesData as Programme[];
-		const typedFaculty = facultyData as User[];
 
 		// Additional check to ensure typedProjects is definitely an array
 		return Array.isArray(typedProjects)
-			? typedProjects.map((project) => enhanceProject(project, typedProgrammes, typedFaculty))
+			? typedProjects.map((project) => enhanceProjectForAdmin(project))
 			: [];
-	}, [allProjects, programmesData, facultyData]);
+	}, [allProjects, facultyData, programmesData]);
 
 	// Filter projects based on selected programme and search term
 	const filteredProjects = useMemo(() => {
@@ -471,21 +554,85 @@ export default function FacultyProjectsPage() {
 
 	// Render content based on state
 	const renderContent = () => {
-		if (!semesterId) {
-			return (
-				<div className="flex flex-col items-center justify-center p-8 text-center">
-					<div className="text-xl font-semibold mb-4">Please select a semester</div>
-					<p className="text-muted-foreground">
-						Select a semester from the dropdown above to view projects.
-					</p>
-				</div>
-			);
-		}
+		// If checking user roles
 		if (isCheckingRoles) {
 			return (
 				<div className="py-4 text-center">
 					<div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
 					<p>Checking access rights...</p>
+				</div>
+			);
+		}
+
+		// If user is a Course Coordinator - use the admin ProjectList component layout and style
+		if (isCourseCoordinator) {
+			// This matches exactly the admin view layout
+			return projectsLoading ? (
+				<div className="flex justify-center items-center h-40">
+					<p>Loading projects...</p>
+				</div>
+			) : semesterId === null ? (
+				<div className="flex justify-center items-center h-40">
+					<p>Please select a semester</p>
+				</div>
+			) : !projectsData || projectsData.length === 0 ? (
+				<div className="p-4 text-center">
+					<h3 className="text-lg font-medium">No projects found</h3>
+					<p className="text-muted-foreground mt-2">
+						You are not a Course Coordinator for this semester or there are no projects
+						available.
+					</p>
+				</div>
+			) : (
+				<div>
+					<ProjectList
+						projects={adminFormattedProjects.filter((project) => {
+							if (!searchTerm.trim()) return true;
+
+							const searchLower = searchTerm.toLowerCase().trim();
+							return (
+								project.title?.toLowerCase().includes(searchLower) ||
+								(project.description?.toLowerCase().includes(searchLower) ??
+									false) ||
+								(project.programme_name?.toLowerCase().includes(searchLower) ??
+									false) ||
+								(project.professor_name?.toLowerCase().includes(searchLower) ??
+									false) ||
+								(project.moderator_name?.toLowerCase().includes(searchLower) ??
+									false)
+							);
+						})}
+						programmes={programmesData}
+						onProjectUpdate={(updatedProject) => {
+							// Same update handler as in admin view
+							console.log('Project update triggered:', updatedProject);
+
+							// Force an immediate refetch of the projects data to refresh the table
+							refetchProjects()
+								.then(() => {
+									console.log('Projects data successfully refreshed');
+								})
+								.catch((error) => {
+									console.error('Error refreshing projects data:', error);
+								});
+
+							// Only show a toast if the object isn't empty
+							if (Object.keys(updatedProject).length > 1) {
+								// Check if this is a moderator removal
+								const isRemoval =
+									updatedProject.moderator_id === null ||
+									updatedProject.moderatorId === null;
+
+								toast({
+									title: 'Success',
+									description: isRemoval
+										? 'Moderator removed successfully'
+										: 'Moderator assigned successfully',
+									variant: 'default',
+								});
+							}
+						}}
+					/>
 				</div>
 			);
 		}
@@ -502,10 +649,11 @@ export default function FacultyProjectsPage() {
 		// If user doesn't have required role
 		if (!isCourseCoordinator && !isProgrammeLeader) {
 			return (
-				<div className="py-6 text-center text-muted-foreground">
-					<p className="mb-2">
-						You don&apos;t have access to view projects. Please contact your
-						administrator.
+				<div className="p-4 text-center">
+					<h3 className="text-lg font-medium">Access Restricted</h3>
+					<p className="text-muted-foreground mt-2">
+						Sorry, you&apos;re not a Course Coordinator or Programme Leader for this
+						semester.
 					</p>
 				</div>
 			);
@@ -524,10 +672,12 @@ export default function FacultyProjectsPage() {
 		// If no projects found
 		if (filteredProjects.length === 0) {
 			return (
-				<div className="py-6 text-center text-muted-foreground">
-					<p className="mb-2">
-						No projects found.
-						{searchTerm && ` Try adjusting your search criteria.`}
+				<div className="p-4 text-center">
+					<h3 className="text-lg font-medium">No projects found</h3>
+					<p className="text-muted-foreground mt-2">
+						{searchTerm
+							? 'Try adjusting your search criteria.'
+							: 'You may not be a Programme Leader for any programme with projects this semester.'}
 					</p>
 					{(searchTerm || selectedProgrammeId !== 'all') && (
 						<Button
@@ -638,54 +788,12 @@ export default function FacultyProjectsPage() {
 					</Table>
 				</div>
 
-				{/* Pagination Controls */}
-				<div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
-					<div className="text-sm text-muted-foreground">
+				{/* Item count summary - only for Programme Leader */}
+				{isProgrammeLeader && !isCourseCoordinator && (
+					<div className="mt-2 text-sm text-muted-foreground">
 						Showing {startIndex + 1} to {endIndex} of {totalItems} items
 					</div>
-
-					<div className="flex items-center space-x-6">
-						<div className="flex items-center space-x-2">
-							<p className="text-sm whitespace-nowrap">Rows per page</p>
-							<Select
-								value={pageSize.toString()}
-								onValueChange={handlePageSizeChange}
-							>
-								<SelectTrigger className="h-8 w-[70px]">
-									<SelectValue placeholder={pageSize.toString()} />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="5">5</SelectItem>
-									<SelectItem value="10">10</SelectItem>
-									<SelectItem value="20">20</SelectItem>
-									<SelectItem value="50">50</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-
-						<div className="flex items-center space-x-2">
-							<Button
-								variant="outline"
-								size="icon"
-								disabled={currentPage === 1}
-								onClick={() => handlePageChange(currentPage - 1)}
-							>
-								<ChevronLeft className="h-4 w-4" />
-							</Button>
-							<span className="text-sm">
-								Page {currentPage} of {totalPages || 1}
-							</span>
-							<Button
-								variant="outline"
-								size="icon"
-								disabled={currentPage === totalPages || totalPages === 0}
-								onClick={() => handlePageChange(currentPage + 1)}
-							>
-								<ChevronRight className="h-4 w-4" />
-							</Button>
-						</div>
-					</div>
-				</div>
+				)}
 
 				{/* Project Details Modal */}
 				<ProjectDetailsModal
@@ -737,16 +845,15 @@ export default function FacultyProjectsPage() {
 				</CardHeader>
 
 				<CardContent>
-					{/* Controls */}
-					<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+					{/* Controls - Single row layout */}
+					<div className="flex flex-wrap items-center gap-4 mb-6">
 						{/* Semester Selection - Always visible */}
-						<div className="space-y-2">
-							<Label htmlFor="semester">Semester</Label>
+						<div className="w-64">
 							<Select
 								value={semesterId?.toString() || ''}
 								onValueChange={handleSemesterChange}
 							>
-								<SelectTrigger id="semester">
+								<SelectTrigger>
 									<SelectValue placeholder="Select Semester" />
 								</SelectTrigger>
 								<SelectContent>
@@ -763,46 +870,71 @@ export default function FacultyProjectsPage() {
 							</Select>
 						</div>
 
-						{/* Only show filters if role check is complete and user has access */}
-						{(isCourseCoordinator || isProgrammeLeader) && !isLoadingProjects && (
-							<>
-								{/* Programme Filter for Programme Leaders with multiple programmes */}
-								{isProgrammeLeader && programmeLeaderProgrammes.length > 1 && (
-									<div className="space-y-2">
-										<Label htmlFor="programme">Programme</Label>
-										<Select
-											value={selectedProgrammeId}
-											onValueChange={setSelectedProgrammeId}
-										>
-											<SelectTrigger id="programme">
-												<SelectValue placeholder="All Programmes" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="all">All Programmes</SelectItem>
-												{programmeLeaderProgrammes.map((programme) => (
-													<SelectItem
-														key={programme.programme_id}
-														value={programme.programme_id.toString()}
-													>
-														{programme.code || programme.name}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									</div>
-								)}
+						{/* Search Input - takes most of the space */}
+						{((isCourseCoordinator && !isLoadingProjects) ||
+							(isProgrammeLeader && !isCourseCoordinator && !isLoadingProjects)) && (
+							<div className="flex-1">
+								<Input
+									placeholder="Search by title, programme, professor, or moderator..."
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+								/>
+							</div>
+						)}
 
-								{/* Search Input */}
-								<div className="space-y-2 md:col-span-2">
-									<Label htmlFor="search">Search</Label>
-									<Input
-										id="search"
-										placeholder="Search by title, programme, professor, or moderator..."
-										value={searchTerm}
-										onChange={(e) => setSearchTerm(e.target.value)}
-									/>
+						{/* Pagination controls - only for Programme Leader */}
+						{isProgrammeLeader && !isCourseCoordinator && !isLoadingProjects && (
+							<div className="flex items-center justify-end space-x-2">
+								<div className="flex items-center space-x-2">
+									<span className="text-sm text-muted-foreground">Show</span>
+									<Select
+										value={pageSize.toString()}
+										onValueChange={handlePageSizeChange}
+									>
+										<SelectTrigger className="h-8 w-[70px]">
+											<SelectValue placeholder={pageSize.toString()} />
+										</SelectTrigger>
+										<SelectContent side="top">
+											<SelectItem value="5">5</SelectItem>
+											<SelectItem value="10">10</SelectItem>
+											<SelectItem value="20">20</SelectItem>
+											<SelectItem value="50">50</SelectItem>
+										</SelectContent>
+									</Select>
+									<span className="text-sm text-muted-foreground">per page</span>
 								</div>
-							</>
+
+								<Button
+									variant="outline"
+									size="sm"
+									disabled={projectsLoading}
+									onClick={() => refetchProjects()}
+								>
+									{projectsLoading ? 'Loading...' : 'Refresh'}
+								</Button>
+
+								<div className="flex items-center space-x-2 ml-2">
+									<Button
+										variant="outline"
+										size="icon"
+										disabled={currentPage === 1}
+										onClick={() => handlePageChange(currentPage - 1)}
+									>
+										<ChevronLeft className="h-4 w-4" />
+									</Button>
+									<span className="text-sm">
+										{currentPage} / {totalPages || 1}
+									</span>
+									<Button
+										variant="outline"
+										size="icon"
+										disabled={currentPage === totalPages || totalPages === 0}
+										onClick={() => handlePageChange(currentPage + 1)}
+									>
+										<ChevronRight className="h-4 w-4" />
+									</Button>
+								</div>
+							</div>
 						)}
 					</div>
 
