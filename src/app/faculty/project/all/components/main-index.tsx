@@ -1,8 +1,9 @@
 'use client';
 
-import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { removeProjectModerator } from '@/utils/actions/admin/project';
 import { Programme, Project, Semester, User } from '@/utils/actions/admin/types';
 import { Programme as LeaderProgramme } from '@/utils/actions/faculty/check-programme-leader';
 import { useGetFacultyUsers } from '@/utils/hooks/admin/use-get-facullty-users';
@@ -17,6 +18,14 @@ import { useToast } from '@/utils/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
 	Select,
@@ -41,6 +50,8 @@ import {
 // Import admin components for course coordinator view
 import ProjectList from '@/app/admin/project/all/components/project-list';
 import { ProjectDetailsModal } from '@/app/faculty/project/view/components/project-detail-modals';
+
+import AssignModeratorDialog from './assign-moderator-dialog';
 
 // Define interface for Programme Leader API response
 interface ProgrammeLeaderResponse {
@@ -119,6 +130,11 @@ export default function FacultyProjectsPage() {
 	);
 	const [isCheckingRoles, setIsCheckingRoles] = useState(false);
 
+	// Moderator assignment/removal state
+	const [assignModeratorProject, setAssignModeratorProject] = useState<Project | null>(null);
+	const [isRemovingModerator, setIsRemovingModerator] = useState<number | null>(null);
+	const [confirmRemoveProject, setConfirmRemoveProject] = useState<Project | null>(null);
+
 	// Project details modal state
 	const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
 	const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -127,6 +143,88 @@ export default function FacultyProjectsPage() {
 	const handleViewDetails = (projectId: number) => {
 		setSelectedProjectId(projectId);
 		setIsDetailsModalOpen(true);
+	};
+
+	// Handle moderator assignment
+	const handleModeratorAssigned = () => {
+		// Refresh data after moderator assigned
+		if (isCourseCoordinator) {
+			refetchProjects()
+				.then(() => {
+					console.log('Projects data successfully refreshed');
+				})
+				.catch((error) => {
+					console.error('Error refreshing projects data:', error);
+				});
+		} else if (isProgrammeLeader) {
+			refetchProgrammeLeaderProjects()
+				.then(() => {
+					console.log('Programme leader projects data successfully refreshed');
+				})
+				.catch((error) => {
+					console.error('Error refreshing programme leader projects data:', error);
+				});
+		}
+
+		toast({
+			title: 'Success',
+			description: 'Moderator assigned successfully',
+			variant: 'default',
+		});
+	};
+
+	// Handler for removing a moderator
+	const handleRemoveModerator = (project: Project) => {
+		if (!project.moderator_id && !project.moderatorId) return;
+
+		// Open confirmation dialog
+		setConfirmRemoveProject(project);
+	};
+
+	// Confirm and execute moderator removal
+	const confirmAndRemoveModerator = async () => {
+		if (!confirmRemoveProject) return;
+
+		setIsRemovingModerator(confirmRemoveProject.id);
+
+		try {
+			await removeProjectModerator(confirmRemoveProject.id);
+
+			// Refresh projects data
+			if (isCourseCoordinator) {
+				refetchProjects()
+					.then(() => {
+						console.log('Projects data successfully refreshed');
+					})
+					.catch((error) => {
+						console.error('Error refreshing projects data:', error);
+					});
+			} else if (isProgrammeLeader) {
+				refetchProgrammeLeaderProjects()
+					.then(() => {
+						console.log('Programme leader projects data successfully refreshed');
+					})
+					.catch((error) => {
+						console.error('Error refreshing programme leader projects data:', error);
+					});
+			}
+
+			toast({
+				title: 'Success',
+				description: 'Moderator removed successfully',
+				variant: 'default',
+			});
+		} catch (error) {
+			console.error('Error removing moderator:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to remove moderator',
+				variant: 'destructive',
+			});
+		} finally {
+			setIsRemovingModerator(null);
+			setConfirmRemoveProject(null);
+		}
 	};
 
 	// Pagination state
@@ -284,7 +382,7 @@ export default function FacultyProjectsPage() {
 	const {
 		data: programmeLeaderProjectsData = {} as ProgrammeLeaderResponse,
 		isLoading: programmeLeaderProjectsLoading,
-		refetch: _refetchProgrammeLeaderProjects,
+		refetch: refetchProgrammeLeaderProjects,
 	} = useGetProgrammeLeaderProjects(semesterId || 0, facultyEmail, {
 		enabled: semesterId !== null && isProgrammeLeader && !isCourseCoordinator,
 	});
@@ -777,10 +875,38 @@ export default function FacultyProjectsPage() {
 									<TableCell className="text-right">
 										<Button
 											variant="ghost"
+											size="sm"
 											onClick={() => handleViewDetails(project.id)}
 										>
 											View Details
 										</Button>
+										{/* Add moderator assignment/removal buttons */}
+										{project.moderatorName || project.moderator_name ? (
+											<Button
+												variant="ghost"
+												size="sm"
+												className="text-destructive hover:text-destructive hover:bg-destructive/10"
+												onClick={() => handleRemoveModerator(project)}
+												disabled={isRemovingModerator === project.id}
+											>
+												{isRemovingModerator === project.id ? (
+													<>
+														<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+														Removing...
+													</>
+												) : (
+													'Remove Moderator'
+												)}
+											</Button>
+										) : (
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => setAssignModeratorProject(project)}
+											>
+												Assign Moderator
+											</Button>
+										)}
 									</TableCell>
 								</TableRow>
 							))}
@@ -801,6 +927,71 @@ export default function FacultyProjectsPage() {
 					isOpen={isDetailsModalOpen}
 					onClose={() => setIsDetailsModalOpen(false)}
 				/>
+
+				{/* Assign Moderator Dialog */}
+				{assignModeratorProject && (
+					<AssignModeratorDialog
+						open={!!assignModeratorProject}
+						onOpenChange={(open) => !open && setAssignModeratorProject(null)}
+						project={assignModeratorProject}
+						onAssigned={handleModeratorAssigned}
+					/>
+				)}
+
+				{/* Remove Moderator Confirmation Dialog */}
+				<Dialog
+					open={!!confirmRemoveProject}
+					onOpenChange={(open) => !open && setConfirmRemoveProject(null)}
+				>
+					<DialogContent className="sm:max-w-[425px]">
+						<DialogHeader>
+							<DialogTitle>Remove Moderator</DialogTitle>
+							<DialogDescription>
+								Are you sure you want to remove the moderator from this project?
+							</DialogDescription>
+						</DialogHeader>
+
+						<div className="py-4">
+							{confirmRemoveProject && (
+								<div className="space-y-2">
+									<p>
+										<span className="font-medium">Project:</span>{' '}
+										{confirmRemoveProject.title}
+									</p>
+									<p>
+										<span className="font-medium">Current Moderator:</span>{' '}
+										{confirmRemoveProject.moderatorName ||
+											confirmRemoveProject.moderator_name}
+									</p>
+								</div>
+							)}
+						</div>
+
+						<DialogFooter>
+							<Button
+								variant="outline"
+								onClick={() => setConfirmRemoveProject(null)}
+								disabled={isRemovingModerator !== null}
+							>
+								Cancel
+							</Button>
+							<Button
+								variant="destructive"
+								onClick={confirmAndRemoveModerator}
+								disabled={isRemovingModerator !== null}
+							>
+								{isRemovingModerator !== null ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Removing...
+									</>
+								) : (
+									'Remove Moderator'
+								)}
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			</div>
 		);
 	};
