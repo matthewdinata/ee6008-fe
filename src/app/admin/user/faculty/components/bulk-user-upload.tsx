@@ -11,26 +11,17 @@ import { Input } from '@/components/ui/input';
 
 export default function BulkUserUpload() {
 	const [file, setFile] = useState<File | null>(null);
-	const {
-		isUploading,
-		successMessage,
-		errorMessage,
-		debugLog,
-		uploadFaculty,
-		addDebugMessage,
-		resetMessages,
-	} = useBulkUploadFaculty();
+	const { isUploading, successMessage, errorMessage, uploadFaculty, resetMessages } =
+		useBulkUploadFaculty();
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files.length > 0) {
 			const selectedFile = event.target.files[0];
 			setFile(selectedFile);
-			addDebugMessage(`File selected: ${selectedFile.name} (${selectedFile.type})`);
 		}
 	};
 
 	const downloadTemplate = () => {
-		addDebugMessage('Initiating template download...');
 		const headers = ['Email', 'Name', 'IsCourseCoordinator'];
 		const templateRows = [
 			['professor1@e.edu.sg', 'Dr. Smith', 'true'],
@@ -49,13 +40,10 @@ export default function BulkUserUpload() {
 		a.click();
 		document.body.removeChild(a);
 		window.URL.revokeObjectURL(url);
-
-		addDebugMessage('Template download completed');
 	};
 
 	const handleUpload = async () => {
 		if (!file) {
-			addDebugMessage('Upload attempted without file selection');
 			return;
 		}
 
@@ -155,16 +143,6 @@ export default function BulkUserUpload() {
 							{errorMessage}
 						</AlertDescription>
 					</Alert>
-				)}
-
-				{/* Debug Log */}
-				{debugLog.length > 0 && (
-					<div className="mt-8 p-4 bg-gray-50 rounded-md">
-						<h3 className="text-sm font-medium text-gray-700 mb-2">Debug Log:</h3>
-						<pre className="text-xs text-gray-600 whitespace-pre-wrap">
-							{debugLog.join('\n')}
-						</pre>
-					</div>
 				)}
 			</div>
 		</div>
