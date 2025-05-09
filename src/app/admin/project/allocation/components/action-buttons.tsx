@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Check, CheckCheck, FileDown, History, Play } from 'lucide-react';
 import { useState } from 'react';
 import { CSVLink } from 'react-csv';
@@ -29,6 +30,7 @@ import {
 
 import { GeneratedAllocationData } from '../types';
 import { prepareCSVData } from '../utils';
+import { ImportAllocation } from './import-allocation';
 
 function AllocationHistory({
 	semesterId,
@@ -138,6 +140,8 @@ export function ActionButtons({
 		useToggleSelectedAllocation();
 	const { mutate: clearSelectedAllocation, isPending: isClearing } = useClearSelectedAllocation();
 
+	const queryClient = useQueryClient();
+
 	const handleApply = (data: GeneratedAllocationData) => {
 		setAllocationData(data);
 		setIsDialogOpen(false);
@@ -176,13 +180,23 @@ export function ActionButtons({
 		}
 	};
 
+	const handleImportSuccess = async (data: GeneratedAllocationData) => {
+		setAllocationData(data);
+		queryClient.refetchQueries({
+			queryKey: ['get-allocations-by-semester', semesterId],
+			type: 'active',
+			exact: true,
+		});
+	};
+
 	return (
 		<div className="flex flex-wrap justify-between items-center">
 			<div className="flex flex-wrap gap-3 mr-auto">
 				<Button variant="default" onClick={handleGenerate} disabled={isPending}>
-					<Play className="w-4 h-4" />
+					<Play className="w-4 h-4 mr-2" />
 					{isPending ? 'Generating...' : 'Generate Allocation'}
 				</Button>
+
 				<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 					<DialogTrigger asChild>
 						<Button
@@ -190,7 +204,7 @@ export function ActionButtons({
 							disabled={isPending}
 							onClick={() => setIsDialogOpen(true)}
 						>
-							<History className="w-4 h-4" />
+							<History className="w-4 h-4 mr-2" />
 							History
 						</Button>
 					</DialogTrigger>
@@ -222,6 +236,9 @@ export function ActionButtons({
 					)}
 				</Button>
 
+				{/* Add the Import Allocation button */}
+				<ImportAllocation semesterId={semesterId} onSuccess={handleImportSuccess} />
+
 				<Button
 					variant="outline"
 					onClick={handleIsActiveButtonClick}
@@ -238,7 +255,11 @@ export function ActionButtons({
 							: ''
 					}
 				>
-					{isActive ? <CheckCheck className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+					{isActive ? (
+						<CheckCheck className="w-4 h-4 mr-2" />
+					) : (
+						<Check className="w-4 h-4 mr-2" />
+					)}
 					{isToggling || isClearing
 						? 'Processing...'
 						: isActive
