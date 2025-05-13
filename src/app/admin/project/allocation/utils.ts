@@ -49,7 +49,7 @@ export const prepareCSVData = (data: GeneratedAllocationData) => {
 	});
 
 	// Add unallocated students
-	if (data.result.unallocatedStudents.length > 0) {
+	if (data.result.unallocatedStudents?.length > 0) {
 		summaryData.push({ metric: '', value: '' }); // Empty row for separation
 		summaryData.push({ metric: 'UNALLOCATED STUDENTS', value: '' });
 		summaryData.push({
